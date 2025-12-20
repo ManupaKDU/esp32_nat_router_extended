@@ -55,7 +55,7 @@ jobs:
       - name: Build one binary for ESP32
         run: |
           folder=.pio/build/esp32
-          chip=esp32ry to fix build
+          chip=esp32
           mkdir -p release/ota/ESP32/
           cp version release/ota/
           cp $folder/firmware.bin release/ota/ESP32/firmware.bin 
