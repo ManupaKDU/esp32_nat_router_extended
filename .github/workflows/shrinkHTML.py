@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
-import os, sys
-import htmlmin2 as htmlmin
+import os, sys, htmlmin
 
 
 def shrinkHtml():
