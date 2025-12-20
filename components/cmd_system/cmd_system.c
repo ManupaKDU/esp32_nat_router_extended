@@ -228,7 +228,7 @@ static int deep_sleep(int argc, char **argv)
     if (deep_sleep_args.wakeup_gpio_num->count)
     {
         int io_num = deep_sleep_args.wakeup_gpio_num->ival[0];
-        if (!GPIO_IS_VALID_GPIO(io_num))
+        if (io_num >= GPIO_NUM_NC || io_num < 0)
         {
             ESP_LOGE(TAG, "GPIO %d is not a valid IO", io_num);
             return 1;
@@ -312,20 +312,22 @@ static int light_sleep(int argc, char **argv)
         ESP_LOGE(TAG, "Should have same number of 'io' and 'io_level' arguments");
         return 1;
     }
-    for (int i = 0; i < io_count; ++i)
-    {
-        int io_num = light_sleep_args.wakeup_gpio_num->ival[i];
-        int level = light_sleep_args.wakeup_gpio_level->ival[i];
-        if (level != 0 && level != 1)
+    #if !CONFIG_IDF_TARGET_ESP32C3 && !CONFIG_IDF_TARGET_ESP32C6
+        for (int i = 0; i < io_count; ++i)
         {
-            ESP_LOGE(TAG, "Invalid wakeup level: %d", level);
-            return 1;
-        }
-        ESP_LOGI(TAG, "Enabling wakeup on GPIO%d, wakeup on %s level",
-                 io_num, level ? "HIGH" : "LOW");
+            int io_num = light_sleep_args.wakeup_gpio_num->ival[i];
+            int level = light_sleep_args.wakeup_gpio_level->ival[i];
+            if (level != 0 && level != 1)
+            {
+                ESP_LOGE(TAG, "Invalid wakeup level: %d", level);
+                return 1;
+            }
+            ESP_LOGI(TAG, "Enabling wakeup on GPIO%d, wakeup on %s level",
+                    io_num, level ? "HIGH" : "LOW");
 
-        ESP_ERROR_CHECK(gpio_wakeup_enable(io_num, level ? GPIO_INTR_HIGH_LEVEL : GPIO_INTR_LOW_LEVEL));
-    }
+            ESP_ERROR_CHECK(rtc_gpio_wakeup_enable(io_num, level ? GPIO_INTR_HIGH_LEVEL : GPIO_INTR_LOW_LEVEL));
+        }
+    #endif
     if (io_count > 0)
     {
         ESP_ERROR_CHECK(esp_sleep_enable_gpio_wakeup());
