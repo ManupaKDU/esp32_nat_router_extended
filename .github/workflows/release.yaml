@@ -46,7 +46,7 @@ jobs:
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install htmlmin esptool
+          pip install htmlmin2 esptool
       - name: Minify HTML files
         run: python .github/workflows/shrinkHTML.py
         shell: sh
@@ -55,7 +55,7 @@ jobs:
       - name: Build one binary for ESP32
         run: |
           folder=.pio/build/esp32
-          chip=esp32
+          chip=esp32ry to fix build
           mkdir -p release/ota/ESP32/
           cp version release/ota/
           cp $folder/firmware.bin release/ota/ESP32/firmware.bin 
