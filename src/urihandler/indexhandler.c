@@ -195,11 +195,11 @@ esp_err_t index_post_handler(httpd_req_t *req)
     httpd_req_to_sockfd(req);
 
     size_t content_len = req->content_len;
-    char buf[content_len];
+    char buf[content_len + 1];
 
     if (fill_post_buffer(req, buf, content_len) == ESP_OK)
     {
-        char ssidParam[req->content_len];
+        char ssidParam[req->content_len + 1];
         readUrlParameterIntoBuffer(buf, "ssid", ssidParam, req->content_len);
 
         if (strlen(ssidParam) > 0)
