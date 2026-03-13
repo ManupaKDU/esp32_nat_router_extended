@@ -368,12 +368,12 @@ esp_err_t ota_post_handler(httpd_req_t *req)
     }
 
     int ret, remaining = req->content_len;
-    char buf[req->content_len];
+    char buf[req->content_len + 1];
 
     while (remaining > 0)
     {
         /* Read the data for the request */
-        if ((ret = httpd_req_recv(req, buf, MIN(remaining, sizeof(buf)))) <= 0)
+        if ((ret = httpd_req_recv(req, buf + (req->content_len - remaining), MIN(remaining, req->content_len + 1 - (req->content_len - remaining) - 1))) <= 0)
         {
             if (ret == HTTPD_SOCK_ERR_TIMEOUT)
             {

@@ -59,7 +59,7 @@ esp_err_t fill_post_buffer(httpd_req_t *req, char *buf, size_t len)
     while (remaining > 0)
     {
         /* Read the data for the request */
-        if ((ret = httpd_req_recv(req, buf, MIN(remaining, len))) <= 0)
+        if ((ret = httpd_req_recv(req, buf + (len - remaining), MIN(remaining, len))) <= 0)
         {
             if (ret == HTTPD_SOCK_ERR_TIMEOUT)
             {
@@ -72,6 +72,7 @@ esp_err_t fill_post_buffer(httpd_req_t *req, char *buf, size_t len)
         remaining -= ret;
     }
 
+    buf[len] = '\0';
     return ESP_OK;
 }
 

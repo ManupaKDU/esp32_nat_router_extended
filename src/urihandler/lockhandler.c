@@ -24,12 +24,12 @@ esp_err_t unlock_handler(httpd_req_t *req)
     httpd_req_to_sockfd(req);
 
     size_t content_len = req->content_len;
-    char buf[content_len];
+    char buf[content_len + 1];
 
     if (fill_post_buffer(req, buf, content_len) == ESP_OK)
     {
 
-        char unlockParam[req->content_len];
+        char unlockParam[req->content_len + 1];
         readUrlParameterIntoBuffer(buf, "unlock", unlockParam, req->content_len);
 
         if (strlen(unlockParam) > 0)
@@ -73,12 +73,12 @@ esp_err_t lock_handler(httpd_req_t *req)
     if (req->method == HTTP_POST) // Relock if called
     {
         int ret, remaining = req->content_len;
-        char buf[req->content_len];
+        char buf[req->content_len + 1];
 
         while (remaining > 0)
         {
             /* Read the data for the request */
-            if ((ret = httpd_req_recv(req, buf, MIN(remaining, sizeof(buf)))) <= 0)
+            if ((ret = httpd_req_recv(req, buf + (req->content_len - remaining), MIN(remaining, sizeof(buf) - 1))) <= 0)
             {
                 if (ret == HTTPD_SOCK_ERR_TIMEOUT)
                 {
@@ -90,8 +90,9 @@ esp_err_t lock_handler(httpd_req_t *req)
 
             remaining -= ret;
         }
+        buf[req->content_len] = '\0';
 
-        char passParam[req->content_len], pass2Param[req->content_len];
+        char passParam[req->content_len + 1], pass2Param[req->content_len + 1];
 
         readUrlParameterIntoBuffer(buf, "lockpass", passParam, req->content_len);
         readUrlParameterIntoBuffer(buf, "lockpass2", pass2Param, req->content_len);
