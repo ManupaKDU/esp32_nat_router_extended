@@ -13,22 +13,22 @@
         </div>
         <div class="col-2">
             <input class="form-control mt-2" id="eport" maxlength="5" name="eport" placeholder="External port"
-                type="number" min="1" max="65535" />
+                aria-label="External port" type="number" min="1" max="65535" />
         </div>
         <div class="col-4">
             <div class="input-group mt-2">
                 <span class="input-group-text" id="basic-addon1">%s</span>
-                <input type="number" class="form-control" name="ip" placeholder="IP" min="2" max="254"
+                <input type="number" class="form-control" name="ip" placeholder="IP" aria-label="Internal IP" min="2" max="254"
                     maxlength="3">
             </div>
         </div>
         <div class="col-2">
             <input class="form-control mt-2" id="iport" maxlength="5" name="iport" placeholder="Internal port"
-                type="number" min="1" max="65535" />
+                aria-label="Internal port" type="number" min="1" max="65535" />
         </div>
         <div class="col-2">
             <div>
-                <button title='Add' name='add' class='btn btn-light mt-2'>
+                <button title='Add' name='add' class='btn btn-light mt-2' aria-label="Add portmap entry">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                         class="bi bi-plus-circle-fill" viewBox="0 0 16 16">
                         <path
