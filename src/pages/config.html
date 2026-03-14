@@ -33,7 +33,7 @@
                 <div class="col-9">
                     <div class="input-group"> <input class="form-control col-9" id="ap_password" maxlength="64"
                             name="ap_password" placeholder="Password of the new network" type="password" value="%s" />
-                        <span class="input-group-text password" style="cursor: pointer;" title="show password"><svg
+                        <span class="input-group-text password" role="button" tabindex="0" style="cursor: pointer;" title="show password" aria-label="Show or hide password"><svg
                                 xmlns=http://www.w3.org/2000/svg width="16" height="16" fill="currentColor"
                                 class="bi bi-eye" viewBox="0 0 16 16">
                                 <path
@@ -90,7 +90,7 @@
                 <div class="col-9">
                     <div class="input-group"> <input class="form-control" id="password" maxlength="64" name="password"
                             placeholder="Password of the existing network" type="password" value="%s" /> <span
-                            class="input-group-text password" style="cursor: pointer;" title="show password"><svg
+                            class="input-group-text password" role="button" tabindex="0" style="cursor: pointer;" title="show password" aria-label="Show or hide password"><svg
                                 xmlns=http://www.w3.org/2000/svg width="16" height="16" fill="currentColor"
                                 class="bi bi-eye" viewBox="0 0 16 16">
                                 <path
@@ -109,7 +109,7 @@
 
         <div class="form-group row col-4 offset-4 mt-2">
             <a href="scan" class="btn btn-light col-%s" title="Wifi scan">Wifi Scan</a>
-            <a href="result" class="btn btn-light col-3" type="submit" title="last result" style="display: %s;"><svg
+            <a href="result" class="btn btn-light col-3" title="View last scan result" aria-label="View last scan result" style="display: %s;"><svg
                     xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                     class="bi bi-clock-history" viewBox="0 0 16 16">
                     <path
@@ -131,7 +131,7 @@
         <div class="form-group row col-4 offset-4 mt-2" style="display: %s">
             <a href="lock" class="btn btn-light col-9" title="Change/Remove lock pass">Change/Remove lock
                 pass</a>
-            <a href="unlock" class="btn btn-light col-3" type="submit" title="Relock" style="display: block;"><svg
+            <a href="unlock" class="btn btn-light col-3" title="Relock interface" aria-label="Relock interface" style="display: block;"><svg
                     xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-lock"
                     viewBox="0 0 16 16">
                     <path
@@ -142,7 +142,7 @@
 
     </div>
     <script src="jquery-8a1045d9cbf50b52a0805c111ba08e94.js"></script>
-    <script>     $('.password').on('mousedown mouseup mouseout touchstart touchend', function mouseState(e) { var field = $(this).parent().find('input'); if (e.type == "mousedown" || e.type == "touchstart") { field.get(0).type = 'text'; } else { field.get(0).type = 'password'; } });</script>
+    <script>     $('.password').on('mousedown mouseup mouseout touchstart touchend keydown keyup', function mouseState(e) { if (e.type === "keydown" || e.type === "keyup") { if (e.key !== "Enter" && e.key !== " ") return; if (e.type === "keydown") e.preventDefault(); } var field = $(this).parent().find('input'); if (e.type == "mousedown" || e.type == "touchstart" || e.type == "keydown") { field.get(0).type = 'text'; } else { field.get(0).type = 'password'; } });</script>
     <script>(function poll() {
             $.ajax({
                 url: "/api", type: "GET", success: function (data) {
@@ -163,7 +163,6 @@
                 }, 3000), timeout: 3000
             })
         })();</script>
-    <script>     $('.password').on('mousedown mouseup mouseout touchstart touchend', function mouseState(e) { var field = $(this).parent().find('input'); if (e.type == "mousedown" || e.type == "touchstart") { field.get(0).type = 'text'; } else { field.get(0).type = 'password'; } });</script>
     <script>$('#wpa2enabled').change(function () {
             if ($(this).prop('checked')) {
                 $('#wpa2-container').show();
