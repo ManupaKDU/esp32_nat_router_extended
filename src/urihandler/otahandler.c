@@ -34,16 +34,19 @@ void appendToLog(const char *message)
 {
     char tmp[500] = "";
 
-    sprintf(tmp, "<tr><th>%s</th></tr>", message);
+    snprintf(tmp, sizeof(tmp), "<tr><th>%s</th></tr>", message);
 
-    strcat(otalog, tmp);
+    size_t current_len = strlen(otalog);
+    if (current_len < sizeof(otalog) - 1) {
+        strncat(otalog, tmp, sizeof(otalog) - current_len - 1);
+    }
     ESP_LOGI(TAG, "%s", message);
 }
 
 void setResultLog(const char *message, const char *cssClass)
 {
 
-    sprintf(resultLog, "<tr><th class=\"%s\">%s</th></tr>", cssClass, message);
+    snprintf(resultLog, sizeof(resultLog), "<tr><th class=\"%s\">%s</th></tr>", cssClass, message);
 
     ESP_LOGI(TAG, "%s", message);
 }
@@ -89,7 +92,7 @@ esp_err_t ota_event_event_handler(esp_http_client_event_t *evt)
         if (strcasecmp("Content-Length", evt->header_key) == 0)
         {
             content_length = strtol(evt->header_value, &endptr, 10);
-            sprintf(tmp, "Download size is %lld kB", (content_length / 1000));
+            snprintf(tmp, sizeof(tmp), "Download size is %lld kB", (content_length / 1000));
             appendToLog(tmp);
         }
         break;
@@ -209,8 +212,11 @@ void start_ota_update()
 void appendToChangelog(const char *entry)
 {
     char tmp[500] = "";
-    sprintf(tmp, "<li>%s</li>", entry);
-    strcat(changelog, tmp);
+    snprintf(tmp, sizeof(tmp), "<li>%s</li>", entry);
+    size_t current_len = strlen(changelog);
+    if (current_len < sizeof(changelog) - 1) {
+        strncat(changelog, tmp, sizeof(changelog) - current_len - 1);
+    }
 }
 
 void updateVersion()
