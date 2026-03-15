@@ -33,10 +33,9 @@ esp_err_t clients_download_get_handler(httpd_req_t *req)
     strcpy(result, "");
     if (wifi_sta_list.num > 0)
     {
+        char template[strlen(CLIENT_TEMPLATE) + 100];
         for (int i = 0; i < adapter_sta_list.num; i++)
         {
-
-            char *template = malloc(strlen(CLIENT_TEMPLATE) + 100);
             esp_netif_pair_mac_ip_t station = adapter_sta_list.sta[i];
 
             char str_ip[16];
