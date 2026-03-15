@@ -72,7 +72,7 @@ esp_err_t portmap_get_handler(httpd_req_t *req)
     extern const char portmap_end[] asm("_binary_portmap_end_html_end");
     const size_t portmap_html_size = (portmap_end - portmap_end_start);
     char *defaultIP = getDefaultIPByNetmask();
-    char ip_prefix[strlen(defaultIP) - 1];
+    char ip_prefix[strlen(defaultIP)];
     strncpy(ip_prefix, defaultIP, strlen(defaultIP) - 1); // Without the last part
     ip_prefix[strlen(defaultIP) - 1] = '\0';
     char *portmap_page = malloc(portmap_html_size + strlen(ip_prefix));
@@ -117,7 +117,7 @@ void addPortmapEntry(char *urlContent)
 
     readUrlParameterIntoBuffer(urlContent, "ip", param, contentLength);
     char *defaultIP = getDefaultIPByNetmask();
-    char resultIP[strlen(defaultIP) + strlen(param)];
+    char resultIP[strlen(defaultIP) + strlen(param) + 1];
     strncpy(resultIP, defaultIP, strlen(defaultIP) - 1);
     resultIP[strlen(defaultIP) - 1] = '\0';
     strcat(resultIP, param);

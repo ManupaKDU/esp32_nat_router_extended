@@ -7,3 +7,7 @@
 **Vulnerability:** Unbounded writes to log buffers in `otahandler.c`. `sprintf` and `strcat` could exceed global array limits (`otalog`, `changelog`, `resultLog`) if an attacker provides a malicious/long OTA URL causing large responses.
 **Learning:** Global variables for logging on embedded systems are prone to overflow if appended indiscriminately. When aggregating data from external inputs over HTTP (like release notes/OTA progress), checking string limits before concatenating is crucial.
 **Prevention:** Replace bounded `sprintf` and `strcat` functions with `snprintf` and `strncat` checking the destination buffer size before appending.
+## 2024-05-30 - [Buffer Overflow in string truncation logic]
+ **Vulnerability:** Stack Buffer Overflow in IP address string truncation (`ip_prefix[strlen(defaultIP) - 1] = '\0'`) when allocating exactly `strlen(defaultIP) - 1` space instead of `strlen(defaultIP)`.
+ **Learning:** When truncating a string by replacing a character with `\0`, you must ensure the underlying buffer is sized to include the `\0`. If you allocate `strlen(str) - 1` and write `\0` to index `strlen(str) - 1`, you are writing out of bounds by one byte.
+ **Prevention:** Allocate `strlen(str)` or more space to safely accommodate the truncated string and its NUL terminator at index `strlen(str) - 1`. Always account for the `\0` byte when calculating buffer sizes.
