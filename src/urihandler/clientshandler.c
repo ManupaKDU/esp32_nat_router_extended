@@ -51,7 +51,7 @@ esp_err_t clients_download_get_handler(httpd_req_t *req)
     }
     else
     {
-        strcat(result, "<tr class='text-danger'><td colspan='3'>No clients connected</td></tr>");
+        strcat(result, "<tr class='text-muted'><td colspan='3'>No clients connected</td></tr>");
     }
 
     httpd_req_to_sockfd(req);

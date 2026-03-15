@@ -62,7 +62,7 @@ esp_err_t portmap_get_handler(httpd_req_t *req)
     if (!entriesSent)
     {
         ESP_LOGI(TAG, "Sending no entry part");
-        const char *template = "<tr><td colspan='5' class='text-warning'>No portmap entries found</td></tr>";
+        const char *template = "<tr><td colspan='5' class='text-muted'>No portmap entries found</td></tr>";
         ESP_ERROR_CHECK(httpd_resp_send_chunk(req, template, HTTPD_RESP_USE_STRLEN));
     }
 
