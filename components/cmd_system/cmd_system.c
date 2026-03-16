@@ -13,6 +13,7 @@
 #include "esp_log.h"
 #include "esp_console.h"
 #include "esp_system.h"
+#include "driver/gpio.h"
 #include "esp_sleep.h"
 #include "spi_flash_mmap.h"
 #include "driver/rtc_io.h"
