@@ -42,9 +42,9 @@ esp_err_t clients_download_get_handler(httpd_req_t *req)
             esp_ip4addr_ntoa(&(station.ip), str_ip, IP4ADDR_STRLEN_MAX);
 
             char currentMAC[18];
-            sprintf(currentMAC, "%x:%x:%x:%x:%x:%x", station.mac[0], station.mac[1], station.mac[2], station.mac[3], station.mac[4], station.mac[5]);
+            snprintf(currentMAC, sizeof(currentMAC), "%x:%x:%x:%x:%x:%x", station.mac[0], station.mac[1], station.mac[2], station.mac[3], station.mac[4], station.mac[5]);
 
-            sprintf(template, CLIENT_TEMPLATE, i + 1, str_ip, currentMAC);
+            snprintf(template, sizeof(template), CLIENT_TEMPLATE, i + 1, str_ip, currentMAC);
             strcat(result, template);
         }
     }
@@ -60,7 +60,7 @@ esp_err_t clients_download_get_handler(httpd_req_t *req)
 
     int size = clients_html_size + strlen(result);
     char *clients_page = malloc(size - 2);
-    sprintf(clients_page, clients_start, result);
+    snprintf(clients_page, size - 2, clients_start, result);
 
     closeHeader(req);
 
