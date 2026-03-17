@@ -55,9 +55,9 @@ esp_err_t result_download_get_handler(httpd_req_t *req)
     {
         char *end_str;
         char *row = strtok_r(result_param, "\x05", &end_str);
+        char template[strlen(ROW_TEMPLATE) + 100];
         while (row != NULL)
         {
-            char *template = malloc(strlen(ROW_TEMPLATE) + 100);
             char *ssid = strtok(row, "\x03");
             char *rssi = strtok(NULL, "\x03");
 
@@ -66,8 +66,6 @@ esp_err_t result_download_get_handler(httpd_req_t *req)
             strcat(result, template);
 
             row = strtok_r(NULL, "\x05", &end_str);
-
-            free(template);
         }
     }
 

@@ -29,6 +29,7 @@ esp_err_t portmap_get_handler(httpd_req_t *req)
 
     // send entries
     bool entriesSent = false;
+    char template[strlen(PORTMAP_ROW_TEMPLATE) + 12 + 16 + 4 + 50];
     for (int i = 0; i < PORTMAP_MAX; i++)
     {
         if (portmap_tab[i].valid)
@@ -49,14 +50,11 @@ esp_err_t portmap_get_handler(httpd_req_t *req)
             char delParam[50];
             sprintf(delParam, "%s_%hu_%s_%hu", protocol, portmap_tab[i].mport, ip_str, portmap_tab[i].dport);
 
-            char *template = malloc(strlen(PORTMAP_ROW_TEMPLATE) + 12 + strlen(ip_str) + strlen(protocol) + strlen(delParam));
-
             sprintf(template, PORTMAP_ROW_TEMPLATE, protocol, portmap_tab[i].mport, ip_str, portmap_tab[i].dport, delParam);
 
             ESP_LOGI(TAG, "Sending portmap entry part");
             ESP_ERROR_CHECK(httpd_resp_send_chunk(req, template, HTTPD_RESP_USE_STRLEN));
             entriesSent = true;
-            free(template);
         }
     }
     if (!entriesSent)
