@@ -153,6 +153,7 @@ static char *wifi_scan(void)
 
     char result[DEFAULT_SCAN_LIST_SIZE * 100];
     strcpy(result, "");
+    char tmp[100];
 
     for (int i = 0; (i < DEFAULT_SCAN_LIST_SIZE) && (i < ap_count); i++)
     {
@@ -165,12 +166,9 @@ static char *wifi_scan(void)
         }
         ESP_LOGI(TAG, "Channel \t\t%d\n", ap_info[i].primary);
 
-        char *tmp = malloc(100);
-
         sprintf(tmp, "%s\x03%d\x05", ap_info[i].ssid, ap_info[i].rssi);
 
         strcat(result, tmp);
-        free(tmp);
     }
 
     char *a_ptr = result;
