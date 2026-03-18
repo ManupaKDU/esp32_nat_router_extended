@@ -13,9 +13,9 @@ esp_err_t rest_handler(httpd_req_t *req)
     }
     httpd_resp_set_type(req, "application/json");
 
-    char *db = NULL;
+    char db[8] = "";
     char *textColor = NULL;
-    fillInfoData(&db, &textColor);
+    fillInfoData(db, &textColor);
 
     size_t size = strlen(JSON_TEMPLATE) + 5 + strlen(db) + strlen(textColor);
     char *json = malloc(size);
@@ -23,6 +23,5 @@ esp_err_t rest_handler(httpd_req_t *req)
     esp_err_t ret = httpd_resp_send(req, json, HTTPD_RESP_USE_STRLEN);
     ESP_LOGD(TAG, "JSON-Response: %s", json);
     free(json);
-    free(db);
     return ret;
 }

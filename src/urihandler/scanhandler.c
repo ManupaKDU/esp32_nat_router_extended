@@ -6,21 +6,21 @@
 
 static const char *TAG = "ScanHandler";
 
-void fillInfoData(char **db, char **textColor)
+void fillInfoData(char *db, char **textColor)
 {
-    *db = realloc(*db, 5);
+    // ⚡ Bolt: Removed realloc and using stack-allocated buffer to prevent memory fragmentation
     wifi_ap_record_t apinfo;
     memset(&apinfo, 0, sizeof(apinfo));
     if (esp_wifi_sta_get_ap_info(&apinfo) == ESP_OK)
     {
-        sprintf(*db, "%d", apinfo.rssi);
+        sprintf(db, "%d", apinfo.rssi);
         *textColor = findTextColorForSSID(apinfo.rssi);
         ESP_LOGD(TAG, "RSSI: %d", apinfo.rssi);
         ESP_LOGD(TAG, "SSID: %s", apinfo.ssid);
     }
     else
     {
-        sprintf(*db, "%d", 0);
+        sprintf(db, "%d", 0);
         *textColor = "danger";
     }
 }
