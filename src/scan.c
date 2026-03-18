@@ -155,6 +155,9 @@ static char *wifi_scan(void)
     strcpy(result, "");
     char tmp[100];
 
+    // ⚡ Bolt: Stack-allocated buffer prevents memory fragmentation inside the loop
+    char tmp[100];
+
     for (int i = 0; (i < DEFAULT_SCAN_LIST_SIZE) && (i < ap_count); i++)
     {
         ESP_LOGI(TAG, "SSID \t\t%s", ap_info[i].ssid);
