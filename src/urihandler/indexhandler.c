@@ -93,10 +93,10 @@ esp_err_t index_get_handler(httpd_req_t *req)
     {
         size = size + strlen(ssid) + strlen(passwd);
     }
-    char *db = NULL;
+    char db[8] = "";
     char *textColor = NULL;
     char *wifiOn, *wifiOff = NULL;
-    fillInfoData(&db, &textColor);
+    fillInfoData(db, &textColor);
     if (strcmp(db, "0") == 0)
     {
         wifiOn = "none";
@@ -174,7 +174,6 @@ esp_err_t index_get_handler(httpd_req_t *req)
     free(config_page);
     free(appliedSSID);
     appliedSSID = NULL;
-    free(db);
     if (strlen(cer) > 0) // Error on C3
     {
         free(cer);
