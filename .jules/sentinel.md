@@ -11,3 +11,8 @@
  **Vulnerability:** Stack Buffer Overflow in IP address string truncation (`ip_prefix[strlen(defaultIP) - 1] = '\0'`) when allocating exactly `strlen(defaultIP) - 1` space instead of `strlen(defaultIP)`.
  **Learning:** When truncating a string by replacing a character with `\0`, you must ensure the underlying buffer is sized to include the `\0`. If you allocate `strlen(str) - 1` and write `\0` to index `strlen(str) - 1`, you are writing out of bounds by one byte.
  **Prevention:** Allocate `strlen(str)` or more space to safely accommodate the truncated string and its NUL terminator at index `strlen(str) - 1`. Always account for the `\0` byte when calculating buffer sizes.
+
+## 2024-05-31 - [Stack Use-After-Return]
+**Vulnerability:** A local array allocated on the stack inside a function (`wifi_scan`) was being returned as a pointer, resulting in a use-after-return vulnerability. Accessing memory after the function stack frame has been destroyed causes undefined behavior, often corrupting memory.
+**Learning:** Returning local arrays declared inside a function is a classic C vulnerability. C arrays decay to pointers, which silently allow you to return an address that is no longer valid once the function returns.
+**Prevention:** If an array must outlive the scope of the function in which it was created, allocate it dynamically on the heap using `malloc()` or `calloc()`, and ensure the caller or receiving function eventually calls `free()`.
