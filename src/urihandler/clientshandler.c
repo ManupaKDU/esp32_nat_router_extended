@@ -30,10 +30,11 @@ esp_err_t clients_download_get_handler(httpd_req_t *req)
     esp_wifi_ap_get_sta_list_with_ip(&wifi_sta_list, &adapter_sta_list);
 
     char result[1000];
-    strcpy(result, "");
+    int offset = 0;
+    result[0] = '\0';
+
     if (wifi_sta_list.num > 0)
     {
-        char template[strlen(CLIENT_TEMPLATE) + 100];
         for (int i = 0; i < adapter_sta_list.num; i++)
         {
             esp_netif_pair_mac_ip_t station = adapter_sta_list.sta[i];
@@ -44,13 +45,22 @@ esp_err_t clients_download_get_handler(httpd_req_t *req)
             char currentMAC[18];
             snprintf(currentMAC, sizeof(currentMAC), "%x:%x:%x:%x:%x:%x", station.mac[0], station.mac[1], station.mac[2], station.mac[3], station.mac[4], station.mac[5]);
 
-            snprintf(template, sizeof(template), CLIENT_TEMPLATE, i + 1, str_ip, currentMAC);
-            strcat(result, template);
+            // ⚡ Bolt: Prevent O(N^2) string concatenation by writing directly to buffer at the current offset
+            int written = snprintf(result + offset, sizeof(result) - offset, CLIENT_TEMPLATE, i + 1, str_ip, currentMAC);
+            if (written > 0 && written < sizeof(result) - offset) {
+                offset += written;
+            } else {
+                offset += strlen(result + offset); // Update offset accurately on truncation
+                break; // Prevent buffer overflow if we exceed result buffer size
+            }
         }
     }
     else
     {
-        strcat(result, "<tr class='text-muted'><td colspan='3'>No clients connected</td></tr>");
+        const char *no_clients = "<tr class='text-muted'><td colspan='3'>No clients connected</td></tr>";
+        strncpy(result, no_clients, sizeof(result) - 1);
+        result[sizeof(result) - 1] = '\0';
+        offset = strlen(result);
     }
 
     httpd_req_to_sockfd(req);
@@ -58,7 +68,8 @@ esp_err_t clients_download_get_handler(httpd_req_t *req)
     extern const char clients_end[] asm("_binary_clients_html_end");
     const size_t clients_html_size = (clients_end - clients_start);
 
-    int size = clients_html_size + strlen(result);
+    // ⚡ Bolt: Reused offset instead of calling strlen(result) again
+    int size = clients_html_size + offset;
     char *clients_page = malloc(size - 2);
     snprintf(clients_page, size - 2, clients_start, result);
 
