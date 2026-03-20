@@ -57,7 +57,7 @@ void setWpa2(char *urlContent, nvs_handle_t nvs)
     readUrlParameterIntoBuffer(urlContent, "sta_identity", param, contentLength);
     if (strlen(param) > 0)
     {
-        ESP_LOGI(TAG, "WPA2 Identity set to '%s'", param);
+        ESP_LOGI(TAG, "WPA2 Identity set");
         ESP_ERROR_CHECK(nvs_set_str(nvs, "sta_identity", param));
     }
     else
@@ -70,7 +70,7 @@ void setWpa2(char *urlContent, nvs_handle_t nvs)
 
     if (strlen(param) > 0)
     {
-        ESP_LOGI(TAG, "WPA2 user set to '%s'", param);
+        ESP_LOGI(TAG, "WPA2 user set");
         ESP_ERROR_CHECK(nvs_set_str(nvs, "sta_user", param));
     }
     else

@@ -661,7 +661,7 @@ void wifi_init(const char *ssid, const char *passwd, const char *static_ip, cons
     if (strlen(ssid) > 0)
     {
         ESP_LOGI(TAG, "wifi_init_apsta finished.");
-        ESP_LOGI(TAG, "connect to ap SSID: %s Password: %s", ssid, passwd);
+        ESP_LOGI(TAG, "connect to ap SSID: %s Password: ***", ssid);
     }
     else
     {
