@@ -46,24 +46,33 @@ esp_err_t result_download_get_handler(httpd_req_t *req)
 
     char result[allocatedSize];
     strcpy(result, "");
+
+    // Bolt Optimization: Replace O(N^2) strcat looping with a running offset
+    // and snprintf, to make HTML string concatenation scale efficiently.
+    size_t current_len = 0;
+
     get_config_param_str("scan_result", &result_param);
     if (result_param == NULL)
     {
-        strcat(result, "<tr><td colspan='3' class='text-danger'>No networks found</td></tr>");
+        int added = snprintf(result, allocatedSize, "<tr><td colspan='3' class='text-danger'>No networks found</td></tr>");
+        if (added > 0 && added < allocatedSize) {
+            current_len += added;
+        }
     }
     else
     {
         char *end_str;
         char *row = strtok_r(result_param, "\x05", &end_str);
-        char template[strlen(ROW_TEMPLATE) + 100];
         while (row != NULL)
         {
             char *ssid = strtok(row, "\x03");
             char *rssi = strtok(NULL, "\x03");
 
             char *css = findTextColorForSSID(atoi(rssi));
-            sprintf(template, ROW_TEMPLATE, css, ssid, css, rssi, ssid);
-            strcat(result, template);
+            int added = snprintf(result + current_len, allocatedSize - current_len, ROW_TEMPLATE, css, ssid, css, rssi, ssid);
+            if (added > 0 && added < allocatedSize - current_len) {
+                current_len += added;
+            }
 
             row = strtok_r(NULL, "\x05", &end_str);
         }
