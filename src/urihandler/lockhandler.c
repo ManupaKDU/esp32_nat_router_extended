@@ -24,13 +24,21 @@ esp_err_t unlock_handler(httpd_req_t *req)
     httpd_req_to_sockfd(req);
 
     size_t content_len = req->content_len;
-    char buf[content_len + 1];
+    if (content_len >= 2048) {
+        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Payload too large");
+        return ESP_FAIL;
+    }
+    char* buf = malloc(content_len + 1);
+    if (!buf) {
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Out of memory");
+        return ESP_FAIL;
+    }
 
     if (fill_post_buffer(req, buf, content_len) == ESP_OK)
     {
 
-        char unlockParam[req->content_len + 1];
-        readUrlParameterIntoBuffer(buf, "unlock", unlockParam, req->content_len);
+        char unlockParam[128];
+        readUrlParameterIntoBuffer(buf, "unlock", unlockParam, sizeof(unlockParam));
 
         if (strlen(unlockParam) > 0)
         {
@@ -39,12 +47,14 @@ esp_err_t unlock_handler(httpd_req_t *req)
             if (strcmp(lock, unlockParam) == 0)
             {
                 locked = false;
+                free(buf);
                 httpd_resp_set_status(req, "302 Found");
                 httpd_resp_set_hdr(req, "Location", "/");
                 return httpd_resp_send(req, NULL, 0);
             }
         }
     }
+    free(buf);
     if (req->method == HTTP_GET) // Relock if called
     {
         locked = true;
@@ -72,19 +82,28 @@ esp_err_t lock_handler(httpd_req_t *req)
 
     if (req->method == HTTP_POST) // Relock if called
     {
+        if (req->content_len >= 2048) {
+            httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Payload too large");
+            return ESP_FAIL;
+        }
+        char* buf = malloc(req->content_len + 1);
+        if (!buf) {
+            httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Out of memory");
+            return ESP_FAIL;
+        }
         int ret, remaining = req->content_len;
-        char buf[req->content_len + 1];
 
         while (remaining > 0)
         {
             /* Read the data for the request */
-            if ((ret = httpd_req_recv(req, buf + (req->content_len - remaining), MIN(remaining, sizeof(buf) - 1))) <= 0)
+            if ((ret = httpd_req_recv(req, buf + (req->content_len - remaining), MIN(remaining, req->content_len))) <= 0)
             {
                 if (ret == HTTPD_SOCK_ERR_TIMEOUT)
                 {
                     continue;
                 }
                 ESP_LOGE(TAG, "Timeout occured");
+                free(buf);
                 return ESP_FAIL;
             }
 
@@ -92,10 +111,10 @@ esp_err_t lock_handler(httpd_req_t *req)
         }
         buf[req->content_len] = '\0';
 
-        char passParam[req->content_len + 1], pass2Param[req->content_len + 1];
+        char passParam[128], pass2Param[128];
 
-        readUrlParameterIntoBuffer(buf, "lockpass", passParam, req->content_len);
-        readUrlParameterIntoBuffer(buf, "lockpass2", pass2Param, req->content_len);
+        readUrlParameterIntoBuffer(buf, "lockpass", passParam, sizeof(passParam));
+        readUrlParameterIntoBuffer(buf, "lockpass2", pass2Param, sizeof(pass2Param));
         ESP_LOGI(TAG, "Found pass2 parameter => %s", pass2Param);
         if (strlen(passParam) == strlen(pass2Param) && strcmp(passParam, pass2Param) == 0)
         {
@@ -109,6 +128,7 @@ esp_err_t lock_handler(httpd_req_t *req)
             nvs_set_str(nvs, "lock_pass", passParam);
             nvs_commit(nvs);
             nvs_close(nvs);
+            free(buf);
             httpd_resp_set_status(req, "302 Found");
             if (strlen(passParam) > 0)
             {
@@ -125,6 +145,7 @@ esp_err_t lock_handler(httpd_req_t *req)
         {
             ESP_LOGI(TAG, "Passes are not equal.");
         }
+        free(buf);
     }
 
     extern const char l_start[] asm("_binary_lock_html_start");
