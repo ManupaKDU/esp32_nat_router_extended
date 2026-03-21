@@ -373,19 +373,28 @@ esp_err_t ota_post_handler(httpd_req_t *req)
         return redirectToLock(req);
     }
 
+    if (req->content_len >= 2048) {
+        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Payload too large");
+        return ESP_FAIL;
+    }
+    char* buf = malloc(req->content_len + 1);
+    if (!buf) {
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Out of memory");
+        return ESP_FAIL;
+    }
     int ret, remaining = req->content_len;
-    char buf[req->content_len + 1];
 
     while (remaining > 0)
     {
         /* Read the data for the request */
-        if ((ret = httpd_req_recv(req, buf + (req->content_len - remaining), MIN(remaining, req->content_len + 1 - (req->content_len - remaining) - 1))) <= 0)
+        if ((ret = httpd_req_recv(req, buf + (req->content_len - remaining), MIN(remaining, req->content_len))) <= 0)
         {
             if (ret == HTTPD_SOCK_ERR_TIMEOUT)
             {
                 continue;
             }
             ESP_LOGE(TAG, "Timeout occured");
+            free(buf);
             return ESP_FAIL;
         }
 
@@ -395,7 +404,7 @@ esp_err_t ota_post_handler(httpd_req_t *req)
     ESP_LOGI(TAG, "Getting with post: %s", buf);
 
     updateVersion();
-
+    free(buf);
     httpd_resp_set_status(req, "302 Found");
     httpd_resp_set_hdr(req, "Location", "/ota");
     return httpd_resp_send(req, NULL, 0);
