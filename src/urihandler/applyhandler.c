@@ -396,14 +396,14 @@ esp_err_t apply_post_handler(httpd_req_t *req)
     int ret = 0;
     int bufferLength = req->content_len;
     ESP_LOGI(TAG, "Content length  => %d", req->content_len);
-    char buf[100]; // 1000 byte chunk
     char content[bufferLength + 1];
-    strcpy(content, ""); // Fill initial
+    int offset = 0; // Track the current offset to avoid O(N^2) strcat looping
+    content[0] = '\0'; // Initialize to empty string in case of empty body
 
     while (remaining > 0)
     {
-        /* Read the data for the request */
-        if ((ret = httpd_req_recv(req, buf, MIN(remaining, sizeof(buf) - 1))) <= 0)
+        /* Read the data for the request directly into the target buffer */
+        if ((ret = httpd_req_recv(req, content + offset, remaining)) <= 0)
         {
             if (ret == HTTPD_SOCK_ERR_TIMEOUT)
             {
@@ -412,10 +412,10 @@ esp_err_t apply_post_handler(httpd_req_t *req)
             ESP_LOGE(TAG, "Timeout occured %d", ret);
             return ESP_FAIL;
         }
-        buf[ret] = '\0'; // add NUL terminator
-        strcat(content, buf);
+        offset += ret;
+        content[offset] = '\0'; // ensure null termination at the current end
         remaining -= ret;
-        ESP_LOGI(TAG, "%d bytes total received -> %d left", strlen(content), remaining);
+        ESP_LOGI(TAG, "%d bytes total received -> %d left", offset, remaining);
     }
     char funcParam[9];
 
