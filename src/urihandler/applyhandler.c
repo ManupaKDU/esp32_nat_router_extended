@@ -396,14 +396,16 @@ esp_err_t apply_post_handler(httpd_req_t *req)
     int ret = 0;
     int bufferLength = req->content_len;
     ESP_LOGI(TAG, "Content length  => %d", req->content_len);
-    char buf[100]; // 1000 byte chunk
     char content[bufferLength + 1];
-    strcpy(content, ""); // Fill initial
+    content[0] = '\0'; // Fill initial
 
     while (remaining > 0)
     {
         /* Read the data for the request */
-        if ((ret = httpd_req_recv(req, buf, MIN(remaining, sizeof(buf) - 1))) <= 0)
+        // Bolt Optimization: Read directly into content buffer at tracked offset
+        // avoiding O(N^2) strcat loops and intermediate chunk buffers.
+        int current_offset = bufferLength - remaining;
+        if ((ret = httpd_req_recv(req, content + current_offset, remaining)) <= 0)
         {
             if (ret == HTTPD_SOCK_ERR_TIMEOUT)
             {
@@ -412,10 +414,9 @@ esp_err_t apply_post_handler(httpd_req_t *req)
             ESP_LOGE(TAG, "Timeout occured %d", ret);
             return ESP_FAIL;
         }
-        buf[ret] = '\0'; // add NUL terminator
-        strcat(content, buf);
         remaining -= ret;
-        ESP_LOGI(TAG, "%d bytes total received -> %d left", strlen(content), remaining);
+        content[bufferLength - remaining] = '\0'; // NUL-terminate chunk
+        ESP_LOGI(TAG, "%d bytes total received -> %d left", bufferLength - remaining, remaining);
     }
     char funcParam[9];
 
