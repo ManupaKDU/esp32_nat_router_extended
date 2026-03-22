@@ -24,27 +24,44 @@ esp_err_t unlock_handler(httpd_req_t *req)
     httpd_req_to_sockfd(req);
 
     size_t content_len = req->content_len;
-    char buf[content_len + 1];
+    char *buf = malloc(content_len + 1);
+    if (!buf)
+    {
+        ESP_LOGE(TAG, "Memory allocation failed for unlock buffer");
+        return ESP_FAIL;
+    }
 
     if (fill_post_buffer(req, buf, content_len) == ESP_OK)
     {
 
-        char unlockParam[req->content_len + 1];
-        readUrlParameterIntoBuffer(buf, "unlock", unlockParam, req->content_len);
-
-        if (strlen(unlockParam) > 0)
+        char *unlockParam = malloc(req->content_len + 1);
+        if (unlockParam)
         {
-            char *lock;
-            get_config_param_str("lock_pass", &lock);
-            if (strcmp(lock, unlockParam) == 0)
+            readUrlParameterIntoBuffer(buf, "unlock", unlockParam, req->content_len);
+
+            if (strlen(unlockParam) > 0)
             {
-                locked = false;
-                httpd_resp_set_status(req, "302 Found");
-                httpd_resp_set_hdr(req, "Location", "/");
-                return httpd_resp_send(req, NULL, 0);
+                char *lock;
+                get_config_param_str("lock_pass", &lock);
+                if (strcmp(lock, unlockParam) == 0)
+                {
+                    locked = false;
+                    free(unlockParam);
+                    free(buf);
+                    httpd_resp_set_status(req, "302 Found");
+                    httpd_resp_set_hdr(req, "Location", "/");
+                    return httpd_resp_send(req, NULL, 0);
+                }
             }
+            free(unlockParam);
+        }
+        else
+        {
+            ESP_LOGE(TAG, "Memory allocation failed for unlockParam");
         }
     }
+    free(buf);
+
     if (req->method == HTTP_GET) // Relock if called
     {
         locked = true;
@@ -73,18 +90,25 @@ esp_err_t lock_handler(httpd_req_t *req)
     if (req->method == HTTP_POST) // Relock if called
     {
         int ret, remaining = req->content_len;
-        char buf[req->content_len + 1];
+        char *buf = malloc(req->content_len + 1);
+        if (!buf)
+        {
+            ESP_LOGE(TAG, "Memory allocation failed for lock buffer");
+            return ESP_FAIL;
+        }
 
         while (remaining > 0)
         {
             /* Read the data for the request */
-            if ((ret = httpd_req_recv(req, buf + (req->content_len - remaining), MIN(remaining, sizeof(buf) - 1))) <= 0)
+            size_t read_size = MIN(remaining, req->content_len + 1 - (req->content_len - remaining) - 1);
+            if ((ret = httpd_req_recv(req, buf + (req->content_len - remaining), read_size)) <= 0)
             {
                 if (ret == HTTPD_SOCK_ERR_TIMEOUT)
                 {
                     continue;
                 }
                 ESP_LOGE(TAG, "Timeout occured");
+                free(buf);
                 return ESP_FAIL;
             }
 
@@ -92,39 +116,53 @@ esp_err_t lock_handler(httpd_req_t *req)
         }
         buf[req->content_len] = '\0';
 
-        char passParam[req->content_len + 1], pass2Param[req->content_len + 1];
+        char *passParam = malloc(req->content_len + 1);
+        char *pass2Param = malloc(req->content_len + 1);
 
-        readUrlParameterIntoBuffer(buf, "lockpass", passParam, req->content_len);
-        readUrlParameterIntoBuffer(buf, "lockpass2", pass2Param, req->content_len);
-        ESP_LOGI(TAG, "Found pass2 parameter => %s", pass2Param);
-        if (strlen(passParam) == strlen(pass2Param) && strcmp(passParam, pass2Param) == 0)
+        if (passParam && pass2Param)
         {
-            ESP_LOGI(TAG, "Passes are equal. Password will be changed.");
-            if (strlen(passParam) == 0)
+            readUrlParameterIntoBuffer(buf, "lockpass", passParam, req->content_len);
+            readUrlParameterIntoBuffer(buf, "lockpass2", pass2Param, req->content_len);
+            ESP_LOGI(TAG, "Found pass2 parameter => %s", pass2Param);
+            if (strlen(passParam) == strlen(pass2Param) && strcmp(passParam, pass2Param) == 0)
             {
-                ESP_LOGI(TAG, "Pass will be removed");
-            }
-            nvs_handle_t nvs;
-            nvs_open(PARAM_NAMESPACE, NVS_READWRITE, &nvs);
-            nvs_set_str(nvs, "lock_pass", passParam);
-            nvs_commit(nvs);
-            nvs_close(nvs);
-            httpd_resp_set_status(req, "302 Found");
-            if (strlen(passParam) > 0)
-            {
-                httpd_resp_set_hdr(req, "Location", "/lock");
-                lockUI();
+                ESP_LOGI(TAG, "Passes are equal. Password will be changed.");
+                if (strlen(passParam) == 0)
+                {
+                    ESP_LOGI(TAG, "Pass will be removed");
+                }
+                nvs_handle_t nvs;
+                nvs_open(PARAM_NAMESPACE, NVS_READWRITE, &nvs);
+                nvs_set_str(nvs, "lock_pass", passParam);
+                nvs_commit(nvs);
+                nvs_close(nvs);
+                httpd_resp_set_status(req, "302 Found");
+                if (strlen(passParam) > 0)
+                {
+                    httpd_resp_set_hdr(req, "Location", "/lock");
+                    lockUI();
+                }
+                else
+                {
+                    httpd_resp_set_hdr(req, "Location", "/");
+                }
+                free(passParam);
+                free(pass2Param);
+                free(buf);
+                return httpd_resp_send(req, NULL, 0);
             }
             else
             {
-                httpd_resp_set_hdr(req, "Location", "/");
+                ESP_LOGI(TAG, "Passes are not equal.");
             }
-            return httpd_resp_send(req, NULL, 0);
         }
         else
         {
-            ESP_LOGI(TAG, "Passes are not equal.");
+            ESP_LOGE(TAG, "Memory allocation failed for pass parameters");
         }
+        if (passParam) free(passParam);
+        if (pass2Param) free(pass2Param);
+        free(buf);
     }
 
     extern const char l_start[] asm("_binary_lock_html_start");

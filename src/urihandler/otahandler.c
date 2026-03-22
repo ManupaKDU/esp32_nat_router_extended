@@ -374,7 +374,12 @@ esp_err_t ota_post_handler(httpd_req_t *req)
     }
 
     int ret, remaining = req->content_len;
-    char buf[req->content_len + 1];
+    char *buf = malloc(req->content_len + 1);
+    if (!buf)
+    {
+        ESP_LOGE(TAG, "Memory allocation failed for post buffer");
+        return ESP_FAIL;
+    }
 
     while (remaining > 0)
     {
@@ -386,6 +391,7 @@ esp_err_t ota_post_handler(httpd_req_t *req)
                 continue;
             }
             ESP_LOGE(TAG, "Timeout occured");
+            free(buf);
             return ESP_FAIL;
         }
 
@@ -395,6 +401,7 @@ esp_err_t ota_post_handler(httpd_req_t *req)
     ESP_LOGI(TAG, "Getting with post: %s", buf);
 
     updateVersion();
+    free(buf);
 
     httpd_resp_set_status(req, "302 Found");
     httpd_resp_set_hdr(req, "Location", "/ota");
