@@ -175,7 +175,11 @@ static char *wifi_scan(void)
         ESP_LOGI(TAG, "Channel \t\t%d\n", ap_info[i].primary);
 
         int added = snprintf(result + current_len, result_max_size - current_len, "%s\x03%d\x05", ap_info[i].ssid, ap_info[i].rssi);
-        if (added > 0 && added < result_max_size - current_len) {
+        if (added > 0) {
+            if (added >= result_max_size - current_len) {
+                ESP_LOGW(TAG, "Scan result buffer full, truncating list");
+                break;
+            }
             current_len += added;
         }
     }
