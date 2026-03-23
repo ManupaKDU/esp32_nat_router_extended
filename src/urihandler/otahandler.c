@@ -354,8 +354,14 @@ esp_err_t ota_download_get_handler(httpd_req_t *req)
     char label[20];
     getOtaUrl(customUrl, label);
     const char *project_version = get_project_version();
-    char *ota_page = malloc(ota_html_size + strlen(project_version) + strlen(customUrl) + strlen(latest_version) + strlen(chip_type) + strlen(label) + strlen(changelog));
-    sprintf(ota_page, ota_start, project_version, latest_version, changelog, customUrl, label, chip_type);
+    size_t alloc_size = ota_html_size + strlen(project_version) + strlen(customUrl) + strlen(latest_version) + strlen(chip_type) + strlen(label) + strlen(changelog) + 1;
+    char *ota_page = malloc(alloc_size);
+    if (ota_page == NULL)
+    {
+        ESP_LOGE(TAG, "Memory allocation failed");
+        return ESP_FAIL;
+    }
+    snprintf(ota_page, alloc_size, ota_start, project_version, latest_version, changelog, customUrl, label, chip_type);
 
     closeHeader(req);
 
