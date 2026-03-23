@@ -392,30 +392,14 @@ esp_err_t apply_post_handler(httpd_req_t *req)
     }
     httpd_req_to_sockfd(req);
 
-    int remaining = req->content_len;
-    int ret = 0;
     int bufferLength = req->content_len;
     ESP_LOGI(TAG, "Content length  => %d", req->content_len);
-    char buf[100]; // 1000 byte chunk
     char content[bufferLength + 1];
-    strcpy(content, ""); // Fill initial
 
-    while (remaining > 0)
+    // Bolt Optimization: Replace O(N^2) strcat looping with a direct read into buffer using fill_post_buffer
+    if (fill_post_buffer(req, content, bufferLength) != ESP_OK)
     {
-        /* Read the data for the request */
-        if ((ret = httpd_req_recv(req, buf, MIN(remaining, sizeof(buf) - 1))) <= 0)
-        {
-            if (ret == HTTPD_SOCK_ERR_TIMEOUT)
-            {
-                continue;
-            }
-            ESP_LOGE(TAG, "Timeout occured %d", ret);
-            return ESP_FAIL;
-        }
-        buf[ret] = '\0'; // add NUL terminator
-        strcat(content, buf);
-        remaining -= ret;
-        ESP_LOGI(TAG, "%d bytes total received -> %d left", strlen(content), remaining);
+        return ESP_FAIL;
     }
     char funcParam[9];
 
