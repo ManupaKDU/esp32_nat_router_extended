@@ -1,5 +1,7 @@
 #include "helper.h"
 #include <ctype.h>
+#include <string.h>
+#include <stdlib.h>
 
 static const char *TAG = "urihelper";
 

@@ -2,6 +2,7 @@
 #include <esp_http_server.h>
 #include <sys/param.h>
 #include <lwip/inet.h>
+#include <stdbool.h>
 
 void preprocess_string(char *str);
 void readUrlParameterIntoBuffer(char *parameterString, char *parameter, char *buffer, size_t paramLength);
