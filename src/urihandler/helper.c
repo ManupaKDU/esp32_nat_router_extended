@@ -1,3 +1,6 @@
+#include <stdint.h>
+#include <string.h>
+#include <stdlib.h>
 #include "helper.h"
 #include <ctype.h>
 
@@ -107,6 +110,14 @@ bool is_valid_subnet_mask(char *subnet_mask)
 
     while (token != NULL)
     {
+        // Check if token only contains digits
+        for (int i = 0; token[i] != '\0'; i++) {
+            if (!isdigit((unsigned char)token[i])) {
+                ESP_LOGE(TAG, "%s is not a valid subnet mask. Non-digit character found.", subnet_mask);
+                return false;
+            }
+        }
+
         // Convert to int
         octet = atoi(token);
         // Valid value between 0 and 255
