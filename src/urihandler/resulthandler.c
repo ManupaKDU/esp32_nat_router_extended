@@ -54,7 +54,7 @@ esp_err_t result_download_get_handler(httpd_req_t *req)
     get_config_param_str("scan_result", &result_param);
     if (result_param == NULL)
     {
-        int added = snprintf(result, allocatedSize, "<tr><td colspan='3' class='text-danger'>No networks found</td></tr>");
+        int added = snprintf(result, allocatedSize, "<tr><td colspan='3' class='text-muted'>No networks found</td></tr>");
         if (added > 0 && added < allocatedSize) {
             current_len += added;
         }
