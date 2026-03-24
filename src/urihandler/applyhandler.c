@@ -376,10 +376,11 @@ esp_err_t apply_get_handler(httpd_req_t *req)
     closeHeader(req);
 
     char *redirectUrl = getRedirectUrl(req);
-    char *apply_page = malloc(apply_end - apply_start + strlen(redirectUrl) - 2);
+    size_t apply_page_size = apply_end - apply_start + strlen(redirectUrl) - 2 + 1;
+    char *apply_page = malloc(apply_page_size);
 
     ESP_LOGI(TAG, "Redirecting after apply to '%s'", redirectUrl);
-    sprintf(apply_page, apply_start, redirectUrl);
+    snprintf(apply_page, apply_page_size, apply_start, redirectUrl);
     free(redirectUrl);
 
     return httpd_resp_send(req, apply_page, HTTPD_RESP_USE_STRLEN);
