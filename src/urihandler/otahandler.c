@@ -13,12 +13,14 @@ static const char *NOT_DETERMINED = "Not determined yet";
 static const char *ERROR_RETRIEVING = "Error retrieving the data. HTTP-Code: %d";
 static char latest_version[50] = "";
 static char changelog[400] = "";
+static size_t changelog_len = 0;
 bool finished = false;
 bool otaRunning = false;
 
 char chip_type[30];
 
 char otalog[400] = "";
+static size_t otalog_len = 0;
 char resultLog[110] = "";
 char progressLabel[20] = "";
 
@@ -32,13 +34,17 @@ static const char *DEFAULT_URL_CANARY = "https://raw.githubusercontent.com/dchri
 
 void appendToLog(const char *message)
 {
-    char tmp[500] = "";
-
-    snprintf(tmp, sizeof(tmp), "<tr><th>%s</th></tr>", message);
-
-    size_t current_len = strlen(otalog);
-    if (current_len < sizeof(otalog) - 1) {
-        strncat(otalog, tmp, sizeof(otalog) - current_len - 1);
+    if (otalog_len < sizeof(otalog) - 1)
+    {
+        int added = snprintf(otalog + otalog_len, sizeof(otalog) - otalog_len, "<tr><th>%s</th></tr>", message);
+        if (added > 0 && added < sizeof(otalog) - otalog_len)
+        {
+            otalog_len += added;
+        }
+        else if (added >= sizeof(otalog) - otalog_len)
+        {
+            otalog_len = sizeof(otalog) - 1;
+        }
     }
     ESP_LOGI(TAG, "%s", message);
 }
@@ -211,11 +217,17 @@ void start_ota_update()
 
 void appendToChangelog(const char *entry)
 {
-    char tmp[500] = "";
-    snprintf(tmp, sizeof(tmp), "<li>%s</li>", entry);
-    size_t current_len = strlen(changelog);
-    if (current_len < sizeof(changelog) - 1) {
-        strncat(changelog, tmp, sizeof(changelog) - current_len - 1);
+    if (changelog_len < sizeof(changelog) - 1)
+    {
+        int added = snprintf(changelog + changelog_len, sizeof(changelog) - changelog_len, "<li>%s</li>", entry);
+        if (added > 0 && added < sizeof(changelog) - changelog_len)
+        {
+            changelog_len += added;
+        }
+        else if (added >= sizeof(changelog) - changelog_len)
+        {
+            changelog_len = sizeof(changelog) - 1;
+        }
     }
 }
 
@@ -234,6 +246,7 @@ void updateVersion()
     esp_http_client_set_timeout_ms(client, DOWNLOAD_TIMEOUT_MS);
     esp_err_t err = esp_http_client_perform(client);
     changelog[0] = '\0';
+    changelog_len = 0;
     http_handler_data_t *handler_data = (http_handler_data_t *)config.user_data;
 
     if (err == ESP_OK && handler_data->http_code == 200)
@@ -321,6 +334,7 @@ esp_err_t otalog_post_handler(httpd_req_t *req)
     }
     resultLog[0] = '\0';
     otalog[0] = '\0';
+    otalog_len = 0;
     otaRunning = true;
     start_ota_update();
 
@@ -345,6 +359,7 @@ esp_err_t ota_download_get_handler(httpd_req_t *req)
     {
         strcpy(latest_version, NOT_DETERMINED);
         changelog[0] = '\0';
+        changelog_len = 0;
         appendToChangelog(NOT_DETERMINED);
     }
 
