@@ -74,7 +74,7 @@ esp_err_t ota_event_event_handler(esp_http_client_event_t *evt)
         {
             int64_t progress = (data_length * 100) / content_length / 1000;
             progressInt = (int)progress;
-            sprintf(progressLabel, "%d of %d kB", (int)(data_length / 1000 / 1000), (int)(content_length / 1000));
+            snprintf(progressLabel, sizeof(progressLabel), "%d of %d kB", (int)(data_length / 1000 / 1000), (int)(content_length / 1000));
 
             if (progressInt >= threshold) // do not flood log
             {
@@ -302,14 +302,21 @@ esp_err_t otalog_get_handler(httpd_req_t *req)
 
     getOtaUrl(url, label);
 
-    char *otalog_page = malloc(otalog_html_size + strlen(otalog) + strlen(otaLogRedirect) + strlen(resultLog) + strlen(progressLabel) + 50 + strlen(label));
-    sprintf(otalog_page, otalog_start, otaLogRedirect, progressInt, progressLabel, label, otalog, resultLog);
+    size_t alloc_size = otalog_html_size + strlen(otalog) + strlen(otaLogRedirect) + strlen(resultLog) + strlen(progressLabel) + 50 + strlen(label) + 1;
+    char *otalog_page = malloc(alloc_size);
+    if (otalog_page == NULL)
+    {
+        ESP_LOGE(TAG, "Memory allocation failed");
+        return ESP_FAIL;
+    }
+    snprintf(otalog_page, alloc_size, otalog_start, otaLogRedirect, progressInt, progressLabel, label, otalog, resultLog);
 
     closeHeader(req);
 
     ESP_LOGI(TAG, "Requesting OTA-Log page");
 
     esp_err_t ret = httpd_resp_send(req, otalog_page, HTTPD_RESP_USE_STRLEN);
+    free(otalog_page);
     return ret;
 }
 
@@ -380,7 +387,12 @@ esp_err_t ota_post_handler(httpd_req_t *req)
     }
 
     int ret, remaining = req->content_len;
-    char buf[req->content_len + 1];
+    char *buf = malloc(req->content_len + 1);
+    if (buf == NULL)
+    {
+        ESP_LOGE(TAG, "Memory allocation failed");
+        return ESP_FAIL;
+    }
 
     while (remaining > 0)
     {
@@ -392,6 +404,7 @@ esp_err_t ota_post_handler(httpd_req_t *req)
                 continue;
             }
             ESP_LOGE(TAG, "Timeout occured");
+            free(buf);
             return ESP_FAIL;
         }
 
@@ -399,6 +412,7 @@ esp_err_t ota_post_handler(httpd_req_t *req)
     }
     buf[req->content_len] = '\0';
     ESP_LOGI(TAG, "Getting with post: %s", buf);
+    free(buf);
 
     updateVersion();
 
