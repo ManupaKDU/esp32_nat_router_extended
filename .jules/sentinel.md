@@ -13,3 +13,7 @@
  **Vulnerability:** Unbounded Variable Length Array (VLA) allocated on the stack using `req->content_len` in `ota_post_handler`.
  **Learning:** In ESP-IDF, HTTP handlers frequently use limited stack sizes. Relying on an untrusted `Content-Length` header for stack allocations (`char buf[req->content_len + 1];`) introduces a critical stack overflow and Denial of Service (DoS) vulnerability.
  **Prevention:** Always use dynamic heap allocation (`malloc`) for arbitrary-sized HTTP request bodies. Ensure proper `NULL` checks are added, and the memory is freed on all exit paths (success and error/timeout) to prevent memory leaks.
+## 2024-05-18 - [VLA Denial of Service in HTTP Request Handlers (lockhandler.c)]
+ **Vulnerability:** Unbounded Variable Length Arrays (VLAs) allocated on the stack using `req->content_len` in `unlock_handler` and `lock_handler` of `src/urihandler/lockhandler.c`.
+ **Learning:** In ESP-IDF, HTTP handlers frequently use limited stack sizes. Relying on an untrusted `Content-Length` header for stack allocations (`char buf[req->content_len + 1];`) introduces a critical stack overflow and Denial of Service (DoS) vulnerability.
+ **Prevention:** Always use dynamic heap allocation (`malloc`) for arbitrary-sized HTTP request bodies. Ensure proper `NULL` checks are added, and the memory is freed on all exit paths (success and error/timeout) to prevent memory leaks.
