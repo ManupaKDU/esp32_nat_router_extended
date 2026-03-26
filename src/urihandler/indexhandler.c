@@ -194,11 +194,23 @@ esp_err_t index_post_handler(httpd_req_t *req)
     httpd_req_to_sockfd(req);
 
     size_t content_len = req->content_len;
-    char buf[content_len + 1];
+    char *buf = malloc(content_len + 1);
+    if (buf == NULL)
+    {
+        ESP_LOGE(TAG, "Memory allocation failed");
+        return ESP_FAIL;
+    }
 
     if (fill_post_buffer(req, buf, content_len) == ESP_OK)
     {
-        char ssidParam[req->content_len + 1];
+        char *ssidParam = malloc(req->content_len + 1);
+        if (ssidParam == NULL)
+        {
+            ESP_LOGE(TAG, "Memory allocation failed");
+            free(buf);
+            return ESP_FAIL;
+        }
+
         readUrlParameterIntoBuffer(buf, "ssid", ssidParam, req->content_len);
 
         if (strlen(ssidParam) > 0)
@@ -207,7 +219,9 @@ esp_err_t index_post_handler(httpd_req_t *req)
             appliedSSID = malloc(strlen(ssidParam) + 1);
             strcpy(appliedSSID, ssidParam);
         }
+        free(ssidParam);
     }
+    free(buf);
     httpd_resp_set_status(req, "302 Temporary Redirect");
     httpd_resp_set_hdr(req, "Location", "/");
     return httpd_resp_send(req, NULL, 0);
