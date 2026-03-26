@@ -194,7 +194,12 @@ esp_err_t portmap_post_handler(httpd_req_t *req)
     httpd_req_to_sockfd(req);
 
     size_t content_len = req->content_len;
-    char buf[content_len + 1];
+    char *buf = malloc(content_len + 1);
+    if (buf == NULL)
+    {
+        ESP_LOGE(TAG, "Memory allocation failed");
+        return ESP_FAIL;
+    }
 
     if (fill_post_buffer(req, buf, content_len) == ESP_OK)
     {
@@ -213,6 +218,7 @@ esp_err_t portmap_post_handler(httpd_req_t *req)
             delPortmapEntry(buf);
         }
     }
+    free(buf);
 
     httpd_resp_set_status(req, "302 Found");
     httpd_resp_set_hdr(req, "Location", "/portmap");
