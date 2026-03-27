@@ -24,12 +24,23 @@ esp_err_t unlock_handler(httpd_req_t *req)
     httpd_req_to_sockfd(req);
 
     size_t content_len = req->content_len;
-    char buf[content_len + 1];
+    char *buf = malloc(content_len + 1);
+    if (buf == NULL)
+    {
+        ESP_LOGE(TAG, "Memory allocation failed");
+        return ESP_FAIL;
+    }
 
     if (fill_post_buffer(req, buf, content_len) == ESP_OK)
     {
 
-        char unlockParam[req->content_len + 1];
+        char *unlockParam = malloc(req->content_len + 1);
+        if (unlockParam == NULL)
+        {
+            ESP_LOGE(TAG, "Memory allocation failed");
+            free(buf);
+            return ESP_FAIL;
+        }
         readUrlParameterIntoBuffer(buf, "unlock", unlockParam, req->content_len);
 
         if (strlen(unlockParam) > 0)
@@ -41,10 +52,14 @@ esp_err_t unlock_handler(httpd_req_t *req)
                 locked = false;
                 httpd_resp_set_status(req, "302 Found");
                 httpd_resp_set_hdr(req, "Location", "/");
+                free(unlockParam);
+                free(buf);
                 return httpd_resp_send(req, NULL, 0);
             }
         }
+        free(unlockParam);
     }
+    free(buf);
     if (req->method == HTTP_GET) // Relock if called
     {
         locked = true;
@@ -73,18 +88,24 @@ esp_err_t lock_handler(httpd_req_t *req)
     if (req->method == HTTP_POST) // Relock if called
     {
         int ret, remaining = req->content_len;
-        char buf[req->content_len + 1];
+        char *buf = malloc(req->content_len + 1);
+        if (buf == NULL)
+        {
+            ESP_LOGE(TAG, "Memory allocation failed");
+            return ESP_FAIL;
+        }
 
         while (remaining > 0)
         {
             /* Read the data for the request */
-            if ((ret = httpd_req_recv(req, buf + (req->content_len - remaining), MIN(remaining, sizeof(buf) - 1))) <= 0)
+            if ((ret = httpd_req_recv(req, buf + (req->content_len - remaining), MIN(remaining, req->content_len + 1 - (req->content_len - remaining) - 1))) <= 0)
             {
                 if (ret == HTTPD_SOCK_ERR_TIMEOUT)
                 {
                     continue;
                 }
                 ESP_LOGE(TAG, "Timeout occured");
+                free(buf);
                 return ESP_FAIL;
             }
 
@@ -92,7 +113,21 @@ esp_err_t lock_handler(httpd_req_t *req)
         }
         buf[req->content_len] = '\0';
 
-        char passParam[req->content_len + 1], pass2Param[req->content_len + 1];
+        char *passParam = malloc(req->content_len + 1);
+        if (passParam == NULL)
+        {
+            ESP_LOGE(TAG, "Memory allocation failed");
+            free(buf);
+            return ESP_FAIL;
+        }
+        char *pass2Param = malloc(req->content_len + 1);
+        if (pass2Param == NULL)
+        {
+            ESP_LOGE(TAG, "Memory allocation failed");
+            free(passParam);
+            free(buf);
+            return ESP_FAIL;
+        }
 
         readUrlParameterIntoBuffer(buf, "lockpass", passParam, req->content_len);
         readUrlParameterIntoBuffer(buf, "lockpass2", pass2Param, req->content_len);
@@ -119,12 +154,18 @@ esp_err_t lock_handler(httpd_req_t *req)
             {
                 httpd_resp_set_hdr(req, "Location", "/");
             }
+            free(passParam);
+            free(pass2Param);
+            free(buf);
             return httpd_resp_send(req, NULL, 0);
         }
         else
         {
             ESP_LOGI(TAG, "Passes are not equal.");
         }
+        free(passParam);
+        free(pass2Param);
+        free(buf);
     }
 
     extern const char l_start[] asm("_binary_lock_html_start");

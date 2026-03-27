@@ -164,7 +164,7 @@ httpd_handle_t start_webserver(void)
     if (lock_pass != NULL && strlen(lock_pass) > 0)
     {
         lockUI();
-        ESP_LOGI(TAG, "UI is locked with password '%s'", lock_pass);
+        ESP_LOGI(TAG, "UI is locked with password");
     }
     get_config_param_int("keep_alive", &keepAlive);
     if (keepAlive == 1)

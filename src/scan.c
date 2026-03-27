@@ -151,9 +151,17 @@ static char *wifi_scan(void)
     ESP_ERROR_CHECK(esp_wifi_scan_get_ap_records(&number, ap_info));
     ESP_LOGI(TAG, "Total APs scanned = %u", ap_count);
 
-    char result[DEFAULT_SCAN_LIST_SIZE * 100];
+    size_t result_max_size = DEFAULT_SCAN_LIST_SIZE * 100;
+    char *result = malloc(result_max_size);
+    if (result == NULL) {
+        ESP_LOGE(TAG, "Failed to allocate memory for scan result");
+        return NULL;
+    }
     strcpy(result, "");
-    char tmp[100];
+
+    // Bolt Optimization: Prevent O(N^2) concatenation by tracking string length
+    // and using snprintf with an offset, turning the append operation into O(N).
+    size_t current_len = 0;
 
     for (int i = 0; (i < DEFAULT_SCAN_LIST_SIZE) && (i < ap_count); i++)
     {
@@ -166,14 +174,17 @@ static char *wifi_scan(void)
         }
         ESP_LOGI(TAG, "Channel \t\t%d\n", ap_info[i].primary);
 
-        sprintf(tmp, "%s\x03%d\x05", ap_info[i].ssid, ap_info[i].rssi);
-
-        strcat(result, tmp);
+        int added = snprintf(result + current_len, result_max_size - current_len, "%s\x03%d\x05", ap_info[i].ssid, ap_info[i].rssi);
+        if (added > 0) {
+            if (added >= result_max_size - current_len) {
+                ESP_LOGW(TAG, "Scan result buffer full, truncating list");
+                break;
+            }
+            current_len += added;
+        }
     }
 
-    char *a_ptr = result;
-
-    return a_ptr;
+    return result;
 
 }
 
@@ -191,7 +202,10 @@ void fillNodes()
     const char *scan_result = wifi_scan();
     nvs_handle_t nvs;
     ESP_ERROR_CHECK(nvs_open(PARAM_NAMESPACE, NVS_READWRITE, &nvs));
-    ESP_ERROR_CHECK(nvs_set_str(nvs, "scan_result", scan_result));
+    if (scan_result != NULL) {
+        ESP_ERROR_CHECK(nvs_set_str(nvs, "scan_result", scan_result));
+        free((void*)scan_result);
+    }
     nvs_erase_key(nvs, "result_shown");
 
     ESP_ERROR_CHECK(nvs_commit(nvs));

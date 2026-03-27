@@ -9,11 +9,11 @@ char *appliedSSID = NULL;
 bool isWrongHost(httpd_req_t *req)
 {
     char *currentIP = getDefaultIPByNetmask();
-    size_t buf_len = strlen(currentIP) + 1;
-    char *host = malloc(buf_len);
-    httpd_req_get_hdr_value_str(req, "Host", host, buf_len);
+    char host[32]; // ⚡ Bolt: Use stack buffer for short predictable string to avoid malloc overhead
+    if (httpd_req_get_hdr_value_str(req, "Host", host, sizeof(host)) != ESP_OK) {
+        host[0] = '\0';
+    }
     bool out = strcmp(host, currentIP) != 0;
-    free(host);
     free(currentIP);
     return out;
 }
@@ -194,11 +194,23 @@ esp_err_t index_post_handler(httpd_req_t *req)
     httpd_req_to_sockfd(req);
 
     size_t content_len = req->content_len;
-    char buf[content_len + 1];
+    char *buf = malloc(content_len + 1);
+    if (buf == NULL)
+    {
+        ESP_LOGE(TAG, "Memory allocation failed");
+        return ESP_FAIL;
+    }
 
     if (fill_post_buffer(req, buf, content_len) == ESP_OK)
     {
-        char ssidParam[req->content_len + 1];
+        char *ssidParam = malloc(req->content_len + 1);
+        if (ssidParam == NULL)
+        {
+            ESP_LOGE(TAG, "Memory allocation failed");
+            free(buf);
+            return ESP_FAIL;
+        }
+
         readUrlParameterIntoBuffer(buf, "ssid", ssidParam, req->content_len);
 
         if (strlen(ssidParam) > 0)
@@ -207,7 +219,9 @@ esp_err_t index_post_handler(httpd_req_t *req)
             appliedSSID = malloc(strlen(ssidParam) + 1);
             strcpy(appliedSSID, ssidParam);
         }
+        free(ssidParam);
     }
+    free(buf);
     httpd_resp_set_status(req, "302 Temporary Redirect");
     httpd_resp_set_hdr(req, "Location", "/");
     return httpd_resp_send(req, NULL, 0);

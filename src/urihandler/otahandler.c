@@ -13,12 +13,14 @@ static const char *NOT_DETERMINED = "Not determined yet";
 static const char *ERROR_RETRIEVING = "Error retrieving the data. HTTP-Code: %d";
 static char latest_version[50] = "";
 static char changelog[400] = "";
+static size_t changelog_len = 0;
 bool finished = false;
 bool otaRunning = false;
 
 char chip_type[30];
 
 char otalog[400] = "";
+static size_t otalog_len = 0;
 char resultLog[110] = "";
 char progressLabel[20] = "";
 
@@ -32,13 +34,17 @@ static const char *DEFAULT_URL_CANARY = "https://raw.githubusercontent.com/dchri
 
 void appendToLog(const char *message)
 {
-    char tmp[500] = "";
-
-    snprintf(tmp, sizeof(tmp), "<tr><th>%s</th></tr>", message);
-
-    size_t current_len = strlen(otalog);
-    if (current_len < sizeof(otalog) - 1) {
-        strncat(otalog, tmp, sizeof(otalog) - current_len - 1);
+    if (otalog_len < sizeof(otalog) - 1)
+    {
+        int added = snprintf(otalog + otalog_len, sizeof(otalog) - otalog_len, "<tr><th>%s</th></tr>", message);
+        if (added > 0 && added < sizeof(otalog) - otalog_len)
+        {
+            otalog_len += added;
+        }
+        else if (added >= sizeof(otalog) - otalog_len)
+        {
+            otalog_len = sizeof(otalog) - 1;
+        }
     }
     ESP_LOGI(TAG, "%s", message);
 }
@@ -74,7 +80,7 @@ esp_err_t ota_event_event_handler(esp_http_client_event_t *evt)
         {
             int64_t progress = (data_length * 100) / content_length / 1000;
             progressInt = (int)progress;
-            sprintf(progressLabel, "%d of %d kB", (int)(data_length / 1000 / 1000), (int)(content_length / 1000));
+            snprintf(progressLabel, sizeof(progressLabel), "%d of %d kB", (int)(data_length / 1000 / 1000), (int)(content_length / 1000));
 
             if (progressInt >= threshold) // do not flood log
             {
@@ -211,11 +217,17 @@ void start_ota_update()
 
 void appendToChangelog(const char *entry)
 {
-    char tmp[500] = "";
-    snprintf(tmp, sizeof(tmp), "<li>%s</li>", entry);
-    size_t current_len = strlen(changelog);
-    if (current_len < sizeof(changelog) - 1) {
-        strncat(changelog, tmp, sizeof(changelog) - current_len - 1);
+    if (changelog_len < sizeof(changelog) - 1)
+    {
+        int added = snprintf(changelog + changelog_len, sizeof(changelog) - changelog_len, "<li>%s</li>", entry);
+        if (added > 0 && added < sizeof(changelog) - changelog_len)
+        {
+            changelog_len += added;
+        }
+        else if (added >= sizeof(changelog) - changelog_len)
+        {
+            changelog_len = sizeof(changelog) - 1;
+        }
     }
 }
 
@@ -234,6 +246,7 @@ void updateVersion()
     esp_http_client_set_timeout_ms(client, DOWNLOAD_TIMEOUT_MS);
     esp_err_t err = esp_http_client_perform(client);
     changelog[0] = '\0';
+    changelog_len = 0;
     http_handler_data_t *handler_data = (http_handler_data_t *)config.user_data;
 
     if (err == ESP_OK && handler_data->http_code == 200)
@@ -302,14 +315,21 @@ esp_err_t otalog_get_handler(httpd_req_t *req)
 
     getOtaUrl(url, label);
 
-    char *otalog_page = malloc(otalog_html_size + strlen(otalog) + strlen(otaLogRedirect) + strlen(resultLog) + strlen(progressLabel) + 50 + strlen(label));
-    sprintf(otalog_page, otalog_start, otaLogRedirect, progressInt, progressLabel, label, otalog, resultLog);
+    size_t alloc_size = otalog_html_size + strlen(otalog) + strlen(otaLogRedirect) + strlen(resultLog) + strlen(progressLabel) + 50 + strlen(label) + 1;
+    char *otalog_page = malloc(alloc_size);
+    if (otalog_page == NULL)
+    {
+        ESP_LOGE(TAG, "Memory allocation failed");
+        return ESP_FAIL;
+    }
+    snprintf(otalog_page, alloc_size, otalog_start, otaLogRedirect, progressInt, progressLabel, label, otalog, resultLog);
 
     closeHeader(req);
 
     ESP_LOGI(TAG, "Requesting OTA-Log page");
 
     esp_err_t ret = httpd_resp_send(req, otalog_page, HTTPD_RESP_USE_STRLEN);
+    free(otalog_page);
     return ret;
 }
 
@@ -321,6 +341,7 @@ esp_err_t otalog_post_handler(httpd_req_t *req)
     }
     resultLog[0] = '\0';
     otalog[0] = '\0';
+    otalog_len = 0;
     otaRunning = true;
     start_ota_update();
 
@@ -345,6 +366,7 @@ esp_err_t ota_download_get_handler(httpd_req_t *req)
     {
         strcpy(latest_version, NOT_DETERMINED);
         changelog[0] = '\0';
+        changelog_len = 0;
         appendToChangelog(NOT_DETERMINED);
     }
 
@@ -354,8 +376,14 @@ esp_err_t ota_download_get_handler(httpd_req_t *req)
     char label[20];
     getOtaUrl(customUrl, label);
     const char *project_version = get_project_version();
-    char *ota_page = malloc(ota_html_size + strlen(project_version) + strlen(customUrl) + strlen(latest_version) + strlen(chip_type) + strlen(label) + strlen(changelog));
-    sprintf(ota_page, ota_start, project_version, latest_version, changelog, customUrl, label, chip_type);
+    size_t alloc_size = ota_html_size + strlen(project_version) + strlen(customUrl) + strlen(latest_version) + strlen(chip_type) + strlen(label) + strlen(changelog) + 1;
+    char *ota_page = malloc(alloc_size);
+    if (ota_page == NULL)
+    {
+        ESP_LOGE(TAG, "Memory allocation failed");
+        return ESP_FAIL;
+    }
+    snprintf(ota_page, alloc_size, ota_start, project_version, latest_version, changelog, customUrl, label, chip_type);
 
     closeHeader(req);
 
@@ -374,7 +402,12 @@ esp_err_t ota_post_handler(httpd_req_t *req)
     }
 
     int ret, remaining = req->content_len;
-    char buf[req->content_len + 1];
+    char *buf = malloc(req->content_len + 1);
+    if (buf == NULL)
+    {
+        ESP_LOGE(TAG, "Memory allocation failed");
+        return ESP_FAIL;
+    }
 
     while (remaining > 0)
     {
@@ -386,6 +419,7 @@ esp_err_t ota_post_handler(httpd_req_t *req)
                 continue;
             }
             ESP_LOGE(TAG, "Timeout occured");
+            free(buf);
             return ESP_FAIL;
         }
 
@@ -393,6 +427,7 @@ esp_err_t ota_post_handler(httpd_req_t *req)
     }
     buf[req->content_len] = '\0';
     ESP_LOGI(TAG, "Getting with post: %s", buf);
+    free(buf);
 
     updateVersion();
 
