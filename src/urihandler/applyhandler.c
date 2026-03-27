@@ -146,17 +146,20 @@ char *getRedirectUrl(httpd_req_t *req)
     char *host = malloc(buf_len);
     httpd_req_get_hdr_value_str(req, "Host", host, buf_len);
     ESP_LOGI(TAG, "Host of request is '%s'", host);
-    char *str = malloc(strlen("http://") + buf_len);
-    strcpy(str, "http://");
+
+    // ⚡ Bolt Optimization: Replace strcpy/strcat with a single snprintf and right-size allocation
+    char *str = NULL;
     if (strcmp(host, DEFAULT_AP_IP_CLASS_A) == 0 || strcmp(host, DEFAULT_AP_IP_CLASS_B) == 0 || strcmp(host, DEFAULT_AP_IP_CLASS_C) == 0)
     {
         char *defaultIP = getDefaultIPByNetmask();
-        strcat(str, defaultIP);
+        str = malloc(8 + strlen(defaultIP) + 1); // "http://" is 7 + 1 for null terminator = 8
+        snprintf(str, 8 + strlen(defaultIP) + 1, "http://%s", defaultIP);
         free(defaultIP);
     }
     else
     {
-        strcat(str, host);
+        str = malloc(8 + strlen(host) + 1); // "http://" is 7 + 1 for null terminator = 8
+        snprintf(str, 8 + strlen(host) + 1, "http://%s", host);
     }
     free(host);
 

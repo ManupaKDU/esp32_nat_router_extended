@@ -46,9 +46,9 @@ esp_err_t redirectToRoot(httpd_req_t *req)
 {
     httpd_resp_set_status(req, "302 Temporary Redirect");
     char *currentIP = getDefaultIPByNetmask();
-    char str[strlen("http://") + strlen(currentIP) + 1];
-    strcpy(str, "http://");
-    strcat(str, currentIP);
+    // ⚡ Bolt Optimization: Replace strcpy/strcat with snprintf to avoid multiple O(N) passes
+    char str[8 + strlen(currentIP) + 1]; // "http://" is 7 chars + 1 for null terminator = 8
+    snprintf(str, sizeof(str), "http://%s", currentIP);
     httpd_resp_set_hdr(req, "Location", str);
     httpd_resp_set_hdr(req, "Connection", "Close");
     httpd_resp_send(req, "", HTTPD_RESP_USE_STRLEN);
