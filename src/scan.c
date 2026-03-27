@@ -156,7 +156,6 @@ static char *wifi_scan(void)
     char tmp[100];
 
     // ⚡ Bolt: Stack-allocated buffer prevents memory fragmentation inside the loop
-    char tmp[100];
 
     for (int i = 0; (i < DEFAULT_SCAN_LIST_SIZE) && (i < ap_count); i++)
     {
