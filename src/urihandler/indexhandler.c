@@ -9,11 +9,11 @@ char *appliedSSID = NULL;
 bool isWrongHost(httpd_req_t *req)
 {
     char *currentIP = getDefaultIPByNetmask();
-    size_t buf_len = strlen(currentIP) + 1;
-    char *host = malloc(buf_len);
-    httpd_req_get_hdr_value_str(req, "Host", host, buf_len);
+    char host[32]; // ⚡ Bolt: Use stack buffer for short predictable string to avoid malloc overhead
+    if (httpd_req_get_hdr_value_str(req, "Host", host, sizeof(host)) != ESP_OK) {
+        host[0] = '\0';
+    }
     bool out = strcmp(host, currentIP) != 0;
-    free(host);
     free(currentIP);
     return out;
 }

@@ -186,9 +186,8 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
     ESP_LOGI(TAG, "Allocating additional %d bytes for advanced page.", size);
     char *advanced_page = malloc(size);
 
-    char *subMac = malloc(strlen(defaultMAC) + 1);
+    char subMac[18]; // ⚡ Bolt: Use stack buffer to avoid malloc overhead for small string
     strcpy(subMac, defaultMAC);
-
     subMac[strlen(subMac) - 2] = '\0';
 
     sprintf(advanced_page, advanced_start, hostName, octet, lowSelected, mediumSelected, highSelected, bwHigh, bwLow, ledCB, aliveCB, natCB, currentDNS, defCB, cloudCB, adguardCB, customCB, customDNSIP, currentMAC, defMacCB, defaultMAC, rndMacCB, subMac, customMacCB, customMac, netmask, classCCB, octet, classBCB, octet, classACB, octet, customMaskCB, customMask);
@@ -197,7 +196,6 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
     esp_err_t ret = httpd_resp_send(req, advanced_page, HTTPD_RESP_USE_STRLEN);
 
     free(advanced_page);
-    free(subMac);
     free(currentDNS);
 
     return ret;
