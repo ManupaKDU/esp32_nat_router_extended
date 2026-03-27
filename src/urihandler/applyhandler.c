@@ -15,7 +15,11 @@ static const char *TAG = "ApplyHandler";
 void setApByQuery(char *urlContent, nvs_handle_t nvs)
 {
     size_t contentLength = 600; //passwords are max 64 characters, but special characters (i.e € = 9 character) are a lot more url encoded 
-    char param[contentLength];
+    char *param = malloc(contentLength + 1);
+    if (param == NULL) {
+        ESP_LOGE(TAG, "Memory allocation failed");
+        return;
+    }
     readUrlParameterIntoBuffer(urlContent, "ap_ssid", param, contentLength);
     ESP_ERROR_CHECK(nvs_set_str(nvs, "ap_ssid", param));
     readUrlParameterIntoBuffer(urlContent, "ap_password", param, contentLength);
@@ -38,22 +42,32 @@ void setApByQuery(char *urlContent, nvs_handle_t nvs)
     {
         nvs_erase_key(nvs, "ssid_hidden");
     }
+    free(param);
 }
 
 void setStaByQuery(char *urlContent, nvs_handle_t nvs)
 {
 
     size_t contentLength = 600;
-    char param[contentLength];
+    char *param = malloc(contentLength + 1);
+    if (param == NULL) {
+        ESP_LOGE(TAG, "Memory allocation failed");
+        return;
+    }
     readUrlParameterIntoBuffer(urlContent, "ssid", param, contentLength);
     ESP_ERROR_CHECK(nvs_set_str(nvs, "ssid", param));
     readUrlParameterIntoBuffer(urlContent, "password", param, contentLength);
     ESP_ERROR_CHECK(nvs_set_str(nvs, "passwd", param));
+    free(param);
 }
 void setWpa2(char *urlContent, nvs_handle_t nvs)
 {
     size_t contentLength = strlen(urlContent);
-    char param[contentLength];
+    char *param = malloc(contentLength + 1);
+    if (param == NULL) {
+        ESP_LOGE(TAG, "Memory allocation failed");
+        return;
+    }
     readUrlParameterIntoBuffer(urlContent, "sta_identity", param, contentLength);
     if (strlen(param) > 0)
     {
@@ -91,6 +105,7 @@ void setWpa2(char *urlContent, nvs_handle_t nvs)
         ESP_LOGI(TAG, "Certificate will be deleted");
         nvs_erase_key(nvs, "cer");
     }
+    free(param);
 }
 
 void applyApStaConfig(char *buf)
@@ -395,11 +410,17 @@ esp_err_t apply_post_handler(httpd_req_t *req)
 
     int bufferLength = req->content_len;
     ESP_LOGI(TAG, "Content length  => %d", req->content_len);
-    char content[bufferLength + 1];
+    char *content = malloc(bufferLength + 1);
+    if (content == NULL)
+    {
+        ESP_LOGE(TAG, "Memory allocation failed");
+        return ESP_FAIL;
+    }
 
     // Bolt Optimization: Replace O(N^2) strcat looping with a direct read into buffer using fill_post_buffer
     if (fill_post_buffer(req, content, bufferLength) != ESP_OK)
     {
+        free(content);
         return ESP_FAIL;
     }
     char funcParam[9];
@@ -423,6 +444,7 @@ esp_err_t apply_post_handler(httpd_req_t *req)
         applyAdvancedConfig(content);
     }
     restartByTimerinS(1);
+    free(content);
 
     return apply_get_handler(req);
 }
