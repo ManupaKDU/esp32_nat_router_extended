@@ -157,11 +157,12 @@ bool str2mac(const char *mac)
 char *getRedirectUrl(httpd_req_t *req)
 {
 
-    size_t buf_len = 16;
-    char *host = malloc(buf_len);
-    httpd_req_get_hdr_value_str(req, "Host", host, buf_len);
+    char host[32]; // ⚡ Bolt: Use stack buffer to avoid malloc overhead for small strings
+    if (httpd_req_get_hdr_value_str(req, "Host", host, sizeof(host)) != ESP_OK) {
+        host[0] = '\0';
+    }
     ESP_LOGI(TAG, "Host of request is '%s'", host);
-    char *str = malloc(strlen("http://") + buf_len);
+    char *str = malloc(strlen("http://") + strlen(host) + 16);
     strcpy(str, "http://");
     if (strcmp(host, DEFAULT_AP_IP_CLASS_A) == 0 || strcmp(host, DEFAULT_AP_IP_CLASS_B) == 0 || strcmp(host, DEFAULT_AP_IP_CLASS_C) == 0)
     {
@@ -173,7 +174,6 @@ char *getRedirectUrl(httpd_req_t *req)
     {
         strcat(str, host);
     }
-    free(host);
 
     return str;
 }
