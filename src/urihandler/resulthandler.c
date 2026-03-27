@@ -8,7 +8,7 @@
 
 static const char *TAG = "ResultHandler";
 
-const char *ROW_TEMPLATE = "<tr><td class='text-%s'>%s</td><td class='text-%s'>%s</td><td><form action='/' method='POST'><input type='hidden' name='ssid' value='%s'><input type='submit' value='Use' name='use' class='btn btn-primary'/></form></td></tr>";
+const char *ROW_TEMPLATE = "<tr><td class='text-%s'>%s</td><td class='text-%s'>%s</td><td><form action='/' method='POST'><input type='hidden' name='ssid' value='%s'><input type='submit' value='Use' name='use' class='btn btn-primary' aria-label='Use %s'/></form></td></tr>";
 
 char *findTextColorForSSID(int8_t rssi)
 {
@@ -69,7 +69,7 @@ esp_err_t result_download_get_handler(httpd_req_t *req)
             char *rssi = strtok(NULL, "\x03");
 
             char *css = findTextColorForSSID(atoi(rssi));
-            int added = snprintf(result + current_len, allocatedSize - current_len, ROW_TEMPLATE, css, ssid, css, rssi, ssid);
+            int added = snprintf(result + current_len, allocatedSize - current_len, ROW_TEMPLATE, css, ssid, css, rssi, ssid, ssid);
             if (added > 0 && added < allocatedSize - current_len) {
                 current_len += added;
             }
