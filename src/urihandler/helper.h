@@ -2,6 +2,11 @@
 #include <esp_http_server.h>
 #include <sys/param.h>
 #include <lwip/inet.h>
+#ifndef HOST_TESTING
+#include <lwip/ip_addr.h>
+#else
+#include "lwip/ip_addr.h"
+#endif
 
 void preprocess_string(char *str);
 void readUrlParameterIntoBuffer(char *parameterString, char *parameter, char *buffer, size_t paramLength);

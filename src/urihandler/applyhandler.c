@@ -15,7 +15,11 @@ static const char *TAG = "ApplyHandler";
 void setApByQuery(char *urlContent, nvs_handle_t nvs)
 {
     size_t contentLength = 600; //passwords are max 64 characters, but special characters (i.e € = 9 character) are a lot more url encoded 
-    char param[contentLength];
+    char *param = malloc(contentLength + 1);
+    if (param == NULL) {
+        ESP_LOGE(TAG, "Memory allocation failed");
+        return;
+    }
     readUrlParameterIntoBuffer(urlContent, "ap_ssid", param, contentLength);
     ESP_ERROR_CHECK(nvs_set_str(nvs, "ap_ssid", param));
     readUrlParameterIntoBuffer(urlContent, "ap_password", param, contentLength);
@@ -38,26 +42,36 @@ void setApByQuery(char *urlContent, nvs_handle_t nvs)
     {
         nvs_erase_key(nvs, "ssid_hidden");
     }
+    free(param);
 }
 
 void setStaByQuery(char *urlContent, nvs_handle_t nvs)
 {
 
     size_t contentLength = 600;
-    char param[contentLength];
+    char *param = malloc(contentLength + 1);
+    if (param == NULL) {
+        ESP_LOGE(TAG, "Memory allocation failed");
+        return;
+    }
     readUrlParameterIntoBuffer(urlContent, "ssid", param, contentLength);
     ESP_ERROR_CHECK(nvs_set_str(nvs, "ssid", param));
     readUrlParameterIntoBuffer(urlContent, "password", param, contentLength);
     ESP_ERROR_CHECK(nvs_set_str(nvs, "passwd", param));
+    free(param);
 }
 void setWpa2(char *urlContent, nvs_handle_t nvs)
 {
     size_t contentLength = strlen(urlContent);
-    char param[contentLength];
+    char *param = malloc(contentLength + 1);
+    if (param == NULL) {
+        ESP_LOGE(TAG, "Memory allocation failed");
+        return;
+    }
     readUrlParameterIntoBuffer(urlContent, "sta_identity", param, contentLength);
     if (strlen(param) > 0)
     {
-        ESP_LOGI(TAG, "WPA2 Identity set to '%s'", param);
+        ESP_LOGI(TAG, "WPA2 Identity set");
         ESP_ERROR_CHECK(nvs_set_str(nvs, "sta_identity", param));
     }
     else
@@ -70,7 +84,7 @@ void setWpa2(char *urlContent, nvs_handle_t nvs)
 
     if (strlen(param) > 0)
     {
-        ESP_LOGI(TAG, "WPA2 user set to '%s'", param);
+        ESP_LOGI(TAG, "WPA2 user set");
         ESP_ERROR_CHECK(nvs_set_str(nvs, "sta_user", param));
     }
     else
@@ -91,6 +105,7 @@ void setWpa2(char *urlContent, nvs_handle_t nvs)
         ESP_LOGI(TAG, "Certificate will be deleted");
         nvs_erase_key(nvs, "cer");
     }
+    free(param);
 }
 
 void applyApStaConfig(char *buf)
@@ -142,11 +157,12 @@ bool str2mac(const char *mac)
 char *getRedirectUrl(httpd_req_t *req)
 {
 
-    size_t buf_len = 16;
-    char *host = malloc(buf_len);
-    httpd_req_get_hdr_value_str(req, "Host", host, buf_len);
+    char host[32]; // ⚡ Bolt: Use stack buffer to avoid malloc overhead for small strings
+    if (httpd_req_get_hdr_value_str(req, "Host", host, sizeof(host)) != ESP_OK) {
+        host[0] = '\0';
+    }
     ESP_LOGI(TAG, "Host of request is '%s'", host);
-    char *str = malloc(strlen("http://") + buf_len);
+    char *str = malloc(strlen("http://") + strlen(host) + 16);
     strcpy(str, "http://");
     if (strcmp(host, DEFAULT_AP_IP_CLASS_A) == 0 || strcmp(host, DEFAULT_AP_IP_CLASS_B) == 0 || strcmp(host, DEFAULT_AP_IP_CLASS_C) == 0)
     {
@@ -158,7 +174,6 @@ char *getRedirectUrl(httpd_req_t *req)
     {
         strcat(str, host);
     }
-    free(host);
 
     return str;
 }
@@ -376,10 +391,11 @@ esp_err_t apply_get_handler(httpd_req_t *req)
     closeHeader(req);
 
     char *redirectUrl = getRedirectUrl(req);
-    char *apply_page = malloc(apply_end - apply_start + strlen(redirectUrl) - 2);
+    size_t apply_page_size = apply_end - apply_start + strlen(redirectUrl) - 2 + 1;
+    char *apply_page = malloc(apply_page_size);
 
     ESP_LOGI(TAG, "Redirecting after apply to '%s'", redirectUrl);
-    sprintf(apply_page, apply_start, redirectUrl);
+    snprintf(apply_page, apply_page_size, apply_start, redirectUrl);
     free(redirectUrl);
 
     return httpd_resp_send(req, apply_page, HTTPD_RESP_USE_STRLEN);
@@ -392,30 +408,20 @@ esp_err_t apply_post_handler(httpd_req_t *req)
     }
     httpd_req_to_sockfd(req);
 
-    int remaining = req->content_len;
-    int ret = 0;
     int bufferLength = req->content_len;
     ESP_LOGI(TAG, "Content length  => %d", req->content_len);
-    char buf[100]; // 1000 byte chunk
-    char content[bufferLength + 1];
-    strcpy(content, ""); // Fill initial
-
-    while (remaining > 0)
+    char *content = malloc(bufferLength + 1);
+    if (content == NULL)
     {
-        /* Read the data for the request */
-        if ((ret = httpd_req_recv(req, buf, MIN(remaining, sizeof(buf) - 1))) <= 0)
-        {
-            if (ret == HTTPD_SOCK_ERR_TIMEOUT)
-            {
-                continue;
-            }
-            ESP_LOGE(TAG, "Timeout occured %d", ret);
-            return ESP_FAIL;
-        }
-        buf[ret] = '\0'; // add NUL terminator
-        strcat(content, buf);
-        remaining -= ret;
-        ESP_LOGI(TAG, "%d bytes total received -> %d left", strlen(content), remaining);
+        ESP_LOGE(TAG, "Memory allocation failed");
+        return ESP_FAIL;
+    }
+
+    // Bolt Optimization: Replace O(N^2) strcat looping with a direct read into buffer using fill_post_buffer
+    if (fill_post_buffer(req, content, bufferLength) != ESP_OK)
+    {
+        free(content);
+        return ESP_FAIL;
     }
     char funcParam[9];
 
@@ -438,6 +444,7 @@ esp_err_t apply_post_handler(httpd_req_t *req)
         applyAdvancedConfig(content);
     }
     restartByTimerinS(1);
+    free(content);
 
     return apply_get_handler(req);
 }

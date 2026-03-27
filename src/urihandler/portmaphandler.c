@@ -11,7 +11,7 @@
 #include "esp_wifi_ap_get_sta_list.h"
 
 static const char *TAG = "PortMapHandler";
-const char *PORTMAP_ROW_TEMPLATE = "<tr> <td>%s</td> <td>%hu</td> <td>%s</td> <td>%hu</td> <td> <form action='/portmap' method='POST'><input type='hidden' name='func' value='del'><input type='hidden' name='entry' value='%s'> <button title='Remove' name='remove' class='btn btn-light' aria-label='Remove portmap entry'> <svg version='2.0' width='16' height='16'> <use href='#trash' /> </svg> </form> </td></tr>";
+const char *PORTMAP_ROW_TEMPLATE = "<tr> <td>%s</td> <td>%hu</td> <td>%s</td> <td>%hu</td> <td> <form action='/portmap' method='POST' onsubmit=\"return confirm('Are you sure you want to remove this portmap entry?');\"><input type='hidden' name='func' value='del'><input type='hidden' name='entry' value='%s'> <button title='Remove' name='remove' class='btn btn-light' aria-label='Remove portmap entry'> <svg version='2.0' width='16' height='16'> <use href='#trash' /> </svg> </button> </form> </td></tr>";
 
 esp_err_t portmap_get_handler(httpd_req_t *req)
 {
@@ -29,6 +29,7 @@ esp_err_t portmap_get_handler(httpd_req_t *req)
 
     // send entries
     bool entriesSent = false;
+    char template[strlen(PORTMAP_ROW_TEMPLATE) + 12 + 16 + 4 + 50];
     for (int i = 0; i < PORTMAP_MAX; i++)
     {
         if (portmap_tab[i].valid)
@@ -49,14 +50,11 @@ esp_err_t portmap_get_handler(httpd_req_t *req)
             char delParam[50];
             sprintf(delParam, "%s_%hu_%s_%hu", protocol, portmap_tab[i].mport, ip_str, portmap_tab[i].dport);
 
-            char *template = malloc(strlen(PORTMAP_ROW_TEMPLATE) + 12 + strlen(ip_str) + strlen(protocol) + strlen(delParam));
-
             sprintf(template, PORTMAP_ROW_TEMPLATE, protocol, portmap_tab[i].mport, ip_str, portmap_tab[i].dport, delParam);
 
             ESP_LOGI(TAG, "Sending portmap entry part");
             ESP_ERROR_CHECK(httpd_resp_send_chunk(req, template, HTTPD_RESP_USE_STRLEN));
             entriesSent = true;
-            free(template);
         }
     }
     if (!entriesSent)
@@ -196,7 +194,12 @@ esp_err_t portmap_post_handler(httpd_req_t *req)
     httpd_req_to_sockfd(req);
 
     size_t content_len = req->content_len;
-    char buf[content_len + 1];
+    char *buf = malloc(content_len + 1);
+    if (buf == NULL)
+    {
+        ESP_LOGE(TAG, "Memory allocation failed");
+        return ESP_FAIL;
+    }
 
     if (fill_post_buffer(req, buf, content_len) == ESP_OK)
     {
@@ -215,6 +218,7 @@ esp_err_t portmap_post_handler(httpd_req_t *req)
             delPortmapEntry(buf);
         }
     }
+    free(buf);
 
     httpd_resp_set_status(req, "302 Found");
     httpd_resp_set_hdr(req, "Location", "/portmap");

@@ -1,18 +1,4 @@
-## 2024-03-13 - [Buffer Overflow]
-**Vulnerability:** Buffer overflow in HTTP POST request handlers (`applyhandler.c`, `lockhandler.c`, `otahandler.c`, etc.) due to incorrect buffer size allocation for NUL-terminated strings and missing pointer offset logic during chunked reads.
-**Learning:** The ESP-IDF `httpd_req_recv` function does not automatically NUL-terminate strings. When reading HTTP request bodies into a buffer, the buffer must be allocated with an extra byte for the NUL terminator, and the pointer must be correctly offset during chunked reads to avoid overwriting the beginning of the buffer.
-**Prevention:** Always allocate `req->content_len + 1` for buffers intended to hold NUL-terminated strings. When reading chunked data, use `buf + (len - remaining)` to advance the pointer and ensure the buffer is explicitly NUL-terminated after the read loop (`buf[len] = '\0'`).
-
-## 2026-03-14 - [Buffer Overflow]
-**Vulnerability:** Unbounded writes to log buffers in `otahandler.c`. `sprintf` and `strcat` could exceed global array limits (`otalog`, `changelog`, `resultLog`) if an attacker provides a malicious/long OTA URL causing large responses.
-**Learning:** Global variables for logging on embedded systems are prone to overflow if appended indiscriminately. When aggregating data from external inputs over HTTP (like release notes/OTA progress), checking string limits before concatenating is crucial.
-**Prevention:** Replace bounded `sprintf` and `strcat` functions with `snprintf` and `strncat` checking the destination buffer size before appending.
-## 2024-05-30 - [Buffer Overflow in string truncation logic]
- **Vulnerability:** Stack Buffer Overflow in IP address string truncation (`ip_prefix[strlen(defaultIP) - 1] = '\0'`) when allocating exactly `strlen(defaultIP) - 1` space instead of `strlen(defaultIP)`.
- **Learning:** When truncating a string by replacing a character with `\0`, you must ensure the underlying buffer is sized to include the `\0`. If you allocate `strlen(str) - 1` and write `\0` to index `strlen(str) - 1`, you are writing out of bounds by one byte.
- **Prevention:** Allocate `strlen(str)` or more space to safely accommodate the truncated string and its NUL terminator at index `strlen(str) - 1`. Always account for the `\0` byte when calculating buffer sizes.
-
-## 2024-10-27 - [Stack Buffer Overflow in clientshandler.c]
-**Vulnerability:** Unbounded `strcat` operations in a loop within `src/urihandler/clientshandler.c` appended HTML template strings (representing connected clients) to a fixed-size stack buffer (`char result[1000]`). This allowed an attacker or simply a large number of connected clients to overflow the buffer, leading to memory corruption and a potential device crash.
-**Learning:** Fixed-size stack buffers used for accumulating variable-length or repeated string data (like HTML lists of connected clients) are highly susceptible to overflows if unbounded string functions (`sprintf`, `strcat`) are used without tracking the remaining capacity.
-**Prevention:** Always use bounds-checked string functions (`snprintf`, `strncat`). When accumulating strings in a loop, explicitly track the current length and ensure the append operation checks against the remaining buffer capacity (`sizeof(buffer) - current_len - 1`). Also, verify `malloc` return values and handle failures gracefully (e.g., returning HTTP 500) to prevent null-pointer dereferences.
+## 2024-05-27 - Apply Handler Stack Overflow via User-Controlled VLAs
+**Vulnerability:** In `src/urihandler/applyhandler.c`, `char content[bufferLength + 1]` was dynamically allocated on the stack using a Variable-Length Array (VLA) where `bufferLength` was derived directly from the user-controlled HTTP header `req->content_len`. A maliciously large `Content-Length` would cause an immediate stack overflow and remote DoS crash. A similar issue existed in `setApByQuery`, `setStaByQuery`, and `setWpa2` where `char param[contentLength]` was derived from the size of the request string.
+**Learning:** ESP32 web server handlers must never trust the HTTP `Content-Length` header for stack allocation sizing. Task stacks are extremely constrained (typically < 8KB), making them trivially susceptible to DoS.
+**Prevention:** Always allocate user-controlled buffer sizes on the heap using `malloc()`. Verify that the pointer is not `NULL` before proceeding, as heap allocations frequently fail under memory pressure on embedded devices, and explicitly `free()` the memory at all exit points to prevent memory leaks.
