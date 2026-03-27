@@ -26,7 +26,8 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
     char *aliveCB = "";
     char *ledCB = "";
     char *natCB = "";
-    char *currentDNS = "";
+    char *currentDNS = malloc(16);
+    currentDNS[0] = '\0';
     char *defCB = "";
     char *cloudCB = "";
     char *adguardCB = "";
@@ -110,8 +111,7 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
     esp_netif_t *wifiSTA = esp_netif_get_handle_from_ifkey("WIFI_AP_DEF");
     if (esp_netif_get_dns_info(wifiSTA, ESP_NETIF_DNS_MAIN, &dns) == ESP_OK)
     {
-        currentDNS = malloc(16);
-        sprintf(currentDNS, IPSTR, IP2STR(&(dns.ip.u_addr.ip4)));
+        snprintf(currentDNS, 16, IPSTR, IP2STR(&(dns.ip.u_addr.ip4)));
         ESP_LOGI(TAG, "Current DNS is: %s", currentDNS);
     }
 
