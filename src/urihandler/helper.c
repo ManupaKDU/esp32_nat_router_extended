@@ -78,68 +78,19 @@ esp_err_t fill_post_buffer(httpd_req_t *req, char *buf, size_t len)
 
 bool is_valid_subnet_mask(char *subnet_mask)
 {
-    char *token;
-    int octet;
-    int count = 0;
+    ip_addr_t ip_addr;
 
-    // ip_addr_t ip_addr;
-    // if (ipaddr_aton(subnet_mask, &ip_addr))
-    // {
-    //     // IP-Adresse wurde erfolgreich umgewandelt
-
-    //     // Schleife, um jedes Bit auszugeben
-    //     char buf[65];
-    //     u_int32_t num = ip4_addr_get_u32(ip_2_ip4(&ip_addr));
-    //     // Ausgabe in binärer Form mit dem ESP-IDF-Logframework
-    //     ESP_LOGW(TAG, "Binäre Darstellung von %lu: %s", num, utoa(num, buf, 2));
-    // }
-    // else
-    // {
-    //     return false;
-    // }
-
-    // Copy for calculation
-    char mask_copy[strlen(subnet_mask) + 1];
-    strcpy(mask_copy, subnet_mask);
-
-    // split by dots
-    token = strtok(mask_copy, ".");
-
-    while (token != NULL)
+    // ⚡ Bolt: Use ipaddr_aton to validate directly instead of expensive string copying and multiple strtok/atoi calls
+    if (!ipaddr_aton(subnet_mask, &ip_addr))
     {
-        // Convert to int
-        octet = atoi(token);
-        // Valid value between 0 and 255
-        if (octet < 0 || octet > 255)
-        {
-            ESP_LOGE(TAG, "%s is not a valid subnet mask. Octet %d out of range.", subnet_mask, octet);
-            return false;
-        }
-
-        // Count octetts
-        count++;
-
-        token = strtok(NULL, ".");
-    }
-
-    // Exactly 4 octetts
-    if (count != 4)
-    {
-        ESP_LOGE(TAG, "%s is not a valid subnet mask. Not exactly 4 octets.", subnet_mask);
+        ESP_LOGE(TAG, "%s is not a valid subnet mask. Invalid format.", subnet_mask);
         return false;
     }
 
-    // Check bits. Every bit other the last 1 must be 0
-    unsigned int mask_value = 0;
-    strcpy(mask_copy, subnet_mask);
-    token = strtok(mask_copy, ".");
-    while (token != NULL)
-    {
-        octet = atoi(token);
-        mask_value = (mask_value << 8) | octet;
-        token = strtok(NULL, ".");
-    }
-    unsigned int inverted_mask = ~mask_value;
+    // ipaddr_aton parses the string correctly. Get the 32-bit integer in host byte order.
+    u_int32_t num = ntohl(ip4_addr_get_u32(ip_2_ip4(&ip_addr)));
+
+    unsigned int inverted_mask = ~num;
     if ((inverted_mask & (inverted_mask + 1)) != 0)
     {
         ESP_LOGE(TAG, "%s is not a valid subnet mask. The bits after the last 1 have to be zero.", subnet_mask);
