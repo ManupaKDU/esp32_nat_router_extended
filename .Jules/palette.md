@@ -5,6 +5,9 @@
 ## 2024-03-18 - [Remove maxlength from number inputs]
 **Learning:** [`maxlength` attribute is not supported and conflicts with `<input type="number">`. It behaves unpredictably across browsers and disrupts built-in numerical validation or mobile keypad presentation.]
 **Action:** [Always use `min` and `max` attributes for number limits instead of `maxlength` when using numerical inputs.]
+## 2025-03-18 - Neutral Empty States & HTML5 Validation
+**Learning:** Empty states using error colors (`text-danger`) cause unnecessary alarm, while HTML5 `required` attributes provide instant, accessible inline validation without complex JS.
+**Action:** When creating empty states, use neutral styling like `text-muted`. For simple form validation, leverage native HTML5 attributes before implementing custom scripts.
 
 ## 2024-05-18 - [Add JS Confirmations for Destructive Actions in Table Rows]
 **Learning:** [Forms generating inline destructive actions (like row deletions) often lack standard UI confirmations, leading to accidental clicks, especially on mobile where touch targets are small. Additionally, interactive UI elements generated via C templates can easily miss closing tags (like `</button>`), which breaks HTML structure and screen reader accessibility.]
