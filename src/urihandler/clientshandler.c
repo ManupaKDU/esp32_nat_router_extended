@@ -30,7 +30,7 @@ esp_err_t clients_download_get_handler(httpd_req_t *req)
     esp_wifi_ap_get_sta_list_with_ip(&wifi_sta_list, &adapter_sta_list);
 
     char result[1000];
-    strcpy(result, "");
+    result[0] = '\0';
     if (wifi_sta_list.num > 0)
     {
         char template[strlen(CLIENT_TEMPLATE) + 100];
@@ -42,15 +42,21 @@ esp_err_t clients_download_get_handler(httpd_req_t *req)
             esp_ip4addr_ntoa(&(station.ip), str_ip, IP4ADDR_STRLEN_MAX);
 
             char currentMAC[18];
-            sprintf(currentMAC, "%x:%x:%x:%x:%x:%x", station.mac[0], station.mac[1], station.mac[2], station.mac[3], station.mac[4], station.mac[5]);
+            snprintf(currentMAC, sizeof(currentMAC), "%x:%x:%x:%x:%x:%x", station.mac[0], station.mac[1], station.mac[2], station.mac[3], station.mac[4], station.mac[5]);
 
-            sprintf(template, CLIENT_TEMPLATE, i + 1, str_ip, currentMAC);
-            strcat(result, template);
+            snprintf(template, sizeof(template), CLIENT_TEMPLATE, i + 1, str_ip, currentMAC);
+            size_t current_len = strlen(result);
+            if (current_len < sizeof(result) - 1) {
+                strncat(result, template, sizeof(result) - current_len - 1);
+            }
         }
     }
     else
     {
-        strcat(result, "<tr class='text-muted'><td colspan='3'>No clients connected</td></tr>");
+        size_t current_len = strlen(result);
+        if (current_len < sizeof(result) - 1) {
+            strncat(result, "<tr class='text-muted'><td colspan='3'>No clients connected</td></tr>", sizeof(result) - current_len - 1);
+        }
     }
 
     httpd_req_to_sockfd(req);
@@ -58,9 +64,15 @@ esp_err_t clients_download_get_handler(httpd_req_t *req)
     extern const char clients_end[] asm("_binary_clients_html_end");
     const size_t clients_html_size = (clients_end - clients_start);
 
-    int size = clients_html_size + strlen(result);
-    char *clients_page = malloc(size - 2);
-    sprintf(clients_page, clients_start, result);
+    int size = clients_html_size + strlen(result) + 1;
+    char *clients_page = malloc(size);
+    if (clients_page == NULL) {
+        ESP_LOGE(TAG, "Failed to allocate memory for clients page");
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
+
+    snprintf(clients_page, size, clients_start, result);
 
     closeHeader(req);
 
