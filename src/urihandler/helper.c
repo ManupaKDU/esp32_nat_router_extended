@@ -1,5 +1,8 @@
 #include "helper.h"
 #include <ctype.h>
+#include <stdint.h>
+#include <string.h>
+#include <stdlib.h>
 
 static const char *TAG = "urihelper";
 
@@ -144,6 +147,36 @@ bool is_valid_subnet_mask(char *subnet_mask)
     {
         ESP_LOGE(TAG, "%s is not a valid subnet mask. The bits after the last 1 have to be zero.", subnet_mask);
         return false;
+    }
+
+    return true;
+}
+
+bool str2mac(const char *mac)
+{
+    if (mac == NULL || strlen(mac) != 17)
+    {
+        return false;
+    }
+    unsigned int values[6];
+    int res = sscanf(mac, "%2x:%2x:%2x:%2x:%2x:%2x", &values[0], &values[1], &values[2], &values[3], &values[4], &values[5]);
+    if (res != 6)
+    {
+        return false;
+    }
+
+    for (int i = 0; i < 17; i++)
+    {
+        if (i % 3 == 2)
+        {
+            if (mac[i] != ':')
+                return false;
+        }
+        else
+        {
+            if (!isxdigit((unsigned char)mac[i]))
+                return false;
+        }
     }
 
     return true;
