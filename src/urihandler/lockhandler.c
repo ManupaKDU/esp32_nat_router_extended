@@ -96,7 +96,7 @@ esp_err_t lock_handler(httpd_req_t *req)
 
         readUrlParameterIntoBuffer(buf, "lockpass", passParam, req->content_len);
         readUrlParameterIntoBuffer(buf, "lockpass2", pass2Param, req->content_len);
-        ESP_LOGI(TAG, "Found pass2 parameter => %s", pass2Param);
+
         if (strlen(passParam) == strlen(pass2Param) && strcmp(passParam, pass2Param) == 0)
         {
             ESP_LOGI(TAG, "Passes are equal. Password will be changed.");

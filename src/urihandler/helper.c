@@ -43,7 +43,15 @@ void readUrlParameterIntoBuffer(char *parameterString, char *parameter, char *bu
     if (httpd_query_key_value(parameterString, parameter, buffer, paramLength) == ESP_OK)
     {
         preprocess_string(buffer);
-        ESP_LOGI(TAG, "Found '%s' parameter => %s", parameter, buffer);
+        // Security: Prevent plaintext credential leakage in logs by redacting known sensitive parameters
+        if (strstr(parameter, "pass") != NULL || strstr(parameter, "unlock") != NULL || strstr(parameter, "user") != NULL || strstr(parameter, "identity") != NULL)
+        {
+            ESP_LOGI(TAG, "Found '%s' parameter => ***", parameter);
+        }
+        else
+        {
+            ESP_LOGI(TAG, "Found '%s' parameter => %s", parameter, buffer);
+        }
     }
     else
     {
