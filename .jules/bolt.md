@@ -12,3 +12,8 @@
 
 **Learning:** When receiving chunked HTTP requests, iteratively appending the chunks to an accumulating buffer using `strcat` results in $O(N^2)$ time complexity and redundant memory copying.
 **Action:** When reading HTTP request data into an intermediate buffer to process it later, use helper functions (e.g., `fill_post_buffer`) which reads directly into the final buffer at a tracked offset and sets the terminating null byte, ensuring $O(N)$ overall time complexity.
+
+## 2025-03-01 - Prevent Heap Corruption and Minimize Malloc Overhead
+
+**Learning:** Allocating memory dynamically via `malloc` for small strings, then conditionally freeing a pointer that might still reference a string literal (e.g., `char *ptr = ""; ... if (cond) ptr = malloc(16); ... free(ptr);`), leads to undefined behavior and fatal crashes when the condition is false. Additionally, repeated dynamic allocation of small fixed-size strings wastes cycles and increases heap fragmentation on constrained devices.
+**Action:** For small, predictable string allocations (like an IPv4 address string which requires at most 16 bytes), utilize a fixed-size stack-allocated Variable Length Array (e.g., `char ptr[16] = "";`) instead of `char *ptr` and `malloc`. This prevents heap corruption when `free` is called, avoids `malloc` overhead entirely, and eliminates the risk of memory leaks.
