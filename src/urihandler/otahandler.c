@@ -426,7 +426,6 @@ esp_err_t ota_post_handler(httpd_req_t *req)
         remaining -= ret;
     }
     buf[req->content_len] = '\0';
-    ESP_LOGI(TAG, "Getting with post: %s", buf);
     free(buf);
 
     updateVersion();
