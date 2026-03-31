@@ -141,19 +141,6 @@ void setMACToDefault(nvs_handle_t *nvs)
     ESP_LOGI(TAG, "MAC set to default");
 }
 
-bool str2mac(const char *mac)
-{
-    uint8_t values[6] = {0};
-    if (6 == sscanf(mac, "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", &values[0], &values[1], &values[2], &values[3], &values[4], &values[5]))
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
-
 char *getRedirectUrl(httpd_req_t *req)
 {
 
@@ -242,7 +229,8 @@ void applyAdvancedConfig(char *buf)
         }
         else if (strlen(macaddress) > 0)
         {
-            int success = str2mac(macaddress);
+            uint8_t mac_values[6];
+            int success = str2mac(macaddress, mac_values);
             if (success)
             {
                 ESP_LOGI(TAG, "MAC address set to: %s", macaddress);
