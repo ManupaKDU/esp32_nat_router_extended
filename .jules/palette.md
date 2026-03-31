@@ -1,7 +1,11 @@
-## 2023-10-25 - [Empty States and Inline Validation]
-**Learning:** Found empty state messages in tables styled with `text-danger` and `text-warning`, making normal zero-state conditions appear as system errors. Missing `required` attributes on add-item forms allowed invalid partial submissions.
-**Action:** When creating empty states, use neutral styling (like `text-muted`) to avoid causing user alarm. Always leverage HTML5 `required` attributes for simple inline validation before resorting to backend handling.
+## 2024-05-18 - Prevent redundant screen reader noise for decorative SVG icons
+**Learning:** When embedding decorative `<svg>` icons (like Bootstrap icons) inside interactive elements that already have an `aria-label` or descriptive text, screen readers can sometimes read out the `<svg>` contents or announce it redundantly.
+**Action:** Always add `aria-hidden="true"` to the `<svg>` tag in these situations to prevent redundant screen reader noise.
 
-## 2025-03-27 - [Contextual ARIA Labels for Data Table Buttons]
-**Learning:** Found data tables (like Wi-Fi scan results) using identical, generic button labels (e.g., "Use") across rows. This creates accessibility issues for screen reader users who hear repeating generic text without context when tabbing through interactive elements.
-**Action:** When creating action buttons within repeating data table rows, always provide an `aria-label` that includes contextual data (like the row's primary identifier, e.g., `aria-label='Use MyWiFi'`) to ensure screen reader clarity.
+## 2024-05-18 - Prevent redundant screen reader noise for decorative SVG icons
+**Learning:** When embedding decorative `<svg>` icons (like Bootstrap icons) inside interactive elements that already have an `aria-label` or descriptive text, screen readers can sometimes read out the `<svg>` contents or announce it redundantly.
+**Action:** Always add `aria-hidden="true"` to the `<svg>` tag in these situations to prevent redundant screen reader noise.
+
+## 2024-05-18 - Prevent redundant screen reader noise for decorative SVG icons
+**Learning:** When embedding decorative `<svg>` icons (like Bootstrap icons) inside interactive elements that already have an `aria-label` or descriptive text, screen readers can sometimes read out the `<svg>` contents or announce it redundantly.
+**Action:** Always add `aria-hidden="true"` to the `<svg>` tag in these situations to prevent redundant screen reader noise.
