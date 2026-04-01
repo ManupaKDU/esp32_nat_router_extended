@@ -205,8 +205,6 @@ esp_err_t portmap_post_handler(httpd_req_t *req)
     {
         char funcParam[4];
 
-        ESP_LOGI(TAG, "getting content %s", buf);
-
         readUrlParameterIntoBuffer(buf, "func", funcParam, 4);
 
         if (strcmp(funcParam, "add") == 0)
