@@ -425,8 +425,6 @@ esp_err_t apply_post_handler(httpd_req_t *req)
     }
     char funcParam[9];
 
-    ESP_LOGI(TAG, "getting content %s", content);
-
     readUrlParameterIntoBuffer(content, "func", funcParam, 9);
 
     ESP_LOGI(TAG, "Function => %s", funcParam);
