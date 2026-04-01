@@ -5,3 +5,7 @@
 ## 2025-03-27 - [Contextual ARIA Labels for Data Table Buttons]
 **Learning:** Found data tables (like Wi-Fi scan results) using identical, generic button labels (e.g., "Use") across rows. This creates accessibility issues for screen reader users who hear repeating generic text without context when tabbing through interactive elements.
 **Action:** When creating action buttons within repeating data table rows, always provide an `aria-label` that includes contextual data (like the row's primary identifier, e.g., `aria-label='Use MyWiFi'`) to ensure screen reader clarity.
+
+## 2025-05-15 - [Screen Reader Noise from Decorative SVGs]
+**Learning:** Found several decorative `<svg>` icons (e.g., Bootstrap icons for adding, removing, or toggling password visibility) embedded inside interactive elements (like `<button>` or `<span>`) that already possessed an `aria-label` or descriptive text. This causes redundant and sometimes confusing noise for screen reader users, as the screen reader may attempt to announce the SVG structure or content alongside the button's intended label.
+**Action:** When embedding decorative `<svg>` icons inside interactive elements that already have an `aria-label` or descriptive text, always add `aria-hidden="true"` to the `<svg>` tag to prevent redundant screen reader noise.

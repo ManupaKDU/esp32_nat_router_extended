@@ -106,3 +106,31 @@ bool is_valid_subnet_mask(char *subnet_mask)
 
     return true;
 }
+
+bool str2mac(const char *mac, uint8_t *values)
+{
+    if (mac == NULL || strlen(mac) != 17) {
+        return false;
+    }
+
+    for (int i = 0; i < 6; i++) {
+        uint8_t val = 0;
+        for (int j = 0; j < 2; j++) {
+            char c = mac[i * 3 + j];
+            if (c >= '0' && c <= '9') {
+                val = (val << 4) + (c - '0');
+            } else if (c >= 'a' && c <= 'f') {
+                val = (val << 4) + (c - 'a' + 10);
+            } else if (c >= 'A' && c <= 'F') {
+                val = (val << 4) + (c - 'A' + 10);
+            } else {
+                return false;
+            }
+        }
+        values[i] = val;
+        if (i < 5 && mac[i * 3 + 2] != ':') {
+            return false;
+        }
+    }
+    return true;
+}

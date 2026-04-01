@@ -7,3 +7,7 @@
 **Vulnerability:** Raw HTTP POST body buffers containing sensitive parameters (like WPA2 identities, Wi-Fi passwords, or URL-encoded credentials) were logged using `ESP_LOGI(TAG, "getting content %s", buf);` in URI handlers like `portmaphandler.c`, `applyhandler.c`, and `otahandler.c`.
 **Learning:** General-purpose logging of request payloads easily results in unintended plaintext exposure of sensitive data in application console output or logs.
 **Prevention:** Do not log raw HTTP payloads if they can contain sensitive user information. Process request components first, redact sensitive values, or avoid logging parameters altogether if not explicitly needed for debugging.
+## 2024-05-24 - Stop logging plaintext credential buffers in URI handlers
+**Vulnerability:** Raw HTTP POST buffers (`buf`, `content`) were logged directly to the console via `ESP_LOGI` before parsing. This inadvertently exposed user-submitted credentials (like passwords and identity tokens) in plaintext.
+**Learning:** General "getting content" debug logging is often added blindly without considering the sensitive nature of the accumulated data.
+**Prevention:** Avoid logging raw buffers containing multiple form fields. Instead, rely on parameter-specific logging mechanisms (like `readUrlParameterIntoBuffer`) which can apply heuristic redaction to individual sensitive keys.
