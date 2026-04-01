@@ -42,6 +42,7 @@
 #include "lwip/lwip_napt.h"
 
 #include "router_globals.h"
+#include "urihandler/helper.h"
 
 // On board LED
 #define BLINK_GPIO 2
@@ -399,7 +400,6 @@ void fillMac()
     get_config_param_str("custom_mac", &customMac);
     if (customMac != NULL)
     {
-
         if (strcmp("random", customMac) == 0)
         {
             uint8_t default_mac_addr[6] = {0};
@@ -412,15 +412,12 @@ void fillMac()
         {
             uint8_t uintMacs[6] = {0};
             ESP_LOGI(TAG, "Setting custom MAC address: %s", customMac);
-            int intMacs[6] = {0};
-
-            sscanf(customMac, "%x:%x:%x:%x:%x:%x", &intMacs[0], &intMacs[1], &intMacs[2], &intMacs[3], &intMacs[4], &intMacs[5]);
-            for (int i = 0; i < 6; ++i)
+            if (str2mac(customMac, uintMacs))
             {
-                uintMacs[i] = intMacs[i];
+                esp_base_mac_addr_set(uintMacs);
             }
-            esp_base_mac_addr_set(uintMacs);
         }
+        free(customMac);
     }
 }
 

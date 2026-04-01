@@ -12,3 +12,4 @@ void preprocess_string(char *str);
 void readUrlParameterIntoBuffer(char *parameterString, char *parameter, char *buffer, size_t paramLength);
 esp_err_t fill_post_buffer(httpd_req_t *req, char *buf, size_t len);
 bool is_valid_subnet_mask(char *subnet_mask);
+bool str2mac(const char *mac, uint8_t *values);

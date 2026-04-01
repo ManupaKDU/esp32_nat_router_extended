@@ -60,7 +60,35 @@ void test_preprocess_string() {
     printf("All test_preprocess_string passed!\n");
 }
 
+void test_str2mac() {
+    printf("Running test_str2mac...\n");
+    uint8_t values[6];
+
+    // Test 1: Valid uppercase MAC
+    assert(str2mac("00:1A:2B:3C:4D:5E", values) == true);
+    assert(values[0] == 0x00 && values[1] == 0x1a && values[2] == 0x2b && values[3] == 0x3c && values[4] == 0x4d && values[5] == 0x5e);
+
+    // Test 2: Valid lowercase MAC
+    assert(str2mac("a1:b2:c3:d4:e5:f6", values) == true);
+    assert(values[0] == 0xa1 && values[1] == 0xb2 && values[2] == 0xc3 && values[3] == 0xd4 && values[4] == 0xe5 && values[5] == 0xf6);
+
+    // Test 3: Invalid length
+    assert(str2mac("00:1A:2B:3C:4D:5", values) == false);
+    assert(str2mac("00:1A:2B:3C:4D:5E:6F", values) == false);
+
+    // Test 4: Invalid characters
+    assert(str2mac("00:1A:2B:3C:4D:5G", values) == false);
+    assert(str2mac("00:1A:2B:3C:4D:-E", values) == false);
+
+    // Test 5: Missing colons
+    assert(str2mac("0011A:2B:3C:4D:5E", values) == false);
+    assert(str2mac("00:1A:2B3C:4D:5E:", values) == false);
+
+    printf("All test_str2mac passed!\n");
+}
+
 int main() {
     test_preprocess_string();
+    test_str2mac();
     return 0;
 }
