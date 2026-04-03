@@ -9,3 +9,7 @@
 ## 2025-05-15 - [Screen Reader Noise from Decorative SVGs]
 **Learning:** Found several decorative `<svg>` icons (e.g., Bootstrap icons for adding, removing, or toggling password visibility) embedded inside interactive elements (like `<button>` or `<span>`) that already possessed an `aria-label` or descriptive text. This causes redundant and sometimes confusing noise for screen reader users, as the screen reader may attempt to announce the SVG structure or content alongside the button's intended label.
 **Action:** When embedding decorative `<svg>` icons inside interactive elements that already have an `aria-label` or descriptive text, always add `aria-hidden="true"` to the `<svg>` tag to prevent redundant screen reader noise.
+
+## 2026-04-03 - Hide decorative SVGs inside links with aria-labels
+**Learning:** When embedding decorative `<svg>` icons (like Bootstrap icons) inside interactive elements (such as `<a>` tags functioning as buttons) that already have an `aria-label` or descriptive title, screen readers can interpret the SVG itself as readable content, resulting in redundant announcements.
+**Action:** Always add `aria-hidden="true"` to the `<svg>` tag within such interactive elements to prevent redundant screen reader noise and provide a cleaner accessibility experience.
