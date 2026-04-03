@@ -10,6 +10,9 @@
 **Learning:** Found several decorative `<svg>` icons (e.g., Bootstrap icons for adding, removing, or toggling password visibility) embedded inside interactive elements (like `<button>` or `<span>`) that already possessed an `aria-label` or descriptive text. This causes redundant and sometimes confusing noise for screen reader users, as the screen reader may attempt to announce the SVG structure or content alongside the button's intended label.
 **Action:** When embedding decorative `<svg>` icons inside interactive elements that already have an `aria-label` or descriptive text, always add `aria-hidden="true"` to the `<svg>` tag to prevent redundant screen reader noise.
 
+## 2025-05-18 - [Input Group Add-on Misalignment]
+**Learning:** Applying fixed column width classes (e.g., col-9) directly to an <input> element inside a Bootstrap .input-group container disrupts flexbox layout and causes add-ons (like password visibility toggles) to misalign or overflow.
+**Action:** When adding Bootstrap input-group-text add-ons to inputs, avoid applying fixed column width classes directly to the <input> element. Rely on the container's layout classes instead.
 ## 2026-04-03 - Hide decorative SVGs inside links with aria-labels
 **Learning:** When embedding decorative `<svg>` icons (like Bootstrap icons) inside interactive elements (such as `<a>` tags functioning as buttons) that already have an `aria-label` or descriptive title, screen readers can interpret the SVG itself as readable content, resulting in redundant announcements.
 **Action:** Always add `aria-hidden="true"` to the `<svg>` tag within such interactive elements to prevent redundant screen reader noise and provide a cleaner accessibility experience.
