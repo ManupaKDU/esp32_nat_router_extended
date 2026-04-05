@@ -11,7 +11,7 @@
 #include "esp_wifi_ap_get_sta_list.h"
 
 static const char *TAG = "PortMapHandler";
-const char *PORTMAP_ROW_TEMPLATE = "<tr> <td>%s</td> <td>%hu</td> <td>%s</td> <td>%hu</td> <td> <form action='/portmap' method='POST' onsubmit=\"return confirm('Are you sure you want to remove this portmap entry?');\"><input type='hidden' name='func' value='del'><input type='hidden' name='entry' value='%s'> <button title='Remove' name='remove' class='btn btn-light' aria-label='Remove portmap entry'> <svg version='2.0' width='16' height='16' aria-hidden='true'> <use href='#trash' /> </svg> </button> </form> </td></tr>";
+const char *PORTMAP_ROW_TEMPLATE = "<tr> <td>%s</td> <td>%hu</td> <td>%s</td> <td>%hu</td> <td> <form action='/portmap' method='POST' onsubmit=\"return confirm('Are you sure you want to remove the portmap entry for external port %hu?');\"><input type='hidden' name='func' value='del'><input type='hidden' name='entry' value='%s'> <button title='Remove' name='remove' class='btn btn-light' aria-label='Remove portmap entry for external port %hu'> <svg version='2.0' width='16' height='16' aria-hidden='true'> <use href='#trash' /> </svg> </button> </form> </td></tr>";
 
 esp_err_t portmap_get_handler(httpd_req_t *req)
 {
@@ -29,7 +29,7 @@ esp_err_t portmap_get_handler(httpd_req_t *req)
 
     // send entries
     bool entriesSent = false;
-    char template[strlen(PORTMAP_ROW_TEMPLATE) + 12 + 16 + 4 + 50];
+    char template[strlen(PORTMAP_ROW_TEMPLATE) + 12 + 16 + 4 + 50 + 10]; // +10 for two %hu ports
     for (int i = 0; i < PORTMAP_MAX; i++)
     {
         if (portmap_tab[i].valid)
@@ -50,7 +50,7 @@ esp_err_t portmap_get_handler(httpd_req_t *req)
             char delParam[50];
             sprintf(delParam, "%s_%hu_%s_%hu", protocol, portmap_tab[i].mport, ip_str, portmap_tab[i].dport);
 
-            sprintf(template, PORTMAP_ROW_TEMPLATE, protocol, portmap_tab[i].mport, ip_str, portmap_tab[i].dport, delParam);
+            sprintf(template, PORTMAP_ROW_TEMPLATE, protocol, portmap_tab[i].mport, ip_str, portmap_tab[i].dport, portmap_tab[i].mport, delParam, portmap_tab[i].mport);
 
             ESP_LOGI(TAG, "Sending portmap entry part");
             ESP_ERROR_CHECK(httpd_resp_send_chunk(req, template, HTTPD_RESP_USE_STRLEN));

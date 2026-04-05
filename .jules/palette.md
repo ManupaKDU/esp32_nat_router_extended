@@ -16,3 +16,7 @@
 ## 2026-04-03 - Hide decorative SVGs inside links with aria-labels
 **Learning:** When embedding decorative `<svg>` icons (like Bootstrap icons) inside interactive elements (such as `<a>` tags functioning as buttons) that already have an `aria-label` or descriptive title, screen readers can interpret the SVG itself as readable content, resulting in redundant announcements.
 **Action:** Always add `aria-hidden="true"` to the `<svg>` tag within such interactive elements to prevent redundant screen reader noise and provide a cleaner accessibility experience.
+
+## 2026-04-04 - [Contextual Information in Javascript Confirm Dialogs]
+**Learning:** Found data tables (like the portmap configuration) using a generic Javascript `confirm()` dialog (e.g., "Are you sure you want to remove this portmap entry?") when deleting rows. This lacks context and can lead to accidental deletions of the wrong entry, especially if a user misclicks.
+**Action:** When creating Javascript `confirm()` dialogs for destructive actions within repeating data table rows, always include contextual data (like the row's primary identifier, e.g., the external port) in the message string to ensure users know exactly which item they are acting upon.
