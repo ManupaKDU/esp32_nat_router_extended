@@ -216,8 +216,11 @@ esp_err_t index_post_handler(httpd_req_t *req)
         if (strlen(ssidParam) > 0)
         {
             ESP_LOGI(TAG, "Found SSID parameter => %s", ssidParam);
-            appliedSSID = malloc(strlen(ssidParam) + 1);
-            strcpy(appliedSSID, ssidParam);
+            size_t max_sanitized_size = strlen(ssidParam) * 6 + 1; // max entity length is 6 ("&quot;")
+            appliedSSID = malloc(max_sanitized_size);
+            if (appliedSSID) {
+                sanitize_html(ssidParam, appliedSSID, max_sanitized_size);
+            }
         }
         free(ssidParam);
     }
