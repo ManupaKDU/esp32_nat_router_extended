@@ -12,3 +12,13 @@
 
 **Learning:** When receiving chunked HTTP requests, iteratively appending the chunks to an accumulating buffer using `strcat` results in $O(N^2)$ time complexity and redundant memory copying.
 **Action:** When reading HTTP request data into an intermediate buffer to process it later, use helper functions (e.g., `fill_post_buffer`) which reads directly into the final buffer at a tracked offset and sets the terminating null byte, ensuring $O(N)$ overall time complexity.
+
+## 2025-02-28 - NVS Portmap Table Atomicity and Wear
+
+**Learning:** When updating table arrays backed by Non-Volatile Storage (NVS) (like `portmap_tab`), doing the save or side-effect operations (`save_portmap_tab()`, `ip_portmap_add()`) directly inside the discovery loop can lead to suboptimal code structure and potential wear or atomicity issues if the loop continues or is modified later, even if there is a `return` statement.
+**Action:** Always follow a 'find then act' pattern for table updates: use a loop only to identify a target index (`target_idx`), then perform the NVS save and subsequent operations outside the loop to explicitly prevent flash wear, ensure atomicity, and maintain clean separation of concerns.
+
+## 2025-02-28 - Optimizing Wi-Fi Station Count Checks
+
+**Learning:** Calling `esp_wifi_ap_get_sta_list()` inside a tight loop or frequently across the codebase (like in the LED blinking thread and HTTP endpoints) introduces significant performance overhead, as it triggers internal core operations to fetch and copy MAC/RSSI details for all connected devices.
+**Action:** Instead of proactively fetching the station list just to check the connection count, cache the active station count globally (`volatile uint16_t current_connect_count`) and update it incrementally using the native ESP Wi-Fi event handlers (`WIFI_EVENT_AP_STACONNECTED` and `WIFI_EVENT_AP_STADISCONNECTED`). This turns an O(N) hardware query into an O(1) memory read, saving CPU cycles.

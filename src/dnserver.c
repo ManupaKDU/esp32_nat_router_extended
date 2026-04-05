@@ -272,18 +272,11 @@ bool isDnsStarted()
     return task != NULL;
 }
 
+extern volatile uint16_t current_connect_count;
+
 uint16_t getConnectCount()
 {
-
-    wifi_sta_list_t wifi_sta_list;
-    memset(&wifi_sta_list, 0, sizeof(wifi_sta_list));
-
-    esp_err_t err = esp_wifi_ap_get_sta_list(&wifi_sta_list);
-    if (err == ESP_OK)
-    {
-        return wifi_sta_list.num;
-    }
-    return 0;
+    return current_connect_count;
 }
 
 void start_dns_server()

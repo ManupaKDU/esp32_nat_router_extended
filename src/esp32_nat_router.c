@@ -64,6 +64,8 @@ const int WIFI_CONNECTED_BIT = BIT0;
 
 bool ap_connect = false;
 
+volatile uint16_t current_connect_count = 0;
+
 uint32_t my_ip;
 uint32_t my_ap_ip;
 
@@ -194,39 +196,52 @@ esp_err_t save_portmap_tab()
 
 esp_err_t add_portmap(u8_t proto, u16_t mport, u32_t daddr, u16_t dport)
 {
+    int target_idx = -1;
     for (int i = 0; i < PORTMAP_MAX; i++)
     {
         if (!portmap_tab[i].valid)
         {
-            portmap_tab[i].proto = proto;
-            portmap_tab[i].mport = mport;
-            portmap_tab[i].daddr = daddr;
-            portmap_tab[i].dport = dport;
-            portmap_tab[i].valid = 1;
-
-            ESP_ERROR_CHECK(save_portmap_tab());
-
-            ip_portmap_add(proto, my_ip, mport, daddr, dport);
-
-            return ESP_OK;
+            target_idx = i;
+            break;
         }
+    }
+
+    if (target_idx >= 0)
+    {
+        portmap_tab[target_idx].proto = proto;
+        portmap_tab[target_idx].mport = mport;
+        portmap_tab[target_idx].daddr = daddr;
+        portmap_tab[target_idx].dport = dport;
+        portmap_tab[target_idx].valid = 1;
+
+        ESP_ERROR_CHECK(save_portmap_tab());
+
+        ip_portmap_add(proto, my_ip, mport, daddr, dport);
+
+        return ESP_OK;
     }
     return ESP_ERR_NO_MEM;
 }
 
 esp_err_t del_portmap(u8_t proto, u16_t mport, u32_t daddr, u16_t dport)
 {
+    int target_idx = -1;
     for (int i = 0; i < PORTMAP_MAX; i++)
     {
         if (portmap_tab[i].valid && portmap_tab[i].mport == mport && portmap_tab[i].proto == proto && portmap_tab[i].dport == dport && portmap_tab[i].daddr == daddr)
         {
-            portmap_tab[i].valid = 0;
-
-            ESP_ERROR_CHECK(save_portmap_tab());
-
-            ip_portmap_remove(proto, mport);
-            return ESP_OK;
+            target_idx = i;
+            break;
         }
+    }
+
+    if (target_idx >= 0)
+    {
+        portmap_tab[target_idx].valid = 0;
+
+        ESP_ERROR_CHECK(save_portmap_tab());
+
+        ip_portmap_remove(proto, mport);
     }
     return ESP_OK;
 }
@@ -299,11 +314,10 @@ void *led_status_thread(void *p)
     gpio_reset_pin(BLINK_GPIO);
     gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
 
-    uint16_t connect_count = getConnectCount();
-
     while (true)
     {
         gpio_set_level(BLINK_GPIO, ap_connect);
+        uint16_t connect_count = getConnectCount();
 
         for (int i = 0; i < connect_count; i++)
         {
@@ -475,11 +489,15 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
     }
     else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_AP_STACONNECTED)
     {
-        ESP_LOGI(TAG, "Station connected");
+        current_connect_count++;
+        ESP_LOGI(TAG, "Station connected. Count: %d", current_connect_count);
     }
     else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_AP_STADISCONNECTED)
     {
-        ESP_LOGI(TAG, "Station disconnected");
+        if (current_connect_count > 0) {
+            current_connect_count--;
+        }
+        ESP_LOGI(TAG, "Station disconnected. Count: %d", current_connect_count);
     }
 }
 const int CONNECTED_BIT = BIT0;
