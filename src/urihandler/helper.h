@@ -13,3 +13,4 @@ void readUrlParameterIntoBuffer(char *parameterString, char *parameter, char *bu
 esp_err_t fill_post_buffer(httpd_req_t *req, char *buf, size_t len);
 bool is_valid_subnet_mask(char *subnet_mask);
 bool str2mac(const char *mac, uint8_t *values);
+void sanitize_html(const char *input, char *output, size_t output_size);

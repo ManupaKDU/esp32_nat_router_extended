@@ -20,3 +20,6 @@
 ## 2026-04-04 - [Contextual Information in Javascript Confirm Dialogs]
 **Learning:** Found data tables (like the portmap configuration) using a generic Javascript `confirm()` dialog (e.g., "Are you sure you want to remove this portmap entry?") when deleting rows. This lacks context and can lead to accidental deletions of the wrong entry, especially if a user misclicks.
 **Action:** When creating Javascript `confirm()` dialogs for destructive actions within repeating data table rows, always include contextual data (like the row's primary identifier, e.g., the external port) in the message string to ensure users know exactly which item they are acting upon.
+## 2026-04-04 - [Screen Reader Noise from Informational SVGs]
+**Learning:** Found decorative SVGs (`bi-wifi`, `bi-wifi-off`) that function purely as informational/status icons next to explicit textual status descriptions (like "signal strength: X db") lacking the `aria-hidden="true"` attribute. Even though they weren't inside links or buttons, their lack of `aria-hidden` could still cause screen readers to announce them unnecessarily, confusing the user who already receives the same information through text.
+**Action:** Always add `aria-hidden="true"` to informational SVGs used in UI designs alongside their textual counterparts, not just to SVGs inside interactive components like buttons.

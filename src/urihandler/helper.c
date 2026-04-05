@@ -134,3 +134,37 @@ bool str2mac(const char *mac, uint8_t *values)
     }
     return true;
 }
+
+void sanitize_html(const char *input, char *output, size_t output_size)
+{
+    if (!input || !output || output_size == 0) return;
+
+    size_t out_idx = 0;
+    while (*input && out_idx < output_size - 1) {
+        if (*input == '<') {
+            if (out_idx + 4 >= output_size) break;
+            strcpy(output + out_idx, "&lt;");
+            out_idx += 4;
+        } else if (*input == '>') {
+            if (out_idx + 4 >= output_size) break;
+            strcpy(output + out_idx, "&gt;");
+            out_idx += 4;
+        } else if (*input == '&') {
+            if (out_idx + 5 >= output_size) break;
+            strcpy(output + out_idx, "&amp;");
+            out_idx += 5;
+        } else if (*input == '"') {
+            if (out_idx + 6 >= output_size) break;
+            strcpy(output + out_idx, "&quot;");
+            out_idx += 6;
+        } else if (*input == '\'') {
+            if (out_idx + 5 >= output_size) break;
+            strcpy(output + out_idx, "&#39;");
+            out_idx += 5;
+        } else {
+            output[out_idx++] = *input;
+        }
+        input++;
+    }
+    output[out_idx] = '\0';
+}
