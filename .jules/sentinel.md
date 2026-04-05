@@ -11,3 +11,7 @@
 **Vulnerability:** Raw HTTP POST buffers (`buf`, `content`) were logged directly to the console via `ESP_LOGI` before parsing. This inadvertently exposed user-submitted credentials (like passwords and identity tokens) in plaintext.
 **Learning:** General "getting content" debug logging is often added blindly without considering the sensitive nature of the accumulated data.
 **Prevention:** Avoid logging raw buffers containing multiple form fields. Instead, rely on parameter-specific logging mechanisms (like `readUrlParameterIntoBuffer`) which can apply heuristic redaction to individual sensitive keys.
+## 2025-02-13 - Stored XSS via Unsanitized appliedSSID
+**Vulnerability:** The HTTP POST `ssid` parameter in `index_post_handler` (`src/urihandler/indexhandler.c`) was stored directly into the global `appliedSSID` string without sanitization. Later, in `index_get_handler`, this string was directly injected into the `config_page` HTML response via `sprintf()`, leading to a Stored Cross-Site Scripting (XSS) vulnerability.
+**Learning:** Any user-supplied data obtained from URL parameters or request bodies that is later rendered into an HTML interface must be strictly entity-encoded to prevent malicious script execution in the client's browser.
+**Prevention:** Implement a standard `sanitize_html` utility to escape HTML special characters (`<`, `>`, `&`, `"`, `'`) and apply it immediately when extracting strings that will be reflected back to the UI. Ensure bounds-checking during sanitization expansion.
