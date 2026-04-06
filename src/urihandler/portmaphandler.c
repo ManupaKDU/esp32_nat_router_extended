@@ -46,11 +46,11 @@ esp_err_t portmap_get_handler(httpd_req_t *req)
             esp_ip4_addr_t addr;
             addr.addr = portmap_tab[i].daddr;
             char ip_str[16];
-            sprintf(ip_str, IPSTR, IP2STR(&addr));
+            snprintf(ip_str, sizeof(ip_str), IPSTR, IP2STR(&addr));
             char delParam[50];
-            sprintf(delParam, "%s_%hu_%s_%hu", protocol, portmap_tab[i].mport, ip_str, portmap_tab[i].dport);
+            snprintf(delParam, sizeof(delParam), "%s_%hu_%s_%hu", protocol, portmap_tab[i].mport, ip_str, portmap_tab[i].dport);
 
-            sprintf(template, PORTMAP_ROW_TEMPLATE, protocol, portmap_tab[i].mport, ip_str, portmap_tab[i].dport, portmap_tab[i].mport, delParam, portmap_tab[i].mport);
+            snprintf(template, sizeof(template), PORTMAP_ROW_TEMPLATE, protocol, portmap_tab[i].mport, ip_str, portmap_tab[i].dport, portmap_tab[i].mport, delParam, portmap_tab[i].mport);
 
             ESP_LOGI(TAG, "Sending portmap entry part");
             ESP_ERROR_CHECK(httpd_resp_send_chunk(req, template, HTTPD_RESP_USE_STRLEN));
@@ -70,11 +70,11 @@ esp_err_t portmap_get_handler(httpd_req_t *req)
     extern const char portmap_end[] asm("_binary_portmap_end_html_end");
     const size_t portmap_html_size = (portmap_end - portmap_end_start);
     char *defaultIP = getDefaultIPByNetmask();
-    char ip_prefix[strlen(defaultIP)];
-    strncpy(ip_prefix, defaultIP, strlen(defaultIP) - 1); // Without the last part
-    ip_prefix[strlen(defaultIP) - 1] = '\0';
-    char *portmap_page = malloc(portmap_html_size + strlen(ip_prefix));
-    sprintf(portmap_page, portmap_end_start, ip_prefix);
+    char ip_prefix[16];
+    snprintf(ip_prefix, sizeof(ip_prefix), "%.*s", (int)(strlen(defaultIP) - 1), defaultIP);
+    size_t alloc_size = portmap_html_size + strlen(ip_prefix) + 1;
+    char *portmap_page = malloc(alloc_size);
+    snprintf(portmap_page, alloc_size, portmap_end_start, ip_prefix);
     ESP_LOGI(TAG, "Sending portmap end part");
 
     ESP_ERROR_CHECK(httpd_resp_send_chunk(req, portmap_page, HTTPD_RESP_USE_STRLEN));
@@ -115,10 +115,8 @@ void addPortmapEntry(char *urlContent)
 
     readUrlParameterIntoBuffer(urlContent, "ip", param, contentLength);
     char *defaultIP = getDefaultIPByNetmask();
-    char resultIP[strlen(defaultIP) + strlen(param) + 1];
-    strncpy(resultIP, defaultIP, strlen(defaultIP) - 1);
-    resultIP[strlen(defaultIP) - 1] = '\0';
-    strcat(resultIP, param);
+    char resultIP[128]; // Stack buffer large enough to safely hold prefix + max user input
+    snprintf(resultIP, sizeof(resultIP), "%.*s%s", (int)(strlen(defaultIP) - 1), defaultIP, param);
     free(defaultIP);
     uint32_t int_ip = ipaddr_addr(resultIP);
     if (int_ip == IPADDR_NONE)
