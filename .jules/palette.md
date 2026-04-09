@@ -23,3 +23,6 @@
 ## 2026-04-04 - [Screen Reader Noise from Informational SVGs]
 **Learning:** Found decorative SVGs (`bi-wifi`, `bi-wifi-off`) that function purely as informational/status icons next to explicit textual status descriptions (like "signal strength: X db") lacking the `aria-hidden="true"` attribute. Even though they weren't inside links or buttons, their lack of `aria-hidden` could still cause screen readers to announce them unnecessarily, confusing the user who already receives the same information through text.
 **Action:** Always add `aria-hidden="true"` to informational SVGs used in UI designs alongside their textual counterparts, not just to SVGs inside interactive components like buttons.
+## 2024-05-13 - Add confirmation dialog to erase flash action
+**Learning:** Added `onsubmit` confirmation dialog directly to the form that initiates the POST request mutating data (flash erase) instead of intermediate GET request pages. This provides double-confirmation and avoids accidental data loss.
+**Action:** When adding Javascript confirmation dialogs to prevent accidental data loss, apply the handler directly to the form performing the actual data-mutating request (e.g., POST actions), not to intermediate navigation forms.
