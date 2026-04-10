@@ -15,3 +15,7 @@
 **Vulnerability:** The HTTP POST `ssid` parameter in `index_post_handler` (`src/urihandler/indexhandler.c`) was stored directly into the global `appliedSSID` string without sanitization. Later, in `index_get_handler`, this string was directly injected into the `config_page` HTML response via `sprintf()`, leading to a Stored Cross-Site Scripting (XSS) vulnerability.
 **Learning:** Any user-supplied data obtained from URL parameters or request bodies that is later rendered into an HTML interface must be strictly entity-encoded to prevent malicious script execution in the client's browser.
 **Prevention:** Implement a standard `sanitize_html` utility to escape HTML special characters (`<`, `>`, `&`, `"`, `'`) and apply it immediately when extracting strings that will be reflected back to the UI. Ensure bounds-checking during sanitization expansion.
+## 2026-04-10 - Fix Authorization Bypass on Reset Endpoint
+**Vulnerability:** Missing `isLocked()` check on the `/reset` route handler allowed unauthenticated users to access the device reset page.
+**Learning:** Administrative endpoints can easily omit common authorization patterns if not strictly audited, opening up critical destructive actions to any user on the network.
+**Prevention:** All non-static, administrative URI handlers must explicitly implement the `isLocked()` check right at the beginning of the function to safely redirect unauthorized access using `redirectToLock(req)`.
