@@ -102,6 +102,11 @@ static int parse_dns_request(char *req, size_t req_len, char *dns_reply, size_t 
         return -1;
     }
 
+    if (req_len < sizeof(dns_header_t))
+    {
+        return 0;
+    }
+
     // Prepare the reply
     memset(dns_reply, 0, dns_reply_max_len);
     memcpy(dns_reply, req, req_len);
@@ -111,8 +116,18 @@ static int parse_dns_request(char *req, size_t req_len, char *dns_reply, size_t 
     ESP_LOGD(TAG, "DNS query with header id: 0x%X, flags: 0x%X, qd_count: %d",
              ntohs(header->id), ntohs(header->flags), ntohs(header->qd_count));
 
+    if (header->flags & QR_FLAG) // Not a query
+    {
+        return 0;
+    }
+
     // Not a standard query
     if ((header->flags & OPCODE_MASK) != 0)
+    {
+        return 0;
+    }
+
+    if (header->qd_count != htons(1)) // One question expected
     {
         return 0;
     }
@@ -150,22 +165,24 @@ static int parse_dns_request(char *req, size_t req_len, char *dns_reply, size_t 
 
         ESP_LOGD(TAG, "Received type: %d | Class: %d | Question for: %s", qd_type, qd_class, name);
 
-        if (qd_type == QD_TYPE_A)
+        if (qd_type != QD_TYPE_A)
         {
-            dns_answer_t *answer = (dns_answer_t *)cur_ans_ptr;
-
-            answer->ptr_offset = htons(0xC000 | (cur_qd_ptr - dns_reply));
-            answer->type = htons(qd_type);
-            answer->class = htons(qd_class);
-            answer->ttl = htonl(ANS_TTL_SEC);
-
-            esp_netif_ip_info_t ip_info;
-            esp_netif_get_ip_info(esp_netif_get_handle_from_ifkey("WIFI_AP_DEF"), &ip_info);
-            
-            // ESP_LOGD(TAG, "Answer with PTR offset: 0x%X and IP 0x%X", ntohs(answer->ptr_offset), ip_info.ip.addr);
-            answer->addr_len = htons(sizeof(ip_info.ip.addr));
-            answer->ip_addr = ip_info.ip.addr;
+            continue;
         }
+
+        dns_answer_t *answer = (dns_answer_t *)cur_ans_ptr;
+
+        answer->ptr_offset = htons(0xC000 | (cur_qd_ptr - dns_reply));
+        answer->type = htons(qd_type);
+        answer->class = htons(qd_class);
+        answer->ttl = htonl(ANS_TTL_SEC);
+
+        esp_netif_ip_info_t ip_info;
+        esp_netif_get_ip_info(esp_netif_get_handle_from_ifkey("WIFI_AP_DEF"), &ip_info);
+
+        // ESP_LOGD(TAG, "Answer with PTR offset: 0x%X and IP 0x%X", ntohs(answer->ptr_offset), ip_info.ip.addr);
+        answer->addr_len = htons(sizeof(ip_info.ip.addr));
+        answer->ip_addr = ip_info.ip.addr;
     }
     return reply_len;
 }
@@ -214,46 +231,46 @@ void dns_server_task(void *pvParameters)
             socklen_t socklen = sizeof(source_addr);
             int len = recvfrom(sock, rx_buffer, sizeof(rx_buffer) - 1, 0, (struct sockaddr *)&source_addr, &socklen);
 
-            // Error occurred during receiving
-            if (len < 0)
+            // Error occurred during receiving or 0 length packet received
+            if (len <= 0)
             {
-                ESP_LOGE(TAG, "recvfrom failed: errno %d", errno);
-                close(sock);
-                break;
+                if (len < 0)
+                {
+                    ESP_LOGE(TAG, "recvfrom failed: errno %d", errno);
+                    close(sock);
+                    break;
+                }
+                continue;
             }
-            // Data received
-            else
+
+            // Get the sender's ip address as string
+            if (source_addr.sin6_family == PF_INET)
             {
-                // Get the sender's ip address as string
-                if (source_addr.sin6_family == PF_INET)
-                {
-                    inet_ntoa_r(((struct sockaddr_in *)&source_addr)->sin_addr.s_addr, addr_str, sizeof(addr_str) - 1);
-                }
-                else if (source_addr.sin6_family == PF_INET6)
-                {
-                    inet6_ntoa_r(source_addr.sin6_addr, addr_str, sizeof(addr_str) - 1);
-                }
+                inet_ntoa_r(((struct sockaddr_in *)&source_addr)->sin_addr.s_addr, addr_str, sizeof(addr_str) - 1);
+            }
+            else if (source_addr.sin6_family == PF_INET6)
+            {
+                inet6_ntoa_r(source_addr.sin6_addr, addr_str, sizeof(addr_str) - 1);
+            }
 
-                // Null-terminate whatever we received and treat like a string...
-                rx_buffer[len] = 0;
+            // Null-terminate whatever we received and treat like a string...
+            rx_buffer[len] = 0;
 
-                char reply[DNS_MAX_LEN];
-                int reply_len = parse_dns_request(rx_buffer, len, reply, DNS_MAX_LEN);
+            char reply[DNS_MAX_LEN];
+            int reply_len = parse_dns_request(rx_buffer, len, reply, DNS_MAX_LEN);
 
-                ESP_LOGI(TAG, "Received %d bytes from %s | DNS reply with len: %d", len, addr_str, reply_len);
-                if (reply_len <= 0)
-                {
-                    ESP_LOGE(TAG, "Failed to prepare a DNS reply");
-                }
-                else
-                {
-                    int err = sendto(sock, reply, reply_len, 0, (struct sockaddr *)&source_addr, sizeof(source_addr));
-                    if (err < 0)
-                    {
-                        ESP_LOGE(TAG, "Error occurred during sending: errno %d", errno);
-                        break;
-                    }
-                }
+            ESP_LOGI(TAG, "Received %d bytes from %s | DNS reply with len: %d", len, addr_str, reply_len);
+            if (reply_len <= 0)
+            {
+                ESP_LOGE(TAG, "Failed to prepare a DNS reply");
+                continue;
+            }
+
+            int err = sendto(sock, reply, reply_len, 0, (struct sockaddr *)&source_addr, sizeof(source_addr));
+            if (err < 0)
+            {
+                ESP_LOGE(TAG, "Error occurred during sending: errno %d", errno);
+                break;
             }
         }
 
