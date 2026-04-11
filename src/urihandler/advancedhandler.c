@@ -162,7 +162,9 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
         customMac = currentMAC;
     }
 
-    char *netmask = getNetmask();
+    char *netmask_alloc = NULL;
+    get_config_param_str("netmask", &netmask_alloc);
+    char *netmask = netmask_alloc != NULL ? netmask_alloc : DEFAULT_NETMASK_CLASS_C;
 
     if (strcmp(netmask, DEFAULT_NETMASK_CLASS_A) == 0)
     {
@@ -201,10 +203,7 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
     free(hostName);
     free(customDNS);
     free(macSetting);
-    if (netmask != DEFAULT_NETMASK_CLASS_C)
-    {
-        free(netmask);
-    }
+    free(netmask_alloc);
 
     return ret;
 }
