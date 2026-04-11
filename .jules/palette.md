@@ -23,3 +23,6 @@
 ## 2026-04-04 - [Screen Reader Noise from Informational SVGs]
 **Learning:** Found decorative SVGs (`bi-wifi`, `bi-wifi-off`) that function purely as informational/status icons next to explicit textual status descriptions (like "signal strength: X db") lacking the `aria-hidden="true"` attribute. Even though they weren't inside links or buttons, their lack of `aria-hidden` could still cause screen readers to announce them unnecessarily, confusing the user who already receives the same information through text.
 **Action:** Always add `aria-hidden="true"` to informational SVGs used in UI designs alongside their textual counterparts, not just to SVGs inside interactive components like buttons.
+## 2024-11-20 - Enforce validation on conditionally enabled inputs
+**Learning:** HTML5 `pattern` attributes do not trigger validation if the input is empty. When using `pattern` on conditionally enabled form fields (like "Custom" input options), the browser will allow users to submit the form with an empty string, bypassing the intended regex constraints and potentially breaking backend logic.
+**Action:** Always pair the `pattern` attribute with `required` when applying it to a conditionally enabled text input. This ensures that when the input is active, it cannot be submitted empty and forces the regex validation to run.
