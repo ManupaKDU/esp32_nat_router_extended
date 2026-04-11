@@ -22,3 +22,10 @@
 
 **Learning:** Calling `esp_wifi_ap_get_sta_list()` inside a tight loop or frequently across the codebase (like in the LED blinking thread and HTTP endpoints) introduces significant performance overhead, as it triggers internal core operations to fetch and copy MAC/RSSI details for all connected devices.
 **Action:** Instead of proactively fetching the station list just to check the connection count, cache the active station count globally (`volatile uint16_t current_connect_count`) and update it incrementally using the native ESP Wi-Fi event handlers (`WIFI_EVENT_AP_STACONNECTED` and `WIFI_EVENT_AP_STADISCONNECTED`). This turns an O(N) hardware query into an O(1) memory read, saving CPU cycles.
+## 2026-04-11 - Prevent Redundant NVS Reads
+**Learning:** Re-fetching the same configuration key from NVS via `get_config_param_str()` in conditionals adds unnecessary flash wear, read latency, and dynamic allocation overhead.
+**Action:** Assign existing string pointers to subsequent variables if the key and value are identical, saving an NVS read and memory allocation overhead.
+
+## 2026-04-11 - Memory Management of Mixed Allocation Types
+**Learning:** The `getNetmask()` function returns either a dynamically allocated string (from NVS) or a static literal (`DEFAULT_NETMASK_CLASS_C`). Blindly calling `free()` causes undefined behavior, while skipping `free()` entirely causes a memory leak.
+**Action:** Use pointer comparison (`if (ptr != CONSTANT)`) rather than string comparison (`strcmp`) to safely determine if the returned string requires `free()`, covering edge cases where the dynamically allocated NVS value matches the constant string value.

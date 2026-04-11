@@ -133,7 +133,8 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
     else
     {
         customCB = "checked";
-        get_config_param_str("custom_dns", &customDNSIP);
+        // ⚡ Bolt: Reuse customDNS instead of redundant NVS read and malloc
+        customDNSIP = customDNS;
     }
 
     uint8_t base_mac_addr[6] = {0};
@@ -197,6 +198,13 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
 
     free(advanced_page);
     free(currentDNS);
+    free(hostName);
+    free(customDNS);
+    free(macSetting);
+    if (netmask != DEFAULT_NETMASK_CLASS_C)
+    {
+        free(netmask);
+    }
 
     return ret;
 }
