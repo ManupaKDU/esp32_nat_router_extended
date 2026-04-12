@@ -133,7 +133,8 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
     else
     {
         customCB = "checked";
-        get_config_param_str("custom_dns", &customDNSIP);
+        // ⚡ Bolt Optimization: Reuse existing NVS allocation to avoid redundant flash read latency and malloc overhead
+        customDNSIP = customDNS;
     }
 
     uint8_t base_mac_addr[6] = {0};
@@ -161,7 +162,9 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
         customMac = currentMAC;
     }
 
-    char *netmask = getNetmask();
+    char *netmask_alloc = NULL;
+    get_config_param_str("netmask", &netmask_alloc);
+    char *netmask = netmask_alloc ? netmask_alloc : DEFAULT_NETMASK_CLASS_C;
 
     if (strcmp(netmask, DEFAULT_NETMASK_CLASS_A) == 0)
     {
@@ -197,6 +200,12 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
 
     free(advanced_page);
     free(currentDNS);
+
+    // ⚡ Bolt Optimization: Safely free dynamically allocated config params to prevent memory leaks and fragmentation
+    free(hostName);
+    free(customDNS);
+    free(macSetting);
+    free(netmask_alloc);
 
     return ret;
 }
