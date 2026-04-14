@@ -210,7 +210,7 @@
                 <div class="form-group row col-4 offset-4 mt-5"> <a href=/ class="btn btn-light">Back</a> </div>
         </div>
         <script src=jquery-8a1045d9cbf50b52a0805c111ba08e94.js></script>
-        <script>         function refreshRadios() { $('input[value="custom"]').each(function () { $(this).next().next().prop('disabled', $(this).prop('checked') ? false : true); }) }; $('input[type=radio]').change(function () { refreshRadios(); }); $(document).ready(function () { refreshRadios(); });          </script>
+        <script>         function refreshRadios() { $('input[value="custom"]').each(function () { var custom = $(this).prop('checked'); $(this).next().next().prop('disabled', !custom).prop('required', custom); }) }; $('input[type=radio]').change(function () { refreshRadios(); }); $(document).ready(function () { refreshRadios(); });          </script>
 </body>
 
 </html>
