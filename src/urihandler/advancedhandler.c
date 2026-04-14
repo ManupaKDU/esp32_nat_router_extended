@@ -133,7 +133,7 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
     else
     {
         customCB = "checked";
-        get_config_param_str("custom_dns", &customDNSIP);
+        customDNSIP = customDNS;
     }
 
     uint8_t base_mac_addr[6] = {0};
@@ -197,6 +197,9 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
 
     free(advanced_page);
     free(currentDNS);
+    if (customDNS != NULL) free(customDNS);
+    if (hostName != NULL) free(hostName);
+    if (macSetting != NULL) free(macSetting);
 
     return ret;
 }

@@ -22,3 +22,7 @@
 
 **Learning:** Calling `esp_wifi_ap_get_sta_list()` inside a tight loop or frequently across the codebase (like in the LED blinking thread and HTTP endpoints) introduces significant performance overhead, as it triggers internal core operations to fetch and copy MAC/RSSI details for all connected devices.
 **Action:** Instead of proactively fetching the station list just to check the connection count, cache the active station count globally (`volatile uint16_t current_connect_count`) and update it incrementally using the native ESP Wi-Fi event handlers (`WIFI_EVENT_AP_STACONNECTED` and `WIFI_EVENT_AP_STADISCONNECTED`). This turns an O(N) hardware query into an O(1) memory read, saving CPU cycles.
+
+## 2026-04-14 - Prevent Redundant NVS Reads
+**Learning:** Calling `get_config_param_str()` multiple times for the same NVS key within a single function causes redundant flash reads and unnecessary `malloc` overhead.
+**Action:** Reuse the initially allocated string pointer instead of falling through conditionals to fetch it again. Remember to explicitly `free()` the primary allocated pointers at the end of the function.
