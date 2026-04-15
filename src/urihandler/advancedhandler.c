@@ -133,7 +133,7 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
     else
     {
         customCB = "checked";
-        get_config_param_str("custom_dns", &customDNSIP);
+        customDNSIP = customDNS;
     }
 
     uint8_t base_mac_addr[6] = {0};
@@ -161,7 +161,9 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
         customMac = currentMAC;
     }
 
-    char *netmask = getNetmask();
+    char *netmaskAlloc = NULL;
+    get_config_param_str("netmask", &netmaskAlloc);
+    char *netmask = netmaskAlloc != NULL ? netmaskAlloc : DEFAULT_NETMASK_CLASS_C;
 
     if (strcmp(netmask, DEFAULT_NETMASK_CLASS_A) == 0)
     {
@@ -197,6 +199,10 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
 
     free(advanced_page);
     free(currentDNS);
+    free(hostName);
+    free(customDNS);
+    free(macSetting);
+    free(netmaskAlloc);
 
     return ret;
 }
