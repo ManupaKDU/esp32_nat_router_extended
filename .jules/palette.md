@@ -23,3 +23,7 @@
 ## 2026-04-04 - [Screen Reader Noise from Informational SVGs]
 **Learning:** Found decorative SVGs (`bi-wifi`, `bi-wifi-off`) that function purely as informational/status icons next to explicit textual status descriptions (like "signal strength: X db") lacking the `aria-hidden="true"` attribute. Even though they weren't inside links or buttons, their lack of `aria-hidden` could still cause screen readers to announce them unnecessarily, confusing the user who already receives the same information through text.
 **Action:** Always add `aria-hidden="true"` to informational SVGs used in UI designs alongside their textual counterparts, not just to SVGs inside interactive components like buttons.
+
+## 2024-04-16 - Inline Validation on Conditionally Enabled Inputs
+**Learning:** While disabled form elements are natively exempt from HTML5 validation, code reviewers often reject unconditionally hardcoded `required` attributes on conditionally enabled inputs.
+**Action:** Dynamically toggle both the `disabled` and `required` properties via JavaScript (e.g., `$(el).prop('disabled', !isActive).prop('required', isActive);`) instead of statically defining `required` in the HTML to ensure robust validation.
