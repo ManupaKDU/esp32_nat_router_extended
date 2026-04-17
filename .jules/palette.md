@@ -23,3 +23,6 @@
 ## 2026-04-04 - [Screen Reader Noise from Informational SVGs]
 **Learning:** Found decorative SVGs (`bi-wifi`, `bi-wifi-off`) that function purely as informational/status icons next to explicit textual status descriptions (like "signal strength: X db") lacking the `aria-hidden="true"` attribute. Even though they weren't inside links or buttons, their lack of `aria-hidden` could still cause screen readers to announce them unnecessarily, confusing the user who already receives the same information through text.
 **Action:** Always add `aria-hidden="true"` to informational SVGs used in UI designs alongside their textual counterparts, not just to SVGs inside interactive components like buttons.
+## 2026-04-17 - Prevent accidental data loss with confirmation dialogs
+**Learning:** Destructive actions without a confirmation prompt can easily result in unintentional data loss for the user.
+**Action:** Always include an `onsubmit="return confirm('...');"` on forms performing destructive inline actions (like erasing flash memory) to prevent accidental data loss.
