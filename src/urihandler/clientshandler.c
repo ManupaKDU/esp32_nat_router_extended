@@ -21,20 +21,21 @@ esp_err_t clients_download_get_handler(httpd_req_t *req)
         return redirectToLock(req);
     }
 
-    wifi_sta_list_t wifi_sta_list;
-    wifi_sta_mac_ip_list_t adapter_sta_list;
-    memset(&wifi_sta_list, 0, sizeof(wifi_sta_list));
-    memset(&adapter_sta_list, 0, sizeof(adapter_sta_list));
-    esp_wifi_ap_get_sta_list(&wifi_sta_list);
-
-    esp_wifi_ap_get_sta_list_with_ip(&wifi_sta_list, &adapter_sta_list);
-
     char result[1000];
     int offset = 0;
     result[0] = '\0';
 
-    if (wifi_sta_list.num > 0)
+    // ⚡ Bolt: Check cached connect count before performing expensive Wi-Fi list queries
+    if (getConnectCount() > 0)
     {
+        wifi_sta_list_t wifi_sta_list;
+        wifi_sta_mac_ip_list_t adapter_sta_list;
+        memset(&wifi_sta_list, 0, sizeof(wifi_sta_list));
+        memset(&adapter_sta_list, 0, sizeof(adapter_sta_list));
+        esp_wifi_ap_get_sta_list(&wifi_sta_list);
+
+        esp_wifi_ap_get_sta_list_with_ip(&wifi_sta_list, &adapter_sta_list);
+
         for (int i = 0; i < adapter_sta_list.num; i++)
         {
             esp_netif_pair_mac_ip_t station = adapter_sta_list.sta[i];
