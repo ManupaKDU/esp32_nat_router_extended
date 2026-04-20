@@ -15,3 +15,8 @@
 **Vulnerability:** The HTTP POST `ssid` parameter in `index_post_handler` (`src/urihandler/indexhandler.c`) was stored directly into the global `appliedSSID` string without sanitization. Later, in `index_get_handler`, this string was directly injected into the `config_page` HTML response via `sprintf()`, leading to a Stored Cross-Site Scripting (XSS) vulnerability.
 **Learning:** Any user-supplied data obtained from URL parameters or request bodies that is later rendered into an HTML interface must be strictly entity-encoded to prevent malicious script execution in the client's browser.
 **Prevention:** Implement a standard `sanitize_html` utility to escape HTML special characters (`<`, `>`, `&`, `"`, `'`) and apply it immediately when extracting strings that will be reflected back to the UI. Ensure bounds-checking during sanitization expansion.
+
+## 2024-04-20 - Unprotected Administrative Endpoint (Reset Page)
+**Vulnerability:** The `/reset` HTTP GET endpoint (`reset_get_handler` in `statichandler.c`) lacked the `isLocked()` authorization check, allowing any unauthenticated user on the local network to access the reset device page even when the router UI was locked with a password.
+**Learning:** Administrative actions, even if they only present a confirmation page rather than performing the destructive action directly, must be protected behind the authentication lock screen. If the UI endpoint is unprotected, it breaks the intended security posture by exposing administrative functionality.
+**Prevention:** All handlers returning administrative or sensitive UI HTML pages must start with an `isLocked()` check, matching the security applied to the backend POST endpoints.
