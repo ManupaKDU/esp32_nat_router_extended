@@ -19,3 +19,6 @@
 ## 2024-04-19 - Destructive Form Validation
 **Learning:** In the ESP32 NAT Router UI, some destructive actions like erasing flash memory are triggered via dedicated POST forms instead of asynchronous JavaScript calls.
 **Action:** When adding confirmation dialogs to these forms to prevent accidental data loss, apply `onsubmit="return confirm('...');"` directly to the HTML `<form>` element rather than attaching event listeners to the submit button to ensure it intercepts standard form submission behavior cleanly.
+## 2025-03-26 - Neutral Empty States & HTML5 Validation
+**Learning:** Empty states using error colors (`text-danger`) cause unnecessary alarm and make normal zero-state conditions appear as system failures. For simple form validation, relying on custom JavaScript or backend-only checks misses the opportunity to provide immediate, accessible feedback.
+**Action:** When creating empty states, use neutral styling like `text-muted`. For simple form validation, leverage native HTML5 attributes (`required`, `pattern`, `min`, `max`) before implementing custom scripts.
