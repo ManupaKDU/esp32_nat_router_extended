@@ -23,3 +23,6 @@
 ## 2026-04-04 - [Screen Reader Noise from Informational SVGs]
 **Learning:** Found decorative SVGs (`bi-wifi`, `bi-wifi-off`) that function purely as informational/status icons next to explicit textual status descriptions (like "signal strength: X db") lacking the `aria-hidden="true"` attribute. Even though they weren't inside links or buttons, their lack of `aria-hidden` could still cause screen readers to announce them unnecessarily, confusing the user who already receives the same information through text.
 **Action:** Always add `aria-hidden="true"` to informational SVGs used in UI designs alongside their textual counterparts, not just to SVGs inside interactive components like buttons.
+## 2024-04-22 - Cross-field Validation without JS files
+**Learning:** For simple static forms without external JS assets (like the lock page), cross-field matching validation (like confirm password) can be done efficiently and accessibly using inline HTML5 `oninput` handlers that update the browser's native `setCustomValidity`. This provides instant validation without adding JS file dependencies.
+**Action:** Use `oninput="this.setCustomValidity(this.value !== document.getElementById('otherId').value ? 'Error message' : '')"` (and update the target's validity from the source field) on static firmware UI pages to provide native form validation feedback.
