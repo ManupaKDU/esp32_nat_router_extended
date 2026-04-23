@@ -19,11 +19,11 @@
         <form action=/lock method=POST>
             <div class="form-group row"> <label for=lockpass class=col-3>Password</label>
                 <div class=col-9> <input type=password class=form-control name=lockpass id=lockpass value maxlength=64
-                        placeholder="Lock password"> </div>
+                        placeholder="Lock password" oninput="document.getElementById('lockpass2').setCustomValidity(this.value !== document.getElementById('lockpass2').value ? 'Passwords do not match' : '')"> </div>
             </div>
             <div class="form-group row mt-2"> <label for=lockpass2 class=col-3>Repeat</label>
                 <div class=col-9> <input type=password class=form-control name=lockpass2 id=lockpass2 value maxlength=64
-                        placeholder=Repeat> </div>
+                        placeholder=Repeat oninput="this.setCustomValidity(this.value !== document.getElementById('lockpass').value ? 'Passwords do not match' : '')"> </div>
             </div>
             <div class="form-group row col-9 offset-3"> <small class="form-text text-muted">Both fields empty will
                     remove the password</small> </div>
