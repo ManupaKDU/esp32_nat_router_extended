@@ -19,3 +19,7 @@
 ## 2024-04-19 - Destructive Form Validation
 **Learning:** In the ESP32 NAT Router UI, some destructive actions like erasing flash memory are triggered via dedicated POST forms instead of asynchronous JavaScript calls.
 **Action:** When adding confirmation dialogs to these forms to prevent accidental data loss, apply `onsubmit="return confirm('...');"` directly to the HTML `<form>` element rather than attaching event listeners to the submit button to ensure it intercepts standard form submission behavior cleanly.
+
+## 2024-05-18 - Form Validation With Native setCustomValidity()
+**Learning:** For cross-field form validation (e.g., confirm password matching) in simple static HTML pages without external JS frameworks, inline HTML5 `oninput` handlers updating `setCustomValidity()` natively prevent submission of invalid data without creating silent backend failures.
+**Action:** Use `setCustomValidity` and pair it with `required` properties on required fields to enforce matching passwords natively within the browser, providing instant, accessible feedback.
