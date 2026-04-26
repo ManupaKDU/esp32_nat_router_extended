@@ -45,16 +45,21 @@ esp_err_t unlock_handler(httpd_req_t *req)
 
         if (strlen(unlockParam) > 0)
         {
-            char *lock;
+            char *lock = NULL;
             get_config_param_str("lock_pass", &lock);
-            if (strcmp(lock, unlockParam) == 0)
+            if (lock != NULL)
             {
-                locked = false;
-                httpd_resp_set_status(req, "302 Found");
-                httpd_resp_set_hdr(req, "Location", "/");
-                free(unlockParam);
-                free(buf);
-                return httpd_resp_send(req, NULL, 0);
+                if (strcmp(lock, unlockParam) == 0)
+                {
+                    locked = false;
+                    httpd_resp_set_status(req, "302 Found");
+                    httpd_resp_set_hdr(req, "Location", "/");
+                    free(lock);
+                    free(unlockParam);
+                    free(buf);
+                    return httpd_resp_send(req, NULL, 0);
+                }
+                free(lock);
             }
         }
         free(unlockParam);
