@@ -25,3 +25,8 @@
 **Vulnerability:** The lock handler allocated memory via `get_config_param_str("lock_pass", &lock)`, but if the read failed, `lock` remained uninitialized. The code subsequently crashed when calling `strcmp(lock, unlockParam)` with a garbage pointer. Furthermore, it did not free the `lock` memory when passwords matched or failed.
 **Learning:** Functions that conditionally allocate memory via pointer-to-pointer arguments leave variables uninitialized on error. Passing uninitialized or NULL pointers to `strcmp` causes a segmentation fault crash.
 **Prevention:** Always initialize pointers passed to dynamic allocation functions to `NULL` (e.g., `char *lock = NULL;`). Always check `if (lock != NULL)` before using it in string functions, and ensure memory is `free()`d under all conditional branches to avoid leaks.
+
+## 2026-05-24 - Plaintext Credential Logging in CLI Console Commands
+**Vulnerability:** The CLI command implementation in `components/cmd_router/cmd_router.c` logged raw plaintext passwords, WPA2 enterprise identities, and user IDs to the console via `ESP_LOGI` and `printf` during configuration retrieval (`get_config_param_str`) and modification (`set_sta`, `set_sta_ent`, `set_ap`, `show`).
+**Learning:** Command Line Interfaces (CLIs) and debugging commands on embedded devices often inadvertently leak sensitive information by printing all configuration parameters unconditionally. This can expose passwords to anyone connected to the serial port or monitoring application logs.
+**Prevention:** Apply heuristic redaction logic (e.g., checking for keywords like `pass`, `unlock`, `user`, `identity`) to all logging macros and `printf` statements that deal with dynamic configuration state in administrative or debugging tools.
