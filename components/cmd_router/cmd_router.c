@@ -306,7 +306,7 @@ int set_sta(int argc, char **argv)
     nvs_erase_key(nvs, "sta_identity");
 
     ESP_ERROR_CHECK(nvs_commit(nvs));
-    ESP_LOGI(TAG, "STA settings %s/%s stored.", set_sta_arg.ssid->sval[0], set_sta_arg.password->sval[0]);
+    ESP_LOGI(TAG, "STA settings %s/***REDACTED*** stored.", set_sta_arg.ssid->sval[0]);
 
     nvs_close(nvs);
     return ESP_OK;
@@ -336,7 +336,7 @@ int set_sta_ent(int argc, char **argv)
     ESP_ERROR_CHECK(nvs_set_str(nvs, "sta_identity", set_sta_ent_arg.identity->sval[0]));
 
     ESP_ERROR_CHECK(nvs_commit(nvs));
-    ESP_LOGI(TAG, "WPA Enterprise settings SSID: '%s', User: %s, Identity: %s, Password: %s stored.", set_sta_ent_arg.ssid->sval[0], set_sta_ent_arg.user->sval[0], set_sta_ent_arg.identity->sval[0], set_sta_ent_arg.password->sval[0]);
+    ESP_LOGI(TAG, "WPA Enterprise settings SSID: '%s', User: %s, Identity: ***REDACTED***, Password: ***REDACTED*** stored.", set_sta_ent_arg.ssid->sval[0], set_sta_ent_arg.user->sval[0]);
 
     nvs_close(nvs);
     return ESP_OK;
@@ -457,7 +457,7 @@ int set_ap(int argc, char **argv)
     ESP_ERROR_CHECK(nvs_set_str(nvs, "ap_ssid", set_ap_args.ssid->sval[0]));
     ESP_ERROR_CHECK(nvs_set_str(nvs, "ap_passwd", set_ap_args.password->sval[0]));
     ESP_ERROR_CHECK(nvs_commit(nvs));
-    ESP_LOGI(TAG, "AP settings %s/%s stored.", set_ap_args.ssid->sval[0], set_ap_args.password->sval[0]);
+    ESP_LOGI(TAG, "AP settings %s/***REDACTED*** stored.", set_ap_args.ssid->sval[0]);
 
     nvs_close(nvs);
     return ESP_OK;
@@ -623,10 +623,8 @@ static int show(int argc, char **argv)
     get_config_param_str("ap_ssid", &ap_ssid);
     get_config_param_str("ap_passwd", &ap_passwd);
 
-    printf("STA SSID: %s Password: %s\n", ssid != NULL ? ssid : "<undef>",
-           passwd != NULL ? passwd : "<undef>");
-    printf("AP SSID: %s Password: %s\n", ap_ssid != NULL ? ap_ssid : "<undef>",
-           ap_passwd != NULL ? ap_passwd : "<undef>");
+    printf("STA SSID: %s Password: ***REDACTED***\n", ssid != NULL ? ssid : "<undef>");
+    printf("AP SSID: %s Password: ***REDACTED***\n", ap_ssid != NULL ? ap_ssid : "<undef>");
     ip4_addr_t addr;
     addr.addr = my_ap_ip;
     printf("AP IP address: " IPSTR "\n", IP2STR(&addr));
