@@ -68,10 +68,16 @@ esp_err_t result_download_get_handler(httpd_req_t *req)
             char *ssid = strtok(row, "\x03");
             char *rssi = strtok(NULL, "\x03");
 
-            char *css = findTextColorForSSID(atoi(rssi));
-            int added = snprintf(result + current_len, allocatedSize - current_len, ROW_TEMPLATE, css, ssid, css, rssi, ssid, ssid);
-            if (added > 0 && added < allocatedSize - current_len) {
-                current_len += added;
+            if (ssid != NULL && rssi != NULL)
+            {
+                char sanitized_ssid[33 * 6];
+                sanitize_html(ssid, sanitized_ssid, sizeof(sanitized_ssid));
+
+                char *css = findTextColorForSSID(atoi(rssi));
+                int added = snprintf(result + current_len, allocatedSize - current_len, ROW_TEMPLATE, css, sanitized_ssid, css, rssi, sanitized_ssid, sanitized_ssid);
+                if (added > 0 && added < allocatedSize - current_len) {
+                    current_len += added;
+                }
             }
 
             row = strtok_r(NULL, "\x05", &end_str);
