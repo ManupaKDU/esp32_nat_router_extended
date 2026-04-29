@@ -71,6 +71,7 @@ esp_err_t reset_get_handler(httpd_req_t *req)
     {
         return redirectToLock(req);
     }
+
     httpd_req_to_sockfd(req);
     extern const char reset_start[] asm("_binary_reset_html_start");
 
