@@ -135,6 +135,7 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
     else
     {
         customCB = "checked";
+        // ⚡ Bolt: Reuse customDNS instead of redundant NVS read and malloc
         customDNSIP = customDNS;
     }
 
@@ -163,7 +164,9 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
         customMac = currentMAC;
     }
 
-    char *netmask = getNetmask();
+    char *netmask_alloc = NULL;
+    get_config_param_str("netmask", &netmask_alloc);
+    char *netmask = netmask_alloc != NULL ? netmask_alloc : DEFAULT_NETMASK_CLASS_C;
 
     if (strcmp(netmask, DEFAULT_NETMASK_CLASS_A) == 0)
     {
@@ -198,11 +201,11 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
     esp_err_t ret = httpd_resp_send(req, advanced_page, HTTPD_RESP_USE_STRLEN);
 
     free(advanced_page);
-
     free(allocatedDNS);
-    free(customDNS);
     free(hostName);
+    free(customDNS);
     free(macSetting);
+    free(netmask_alloc);
 
     return ret;
 }

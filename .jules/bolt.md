@@ -31,3 +31,11 @@
 ## 2024-04-17 - Optimize NVS configuration parameter read
 **Learning:** Redundant calls to `get_config_param_str()` for the same key within a function (e.g., retrieving `custom_dns` multiple times) unnecessarily increase NVS flash read operations and introduce heap `malloc` overhead, negatively impacting performance and increasing fragmentation.
 **Action:** Always reuse the initial allocated pointer or create a pointer alias (e.g., `customDNSIP = customDNS;`) to avoid redundant hardware queries and memory allocations. Ensure the primary pointers are properly `free()`d at the end of the HTTP handler to prevent memory leaks.
+
+## 2026-04-11 - Prevent Redundant NVS Reads
+**Learning:** Re-fetching the same configuration key from NVS via `get_config_param_str()` in conditionals adds unnecessary flash wear, read latency, and dynamic allocation overhead.
+**Action:** Assign existing string pointers to subsequent variables if the key and value are identical, saving an NVS read and memory allocation overhead.
+
+## 2026-04-11 - Memory Management of Mixed Allocation Types
+**Learning:** The `getNetmask()` function returns either a dynamically allocated string (from NVS) or a static literal (`DEFAULT_NETMASK_CLASS_C`). Blindly calling `free()` causes undefined behavior, while skipping `free()` entirely causes a memory leak.
+**Action:** Use pointer comparison (`if (ptr != CONSTANT)`) rather than string comparison (`strcmp`) to safely determine if the returned string requires `free()`, covering edge cases where the dynamically allocated NVS value matches the constant string value.
