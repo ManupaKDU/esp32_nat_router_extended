@@ -21,7 +21,7 @@ void fillInfoData(char *db, char **textColor)
     else
     {
         sprintf(db, "%d", 0);
-        *textColor = "danger";
+        *textColor = "muted";
     }
 }
 
