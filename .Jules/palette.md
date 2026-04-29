@@ -27,3 +27,13 @@
 ## 2024-04-12 - HTML5 Form Validation on Conditionally Disabled Inputs
 **Learning:** HTML5 `pattern` attributes do not trigger on empty strings. When applying `pattern` validation to conditionally enabled inputs, the `required` attribute must be added to ensure the browser enforces validation and prevents empty submissions. This works perfectly with native HTML semantics because disabled inputs are inherently exempt from validation checks.
 **Action:** Always pair `pattern` with `required` when validating text inputs that are conditionally toggled via the `disabled` property.
+## 2025-03-26 - Add inline validation and accessibility labels to advanced network inputs
+**Learning:** For embedded interfaces where rendering and validation are handled by an underlying C-backend (like ESP32 firmware), native HTML5 inline validation attributes (`pattern`, `title`, `required`) are highly effective. They enforce data constraints (like IPv4 or MAC address formats) on the client side without relying on complex JS or server roundtrips, providing immediate feedback and preventing malformed data from reaching the backend. Additionally, inputs that visually relate to a preceding radio button (like "Custom" options) often lack explicit programmatic association, necessitating `aria-label`s for screen reader users.
+**Action:** When working on C-backed web interfaces, prefer native HTML5 validation attributes over custom JS validation to keep the frontend lightweight. Always verify that text inputs tied to radio button selections have explicit accessible names (`aria-label`) if the visual `<label>` is bound to the radio button.
+## 2024-04-19 - Destructive Form Validation
+**Learning:** In the ESP32 NAT Router UI, some destructive actions like erasing flash memory are triggered via dedicated POST forms instead of asynchronous JavaScript calls.
+**Action:** When adding confirmation dialogs to these forms to prevent accidental data loss, apply `onsubmit="return confirm('...');"` directly to the HTML `<form>` element rather than attaching event listeners to the submit button to ensure it intercepts standard form submission behavior cleanly.
+
+## 2024-04-23 - Native Cross-Field Form Validation
+**Learning:** For cross-field form validation (like matching passwords) in pages without external JavaScript libraries, utilizing `oninput` handlers with `setCustomValidity` natively integrates with the browser's form validation API. This allows screen readers to announce validation errors and leverages native UI without writing additional inline script tags.
+**Action:** When adding cross-field constraints on simpler HTML templates, apply `oninput="document.getElementById('otherId').setCustomValidity(...)"` to enforce validation declaratively and accessibly.
