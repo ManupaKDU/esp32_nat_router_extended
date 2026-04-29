@@ -21,6 +21,11 @@
 **Learning:** Administrative actions, even if they only present a confirmation page rather than performing the destructive action directly, must be protected behind the authentication lock screen. If the UI endpoint is unprotected, it breaks the intended security posture by exposing administrative functionality.
 **Prevention:** All handlers returning administrative or sensitive UI HTML pages must start with an `isLocked()` check, matching the security applied to the backend POST endpoints.
 
+## 2026-04-17 - Unauthorized Access to Reset Endpoint
+**Vulnerability:** The `reset_get_handler` in `src/urihandler/statichandler.c` allowed unauthenticated users to access the device reset page (`/reset`) because it lacked the standard `isLocked()` check.
+**Learning:** Missing authentication checks on sensitive endpoints, even read-only GET requests, can expose sensitive actions to unauthenticated users.
+**Prevention:** Always verify that every endpoint performing sensitive actions or displaying administrative interfaces implements standard authentication checks (e.g., `if (isLocked()) { return redirectToLock(req); }`) at the very beginning of the handler.
+
 ## 2026-04-26 - Uninitialized Pointer Dereference with get_config_param_str
 **Vulnerability:** The lock handler allocated memory via `get_config_param_str("lock_pass", &lock)`, but if the read failed, `lock` remained uninitialized. The code subsequently crashed when calling `strcmp(lock, unlockParam)` with a garbage pointer. Furthermore, it did not free the `lock` memory when passwords matched or failed.
 **Learning:** Functions that conditionally allocate memory via pointer-to-pointer arguments leave variables uninitialized on error. Passing uninitialized or NULL pointers to `strcmp` causes a segmentation fault crash.
