@@ -39,3 +39,7 @@
 ## 2026-04-11 - Memory Management of Mixed Allocation Types
 **Learning:** The `getNetmask()` function returns either a dynamically allocated string (from NVS) or a static literal (`DEFAULT_NETMASK_CLASS_C`). Blindly calling `free()` causes undefined behavior, while skipping `free()` entirely causes a memory leak.
 **Action:** Use pointer comparison (`if (ptr != CONSTANT)`) rather than string comparison (`strcmp`) to safely determine if the returned string requires `free()`, covering edge cases where the dynamically allocated NVS value matches the constant string value.
+
+## 2026-04-14 - Prevent Redundant NVS Reads
+**Learning:** Calling `get_config_param_str()` multiple times for the same NVS key within a single function causes redundant flash reads and unnecessary `malloc` overhead.
+**Action:** Reuse the initially allocated string pointer instead of falling through conditionals to fetch it again. Remember to explicitly `free()` the primary allocated pointers at the end of the function.
