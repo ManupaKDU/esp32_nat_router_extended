@@ -16,20 +16,10 @@
 **Learning:** Any user-supplied data obtained from URL parameters or request bodies that is later rendered into an HTML interface must be strictly entity-encoded to prevent malicious script execution in the client's browser.
 **Prevention:** Implement a standard `sanitize_html` utility to escape HTML special characters (`<`, `>`, `&`, `"`, `'`) and apply it immediately when extracting strings that will be reflected back to the UI. Ensure bounds-checking during sanitization expansion.
 
-## 2024-04-20 - Unprotected Administrative Endpoint (Reset Page)
-**Vulnerability:** The `/reset` HTTP GET endpoint (`reset_get_handler` in `statichandler.c`) lacked the `isLocked()` authorization check, allowing any unauthenticated user on the local network to access the reset device page even when the router UI was locked with a password.
-**Learning:** Administrative actions, even if they only present a confirmation page rather than performing the destructive action directly, must be protected behind the authentication lock screen. If the UI endpoint is unprotected, it breaks the intended security posture by exposing administrative functionality.
-**Prevention:** All handlers returning administrative or sensitive UI HTML pages must start with an `isLocked()` check, matching the security applied to the backend POST endpoints.
-
-## 2026-04-17 - Unauthorized Access to Reset Endpoint
-**Vulnerability:** The `reset_get_handler` in `src/urihandler/statichandler.c` allowed unauthenticated users to access the device reset page (`/reset`) because it lacked the standard `isLocked()` check.
-**Learning:** Missing authentication checks on sensitive endpoints, even read-only GET requests, can expose sensitive actions to unauthenticated users.
-**Prevention:** Always verify that every endpoint performing sensitive actions or displaying administrative interfaces implements standard authentication checks (e.g., `if (isLocked()) { return redirectToLock(req); }`) at the very beginning of the handler.
-
-## 2024-05-18 - Fix missing authorization on reset endpoint
-**Vulnerability:** The `/reset` endpoint was accessible without authentication even when the interface was locked, allowing unauthorized users to potentially access the reset page.
-**Learning:** All endpoints that display sensitive information or allow destructive actions must explicitly check `isLocked()` before processing the request, even if they are just GET requests serving HTML pages.
-**Prevention:** Ensure that every new handler added to `http_server.c` that isn't explicitly intended for public access (like the lock screen itself or static assets) includes an `isLocked()` check at the beginning.
+## 2024-05-15 - Missing Authorization Check on Reset Endpoint
+**Vulnerability:** The `/reset` endpoint (`reset_get_handler` in `src/urihandler/statichandler.c`) lacked the `isLocked()` authorization check, allowing any unauthenticated user on the local network to access the device reset page even when the router UI was locked with a password.
+**Learning:** Administrative endpoints must verify the UI lock state before granting access. Missing this check allows unauthenticated users to access sensitive configuration actions if they know the URL.
+**Prevention:** All administrative URI handlers (e.g., `/reset`, `/apply`, `/ota`, `/advanced`, `/clients`, `/portmap`, `/scan`) must implement an `isLocked()` check at the start of the handler function. If locked, redirect to lock using `redirectToLock(req)`.
 
 ## 2026-04-26 - Uninitialized Pointer Dereference with get_config_param_str
 **Vulnerability:** The lock handler allocated memory via `get_config_param_str("lock_pass", &lock)`, but if the read failed, `lock` remained uninitialized. The code subsequently crashed when calling `strcmp(lock, unlockParam)` with a garbage pointer. Furthermore, it did not free the `lock` memory when passwords matched or failed.
