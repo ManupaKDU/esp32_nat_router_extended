@@ -26,6 +26,7 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
     char *aliveCB = "";
     char *ledCB = "";
     char *natCB = "";
+    char *allocatedDNS = NULL;
     char *currentDNS = "";
     char *defCB = "";
     char *cloudCB = "";
@@ -110,7 +111,8 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
     esp_netif_t *wifiSTA = esp_netif_get_handle_from_ifkey("WIFI_AP_DEF");
     if (esp_netif_get_dns_info(wifiSTA, ESP_NETIF_DNS_MAIN, &dns) == ESP_OK)
     {
-        currentDNS = malloc(16);
+        allocatedDNS = malloc(16);
+        currentDNS = allocatedDNS;
         sprintf(currentDNS, IPSTR, IP2STR(&(dns.ip.u_addr.ip4)));
         ESP_LOGI(TAG, "Current DNS is: %s", currentDNS);
     }
@@ -133,7 +135,7 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
     else
     {
         customCB = "checked";
-        get_config_param_str("custom_dns", &customDNSIP);
+        customDNSIP = customDNS;
     }
 
     uint8_t base_mac_addr[6] = {0};
@@ -196,7 +198,11 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
     esp_err_t ret = httpd_resp_send(req, advanced_page, HTTPD_RESP_USE_STRLEN);
 
     free(advanced_page);
-    free(currentDNS);
+
+    free(allocatedDNS);
+    free(customDNS);
+    free(hostName);
+    free(macSetting);
 
     return ret;
 }

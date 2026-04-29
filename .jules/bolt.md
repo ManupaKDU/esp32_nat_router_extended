@@ -22,7 +22,12 @@
 
 **Learning:** Calling `esp_wifi_ap_get_sta_list()` inside a tight loop or frequently across the codebase (like in the LED blinking thread and HTTP endpoints) introduces significant performance overhead, as it triggers internal core operations to fetch and copy MAC/RSSI details for all connected devices.
 **Action:** Instead of proactively fetching the station list just to check the connection count, cache the active station count globally (`volatile uint16_t current_connect_count`) and update it incrementally using the native ESP Wi-Fi event handlers (`WIFI_EVENT_AP_STACONNECTED` and `WIFI_EVENT_AP_STADISCONNECTED`). This turns an O(N) hardware query into an O(1) memory read, saving CPU cycles.
+
 ## 2025-02-28 - Unnecessary Hardware Queries in Empty States
 
 **Learning:** Unconditionally calling expensive ESP-IDF core functions like `esp_wifi_ap_get_sta_list()` when generating UI views (like the connected clients page) introduces significant latency and overhead, even when the station list is completely empty.
 **Action:** When gathering data for a repeating UI element or list, always use O(1) state checks (like a globally cached `getConnectCount()`) as a guard clause *before* allocating memory and invoking the O(N) hardware API to fetch the actual details.
+
+## 2024-04-17 - Optimize NVS configuration parameter read
+**Learning:** Redundant calls to `get_config_param_str()` for the same key within a function (e.g., retrieving `custom_dns` multiple times) unnecessarily increase NVS flash read operations and introduce heap `malloc` overhead, negatively impacting performance and increasing fragmentation.
+**Action:** Always reuse the initial allocated pointer or create a pointer alias (e.g., `customDNSIP = customDNS;`) to avoid redundant hardware queries and memory allocations. Ensure the primary pointers are properly `free()`d at the end of the HTTP handler to prevent memory leaks.
