@@ -19,3 +19,7 @@
 ## 2024-04-19 - Destructive Form Validation
 **Learning:** In the ESP32 NAT Router UI, some destructive actions like erasing flash memory are triggered via dedicated POST forms instead of asynchronous JavaScript calls.
 **Action:** When adding confirmation dialogs to these forms to prevent accidental data loss, apply `onsubmit="return confirm('...');"` directly to the HTML `<form>` element rather than attaching event listeners to the submit button to ensure it intercepts standard form submission behavior cleanly.
+
+## 2024-05-18 - [Add Native Browser Confirmations to Destructive Form Submissions]
+**Learning:** [Forms rendering destructive actions (like removing passwords) might execute immediately when clicked, leaving the interface in a potentially dangerous or undesired state accidentally.]
+**Action:** [When creating forms with destructive actions, add a native browser confirmation dialog using the HTML `onsubmit` attribute (e.g., `onsubmit="return confirm('...');"`). This prevents accidental submission by explicitly requiring the user to confirm the action.]
