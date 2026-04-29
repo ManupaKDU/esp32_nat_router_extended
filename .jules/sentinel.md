@@ -26,6 +26,11 @@
 **Learning:** Missing authentication checks on sensitive endpoints, even read-only GET requests, can expose sensitive actions to unauthenticated users.
 **Prevention:** Always verify that every endpoint performing sensitive actions or displaying administrative interfaces implements standard authentication checks (e.g., `if (isLocked()) { return redirectToLock(req); }`) at the very beginning of the handler.
 
+## 2024-05-18 - Fix missing authorization on reset endpoint
+**Vulnerability:** The `/reset` endpoint was accessible without authentication even when the interface was locked, allowing unauthorized users to potentially access the reset page.
+**Learning:** All endpoints that display sensitive information or allow destructive actions must explicitly check `isLocked()` before processing the request, even if they are just GET requests serving HTML pages.
+**Prevention:** Ensure that every new handler added to `http_server.c` that isn't explicitly intended for public access (like the lock screen itself or static assets) includes an `isLocked()` check at the beginning.
+
 ## 2026-04-26 - Uninitialized Pointer Dereference with get_config_param_str
 **Vulnerability:** The lock handler allocated memory via `get_config_param_str("lock_pass", &lock)`, but if the read failed, `lock` remained uninitialized. The code subsequently crashed when calling `strcmp(lock, unlockParam)` with a garbage pointer. Furthermore, it did not free the `lock` memory when passwords matched or failed.
 **Learning:** Functions that conditionally allocate memory via pointer-to-pointer arguments leave variables uninitialized on error. Passing uninitialized or NULL pointers to `strcmp` causes a segmentation fault crash.

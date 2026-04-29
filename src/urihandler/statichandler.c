@@ -67,10 +67,12 @@ esp_err_t http_404_error_handler(httpd_req_t *req, httpd_err_code_t err)
 
 esp_err_t reset_get_handler(httpd_req_t *req)
 {
+    // Security: Prevent unauthorized users from accessing the reset page when the UI is locked.
     if (isLocked())
     {
         return redirectToLock(req);
     }
+
     httpd_req_to_sockfd(req);
     extern const char reset_start[] asm("_binary_reset_html_start");
 
