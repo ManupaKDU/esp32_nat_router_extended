@@ -405,18 +405,13 @@ esp_err_t ota_post_handler(httpd_req_t *req)
         httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Payload too large");
         return ESP_FAIL;
     }
-    char* buf = malloc(req->content_len + 1);
-    if (!buf) {
+    char *buf = malloc(req->content_len + 1);
+    if (buf == NULL)
+    {
         httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Out of memory");
         return ESP_FAIL;
     }
     int ret, remaining = req->content_len;
-    char *buf = malloc(req->content_len + 1);
-    if (buf == NULL)
-    {
-        ESP_LOGE(TAG, "Memory allocation failed");
-        return ESP_FAIL;
-    }
 
     while (remaining > 0)
     {
@@ -435,7 +430,6 @@ esp_err_t ota_post_handler(httpd_req_t *req)
         remaining -= ret;
     }
     buf[req->content_len] = '\0';
-    free(buf);
 
     updateVersion();
     free(buf);
