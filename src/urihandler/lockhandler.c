@@ -97,6 +97,15 @@ esp_err_t lock_handler(httpd_req_t *req)
 
     if (req->method == HTTP_POST) // Relock if called
     {
+        if (req->content_len >= 2048) {
+            httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Payload too large");
+            return ESP_FAIL;
+        }
+        char* buf = malloc(req->content_len + 1);
+        if (!buf) {
+            httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Out of memory");
+            return ESP_FAIL;
+        }
         int ret, remaining = req->content_len;
         char *buf = malloc(req->content_len + 1);
         if (buf == NULL)
