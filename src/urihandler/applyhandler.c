@@ -149,17 +149,17 @@ char *getRedirectUrl(httpd_req_t *req)
         host[0] = '\0';
     }
     ESP_LOGI(TAG, "Host of request is '%s'", host);
-    char *str = malloc(strlen("http://") + strlen(host) + 16);
-    strcpy(str, "http://");
+    size_t str_size = strlen("http://") + strlen(host) + 16;
+    char *str = malloc(str_size);
     if (strcmp(host, DEFAULT_AP_IP_CLASS_A) == 0 || strcmp(host, DEFAULT_AP_IP_CLASS_B) == 0 || strcmp(host, DEFAULT_AP_IP_CLASS_C) == 0)
     {
         char *defaultIP = getDefaultIPByNetmask();
-        strcat(str, defaultIP);
+        snprintf(str, str_size, "http://%s", defaultIP);
         free(defaultIP);
     }
     else
     {
-        strcat(str, host);
+        snprintf(str, str_size, "http://%s", host);
     }
 
     return str;
