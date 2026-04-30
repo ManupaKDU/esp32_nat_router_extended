@@ -56,7 +56,14 @@ esp_err_t get_config_param_str(char *name, char **param)
         {
             *param = (char *)malloc(len);
             err = nvs_get_str(nvs, name, *param, &len);
-            ESP_LOGI(TAG, "%s %s", name, *param);
+            if (strstr(name, "pass") != NULL ||
+                strstr(name, "unlock") != NULL ||
+                strstr(name, "user") != NULL ||
+                strstr(name, "identity") != NULL) {
+                ESP_LOGI(TAG, "%s ***REDACTED***", name);
+            } else {
+                ESP_LOGI(TAG, "%s %s", name, *param);
+            }
         }
         else
         {
