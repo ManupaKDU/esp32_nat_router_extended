@@ -1,3 +1,6 @@
+#include <stdint.h>
+#include <string.h>
+#include <stdlib.h>
 #include "helper.h"
 #include <ctype.h>
 #include <string.h>
