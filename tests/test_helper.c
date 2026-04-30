@@ -7,7 +7,31 @@
 #include "helper.h"
 
 // Mock definitions for other functions in helper.c to compile
-int httpd_query_key_value(const char *qry, const char *key, char *val, size_t val_size) { return 0; }
+int httpd_query_key_value(const char *qry, const char *key, char *val, size_t val_size) {
+    if (qry == NULL || key == NULL || val == NULL || val_size == 0) return ESP_FAIL;
+
+    const char *p = qry;
+    size_t key_len = strlen(key);
+
+    while (*p) {
+        if (strncmp(p, key, key_len) == 0 && p[key_len] == '=') {
+            const char *start = p + key_len + 1;
+            const char *end = strchr(start, '&');
+            size_t len = end ? (size_t)(end - start) : strlen(start);
+
+            if (len >= val_size) {
+                return ESP_FAIL; // Buffer too small
+            }
+            memcpy(val, start, len);
+            val[len] = '\0';
+            return ESP_OK;
+        }
+        p = strchr(p, '&');
+        if (!p) break;
+        p++; // skip '&'
+    }
+    return ESP_FAIL;
+}
 int httpd_req_recv(httpd_req_t *r, char *buf, size_t buf_len) { return 0; }
 
 void test_preprocess_string() {
@@ -87,8 +111,45 @@ void test_str2mac() {
     printf("All test_str2mac passed!\n");
 }
 
+void test_readUrlParameterIntoBuffer() {
+    printf("Running test_readUrlParameterIntoBuffer...\n");
+    char buffer[64];
+
+    // Test 1: Standard parameter
+    readUrlParameterIntoBuffer("name=John+Doe&age=30", "name", buffer, sizeof(buffer));
+    assert(strcmp(buffer, "John Doe") == 0);
+
+    // Test 2: Parameter with URL encoding
+    readUrlParameterIntoBuffer("city=New+York%21", "city", buffer, sizeof(buffer));
+    assert(strcmp(buffer, "New York!") == 0);
+
+    // Test 3: Sensitive parameter (pass) - logging should be redacted but buffer should contain the value
+    readUrlParameterIntoBuffer("pass=secret123", "pass", buffer, sizeof(buffer));
+    assert(strcmp(buffer, "secret123") == 0);
+
+    // Test 4: Sensitive parameter (user)
+    readUrlParameterIntoBuffer("user=admin", "user", buffer, sizeof(buffer));
+    assert(strcmp(buffer, "admin") == 0);
+
+    // Test 5: Parameter not found
+    readUrlParameterIntoBuffer("name=John", "age", buffer, sizeof(buffer));
+    assert(strcmp(buffer, "") == 0);
+
+    // Test 6: Buffer too small for the value
+    readUrlParameterIntoBuffer("name=JohnDoe", "name", buffer, 5);
+    // Based on our mock, it returns ESP_FAIL if len >= val_size, so readUrlParameterIntoBuffer should set buffer[0] = '\0'
+    assert(strcmp(buffer, "") == 0);
+
+    // Test 7: Empty value
+    readUrlParameterIntoBuffer("name=&age=30", "name", buffer, sizeof(buffer));
+    assert(strcmp(buffer, "") == 0);
+
+    printf("All test_readUrlParameterIntoBuffer passed!\n");
+}
+
 int main() {
     test_preprocess_string();
     test_str2mac();
+    test_readUrlParameterIntoBuffer();
     return 0;
 }
