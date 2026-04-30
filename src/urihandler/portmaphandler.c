@@ -46,9 +46,9 @@ esp_err_t portmap_get_handler(httpd_req_t *req)
             esp_ip4_addr_t addr;
             addr.addr = portmap_tab[i].daddr;
             char ip_str[16];
-            sprintf(ip_str, IPSTR, IP2STR(&addr));
+            snprintf(ip_str, sizeof(ip_str), IPSTR, IP2STR(&addr));
             char delParam[50];
-            sprintf(delParam, "%s_%hu_%s_%hu", protocol, portmap_tab[i].mport, ip_str, portmap_tab[i].dport);
+            snprintf(delParam, sizeof(delParam), "%s_%hu_%s_%hu", protocol, portmap_tab[i].mport, ip_str, portmap_tab[i].dport);
 
             sprintf(template, PORTMAP_ROW_TEMPLATE, protocol, portmap_tab[i].mport, ip_str, portmap_tab[i].dport, portmap_tab[i].mport, delParam, portmap_tab[i].mport);
 
