@@ -29,7 +29,7 @@ esp_err_t portmap_get_handler(httpd_req_t *req)
 
     // send entries
     bool entriesSent = false;
-    char template[strlen(PORTMAP_ROW_TEMPLATE) + 12 + 16 + 4 + 50 + 10]; // +10 for two %hu ports
+    char template[1024] = {0};
     for (int i = 0; i < PORTMAP_MAX; i++)
     {
         if (portmap_tab[i].valid)
@@ -50,7 +50,7 @@ esp_err_t portmap_get_handler(httpd_req_t *req)
             char delParam[50];
             snprintf(delParam, sizeof(delParam), "%s_%hu_%s_%hu", protocol, portmap_tab[i].mport, ip_str, portmap_tab[i].dport);
 
-            sprintf(template, PORTMAP_ROW_TEMPLATE, protocol, portmap_tab[i].mport, ip_str, portmap_tab[i].dport, portmap_tab[i].mport, delParam, portmap_tab[i].mport);
+            snprintf(template, sizeof(template), PORTMAP_ROW_TEMPLATE, protocol, portmap_tab[i].mport, ip_str, portmap_tab[i].dport, portmap_tab[i].mport, delParam, portmap_tab[i].mport);
 
             ESP_LOGI(TAG, "Sending portmap entry part");
             ESP_ERROR_CHECK(httpd_resp_send_chunk(req, template, HTTPD_RESP_USE_STRLEN));
@@ -77,9 +77,14 @@ esp_err_t portmap_get_handler(httpd_req_t *req)
     sprintf(portmap_page, portmap_end_start, ip_prefix);
     ESP_LOGI(TAG, "Sending portmap end part");
 
-    ESP_ERROR_CHECK(httpd_resp_send_chunk(req, portmap_page, HTTPD_RESP_USE_STRLEN));
+    char *portmap_page = malloc(portmap_html_size + strlen(ip_prefix) + 1);
+    if (portmap_page != NULL) {
+        snprintf(portmap_page, portmap_html_size + strlen(ip_prefix) + 1, portmap_end_start, ip_prefix);
+        ESP_LOGI(TAG, "Sending portmap end part");
+        ESP_ERROR_CHECK(httpd_resp_send_chunk(req, portmap_page, HTTPD_RESP_USE_STRLEN));
+        free(portmap_page);
+    }
 
-    free(portmap_page);
     free(defaultIP);
 
     // Finalize
