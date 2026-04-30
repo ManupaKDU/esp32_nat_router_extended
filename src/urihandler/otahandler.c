@@ -429,6 +429,7 @@ esp_err_t ota_post_handler(httpd_req_t *req)
     free(buf);
 
     updateVersion();
+    free(buf);
 
     httpd_resp_set_status(req, "302 Found");
     httpd_resp_set_hdr(req, "Location", "/ota");

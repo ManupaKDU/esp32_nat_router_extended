@@ -61,6 +61,11 @@ esp_err_t unlock_handler(httpd_req_t *req)
                 }
                 free(lock);
             }
+            free(unlockParam);
+        }
+        else
+        {
+            ESP_LOGE(TAG, "Memory allocation failed for unlockParam");
         }
         free(unlockParam);
     }
@@ -138,25 +143,39 @@ esp_err_t lock_handler(httpd_req_t *req)
         readUrlParameterIntoBuffer(buf, "lockpass2", pass2Param, req->content_len);
         if (strlen(passParam) == strlen(pass2Param) && strcmp(passParam, pass2Param) == 0)
         {
-            ESP_LOGI(TAG, "Passes are equal. Password will be changed.");
-            if (strlen(passParam) == 0)
+            readUrlParameterIntoBuffer(buf, "lockpass", passParam, req->content_len);
+            readUrlParameterIntoBuffer(buf, "lockpass2", pass2Param, req->content_len);
+            ESP_LOGI(TAG, "Found pass2 parameter => %s", pass2Param);
+            if (strlen(passParam) == strlen(pass2Param) && strcmp(passParam, pass2Param) == 0)
             {
-                ESP_LOGI(TAG, "Pass will be removed");
-            }
-            nvs_handle_t nvs;
-            nvs_open(PARAM_NAMESPACE, NVS_READWRITE, &nvs);
-            nvs_set_str(nvs, "lock_pass", passParam);
-            nvs_commit(nvs);
-            nvs_close(nvs);
-            httpd_resp_set_status(req, "302 Found");
-            if (strlen(passParam) > 0)
-            {
-                httpd_resp_set_hdr(req, "Location", "/lock");
-                lockUI();
+                ESP_LOGI(TAG, "Passes are equal. Password will be changed.");
+                if (strlen(passParam) == 0)
+                {
+                    ESP_LOGI(TAG, "Pass will be removed");
+                }
+                nvs_handle_t nvs;
+                nvs_open(PARAM_NAMESPACE, NVS_READWRITE, &nvs);
+                nvs_set_str(nvs, "lock_pass", passParam);
+                nvs_commit(nvs);
+                nvs_close(nvs);
+                httpd_resp_set_status(req, "302 Found");
+                if (strlen(passParam) > 0)
+                {
+                    httpd_resp_set_hdr(req, "Location", "/lock");
+                    lockUI();
+                }
+                else
+                {
+                    httpd_resp_set_hdr(req, "Location", "/");
+                }
+                free(passParam);
+                free(pass2Param);
+                free(buf);
+                return httpd_resp_send(req, NULL, 0);
             }
             else
             {
-                httpd_resp_set_hdr(req, "Location", "/");
+                ESP_LOGI(TAG, "Passes are not equal.");
             }
             free(passParam);
             free(pass2Param);
@@ -165,7 +184,7 @@ esp_err_t lock_handler(httpd_req_t *req)
         }
         else
         {
-            ESP_LOGI(TAG, "Passes are not equal.");
+            ESP_LOGE(TAG, "Memory allocation failed for pass parameters");
         }
         free(passParam);
         free(pass2Param);
