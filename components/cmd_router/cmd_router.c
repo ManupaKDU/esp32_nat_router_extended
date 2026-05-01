@@ -343,7 +343,7 @@ int set_sta_ent(int argc, char **argv)
     ESP_ERROR_CHECK(nvs_set_str(nvs, "sta_identity", set_sta_ent_arg.identity->sval[0]));
 
     ESP_ERROR_CHECK(nvs_commit(nvs));
-    ESP_LOGI(TAG, "WPA Enterprise settings SSID: '%s', User: %s, Identity: ***REDACTED***, Password: ***REDACTED*** stored.", set_sta_ent_arg.ssid->sval[0], set_sta_ent_arg.user->sval[0]);
+    ESP_LOGI(TAG, "WPA Enterprise settings SSID: '%s', User: ***REDACTED***, Identity: ***REDACTED***, Password: ***REDACTED*** stored.", set_sta_ent_arg.ssid->sval[0]);
 
     nvs_close(nvs);
     return ESP_OK;
