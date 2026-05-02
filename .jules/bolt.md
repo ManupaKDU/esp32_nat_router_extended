@@ -2,5 +2,5 @@
 **Learning:** Using `strcat` inside a loop requires scanning the entire destination string to find the NUL terminator on every iteration, resulting in O(n^2) performance. Furthermore, performing small, repeated memory allocations (`malloc`/`free`) inside the loop creates unnecessary heap fragmentation and latency.
 **Action:** When building strings iteratively, use the return value of `sprintf`/`snprintf` to advance a pointer directly to the end of the buffer (`ptr += len`), avoiding both `strcat` and redundant memory allocations.
 ## 2026-05-02 - [HTTPD_RESP_USE_STRLEN Optimization]
-**Learning:** Using `HTTPD_RESP_USE_STRLEN` inside `httpd_resp_send` results in an implicit `strlen()` call on the response buffer. When the buffer is dynamically constructed via `sprintf` or `snprintf`, these functions already return the number of characters written. Discarding this return value and relying on `HTTPD_RESP_USE_STRLEN` wastes O(N) operations, which is highly inefficient for large HTML pages.
-**Action:** Always capture the return value of `sprintf`/`snprintf` when preparing HTTP responses and pass this exact length directly to `httpd_resp_send` instead of using the `HTTPD_RESP_USE_STRLEN` macro.
+**Learning:** Using `HTTPD_RESP_USE_STRLEN` inside `httpd_resp_send` causes the HTTP server to implicitly call `strlen()` on the entire response buffer. For large HTML pages, this is a redundant O(N) operation.
+**Action:** Pre-calculate or cache the response length manually and pass it directly to `httpd_resp_send` instead of using the `HTTPD_RESP_USE_STRLEN` macro.
