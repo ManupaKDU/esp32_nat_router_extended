@@ -1,0 +1,6 @@
+⚡ Bolt: Optimize index_get_handler by avoiding implicit strlen()
+
+In src/urihandler/indexhandler.c, capture the return value of sprintf
+when building the config_page buffer. Pass this length directly to
+httpd_resp_send instead of using HTTPD_RESP_USE_STRLEN, which saves
+an expensive implicit strlen() call on the ~18KB HTML response buffer.
