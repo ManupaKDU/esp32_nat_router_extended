@@ -49,3 +49,7 @@
 ## 2025-03-05 - Require explicit field values when conditionally activating regex inputs
 **Learning:** HTML5 validation `pattern` attributes for regex do not trigger natively on empty input submissions. The browser will permit the form submission if the input is left empty, bypassing the regex.
 **Action:** When adding regex `pattern` validation to conditionally enabled inputs, always pair it with the `required` attribute. Because disabled elements are natively exempt from HTML5 validation, you can apply `required` unconditionally to the tag to gracefully enforce validation without breaking form submissions when the element is toggled `disabled` by JavaScript.
+
+## 2024-05-03 - Dynamically Disabled Forms Need Accessibility Updates
+**Learning:** When toggling the visibility and disabled state of a form container (like `#wpa2-container`), the checkbox controlling the state must explicitly communicate its relationship and status to screen readers via `aria-controls` and `aria-expanded`. Additionally, jQuery selectors like `$('#container input')` do not automatically disable `textarea` elements, which can lead to hidden areas being unexpectedly focusable or submitted.
+**Action:** Always map toggle inputs to their targets using `aria-controls` and dynamically update `aria-expanded`. Ensure selectors for disabling form fields explicitly include `textarea` and `select` alongside `input`.
