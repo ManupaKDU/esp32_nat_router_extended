@@ -214,11 +214,12 @@ esp_err_t lock_handler(httpd_req_t *req)
 
     char *lock_page = malloc(l_html_size + strlen(display) + 1);
 
-    sprintf(lock_page, l_start, display);
+    int lock_page_len = sprintf(lock_page, l_start, display);
 
     closeHeader(req);
 
-    esp_err_t out = httpd_resp_send(req, lock_page, HTTPD_RESP_USE_STRLEN);
+    // ⚡ Bolt: Use captured length from sprintf instead of HTTPD_RESP_USE_STRLEN (which does strlen internally)
+    esp_err_t out = httpd_resp_send(req, lock_page, lock_page_len);
     free(lock_page);
     return out;
 }

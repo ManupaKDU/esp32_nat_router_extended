@@ -72,11 +72,12 @@ esp_err_t clients_download_get_handler(httpd_req_t *req)
     // ⚡ Bolt: Reused offset instead of calling strlen(result) again
     int size = clients_html_size + offset;
     char *clients_page = malloc(size - 2);
-    snprintf(clients_page, size - 2, clients_start, result);
+    int clients_page_len = snprintf(clients_page, size - 2, clients_start, result);
 
     closeHeader(req);
 
-    esp_err_t ret = httpd_resp_send(req, clients_page, HTTPD_RESP_USE_STRLEN);
+    // ⚡ Bolt: Use captured length from snprintf instead of HTTPD_RESP_USE_STRLEN (which does strlen internally)
+    esp_err_t ret = httpd_resp_send(req, clients_page, clients_page_len);
     free(clients_page);
     ESP_LOGI(TAG, "Requesting clients page");
     return ret;
