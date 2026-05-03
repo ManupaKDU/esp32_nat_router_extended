@@ -86,12 +86,14 @@ esp_err_t result_download_get_handler(httpd_req_t *req)
 
     int size = result_html_size + strlen(result);
     char *result_page = malloc(size + 1);
-    sprintf(result_page, result_start, result);
+    int result_page_len = sprintf(result_page, result_start, result);
 
     closeHeader(req);
 
-    esp_err_t ret = httpd_resp_send(req, result_page, HTTPD_RESP_USE_STRLEN);
-    ESP_LOGI(TAG, "Requesting result page with  %d additional bytes", strlen(result_page));
+    // ⚡ Bolt: Use captured length from sprintf instead of HTTPD_RESP_USE_STRLEN (which does strlen internally)
+    esp_err_t ret = httpd_resp_send(req, result_page, result_page_len);
+    // ⚡ Bolt: Reused result_page_len instead of redundant strlen call
+    ESP_LOGI(TAG, "Requesting result page with  %d additional bytes", result_page_len);
 
     free(result_page);
     nvs_handle_t nvs;
