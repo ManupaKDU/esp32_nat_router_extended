@@ -116,8 +116,21 @@ void addPortmapEntry(char *urlContent)
 
     readUrlParameterIntoBuffer(urlContent, "ip", param, contentLength);
     char *defaultIP = getDefaultIPByNetmask();
+    if (defaultIP == NULL) {
+        ESP_LOGE(TAG, "Failed to get default IP");
+        return;
+    }
     char resultIP[16];
-    snprintf(resultIP, sizeof(resultIP), "%.*s%s", (int)strlen(defaultIP) - 1, defaultIP, param);
+
+    // GCC 12 warning fix: Ensure bounds logic is clear to compiler
+    int prefix_len = (int)strlen(defaultIP) - 1;
+    if (prefix_len < 0) prefix_len = 0;
+
+    // Explicitly clamp the length of 'param' to appease -Wformat-truncation
+    int param_len = (int)strlen(param);
+    if (param_len > 3) param_len = 3;
+
+    snprintf(resultIP, sizeof(resultIP), "%.*s%.*s", prefix_len, defaultIP, param_len, param);
     free(defaultIP);
     uint32_t int_ip = ipaddr_addr(resultIP);
     if (int_ip == IPADDR_NONE)
