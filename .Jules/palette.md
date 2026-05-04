@@ -49,3 +49,7 @@
 ## 2025-03-05 - Require explicit field values when conditionally activating regex inputs
 **Learning:** HTML5 validation `pattern` attributes for regex do not trigger natively on empty input submissions. The browser will permit the form submission if the input is left empty, bypassing the regex.
 **Action:** When adding regex `pattern` validation to conditionally enabled inputs, always pair it with the `required` attribute. Because disabled elements are natively exempt from HTML5 validation, you can apply `required` unconditionally to the tag to gracefully enforce validation without breaking form submissions when the element is toggled `disabled` by JavaScript.
+
+## 2025-03-27 - Conditionally Enabled Input Validation
+**Learning:** HTML5 `required` attributes can be unconditionally applied to conditionally visible form elements (e.g., within dynamically toggled containers in `config.html`). The browser will natively ignore the validation for these elements as long as their `disabled` property is accurately managed by JavaScript when hidden. However, care must be taken to ensure all elements that shouldn't be submitted (like `<textarea>`) are also correctly disabled.
+**Action:** When adding validation to dynamically revealed form sections, add `required` directly to the HTML and ensure the toggle JavaScript properly updates the `disabled` property of *all* relevant inputs (including textareas and selects) to keep the validation logic native and robust.
