@@ -116,10 +116,8 @@ void addPortmapEntry(char *urlContent)
 
     readUrlParameterIntoBuffer(urlContent, "ip", param, contentLength);
     char *defaultIP = getDefaultIPByNetmask();
-    char resultIP[strlen(defaultIP) + strlen(param) + 2];
-    strncpy(resultIP, defaultIP, strlen(defaultIP) - 1);
-    resultIP[strlen(defaultIP) - 1] = '\0';
-    strcat(resultIP, param);
+    char resultIP[16];
+    snprintf(resultIP, sizeof(resultIP), "%.*s%s", (int)strlen(defaultIP) - 1, defaultIP, param);
     free(defaultIP);
     uint32_t int_ip = ipaddr_addr(resultIP);
     if (int_ip == IPADDR_NONE)
