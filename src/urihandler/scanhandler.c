@@ -43,13 +43,14 @@ esp_err_t scan_download_get_handler(httpd_req_t *req)
 
     char *scan_page = malloc(scan_html_size + strlen(defaultIP));
 
-    sprintf(scan_page, scan_start, defaultIP);
+    // ⚡ Bolt: Cache response length from sprintf to avoid redundant O(N) strlen calls
+    int response_len = sprintf(scan_page, scan_start, defaultIP);
 
     closeHeader(req);
 
     ESP_LOGI(TAG, "Requesting scan page");
 
-    esp_err_t ret = httpd_resp_send(req, scan_page, HTTPD_RESP_USE_STRLEN);
+    esp_err_t ret = httpd_resp_send(req, scan_page, response_len);
     fillNodes();
     free(scan_page);
     free(defaultIP);
