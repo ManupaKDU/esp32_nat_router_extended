@@ -4,3 +4,6 @@
 ## 2026-05-02 - [HTTPD_RESP_USE_STRLEN Optimization]
 **Learning:** Using `HTTPD_RESP_USE_STRLEN` inside `httpd_resp_send` causes the HTTP server to implicitly call `strlen()` on the entire response buffer. For large HTML pages, this is a redundant O(N) operation.
 **Action:** Pre-calculate or cache the response length manually and pass it directly to `httpd_resp_send` instead of using the `HTTPD_RESP_USE_STRLEN` macro.
+## 2026-05-05 - [Safe snprintf Length Capturing]
+**Learning:** While capturing the return value of `snprintf` is an excellent way to get the string length without calling `strlen`, `snprintf` returns the number of characters that *would* have been written if the buffer was large enough, not the actual characters written. Passing this blindly to network functions like `httpd_resp_send` can result in out-of-bounds reads if the buffer was truncated.
+**Action:** Always constrain the captured `snprintf` length against the actual allocated buffer size (e.g., `len < size ? len : size - 1`) before using it for network operations or pointer arithmetic.
