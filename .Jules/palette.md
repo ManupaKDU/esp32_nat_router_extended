@@ -49,3 +49,7 @@
 ## 2025-03-05 - Require explicit field values when conditionally activating regex inputs
 **Learning:** HTML5 validation `pattern` attributes for regex do not trigger natively on empty input submissions. The browser will permit the form submission if the input is left empty, bypassing the regex.
 **Action:** When adding regex `pattern` validation to conditionally enabled inputs, always pair it with the `required` attribute. Because disabled elements are natively exempt from HTML5 validation, you can apply `required` unconditionally to the tag to gracefully enforce validation without breaking form submissions when the element is toggled `disabled` by JavaScript.
+
+## 2026-05-10 - [Dynamic Form Sections and Textareas]
+**Learning:** When dynamically hiding form sections (e.g., `#wpa2-container` in `config.html`), it is necessary to disable ALL child form elements, including `<textarea>` and `select`, to prevent accidental submission of hidden data. Relying only on `input` will leave textareas enabled. Also, when backend data dictates initial visibility, synchronize the UI on document ready.
+**Action:** When creating toggleable sections, use broader selectors like `container input, container textarea, container select` to disable all fields within the hidden block, and always initialize the state on `$(document).ready()`. Ensure toggles have `aria-controls` and `aria-expanded` attributes.
