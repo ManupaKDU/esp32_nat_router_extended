@@ -4,3 +4,6 @@
 ## 2026-05-02 - [HTTPD_RESP_USE_STRLEN Optimization]
 **Learning:** Using `HTTPD_RESP_USE_STRLEN` inside `httpd_resp_send` causes the HTTP server to implicitly call `strlen()` on the entire response buffer. For large HTML pages, this is a redundant O(N) operation.
 **Action:** Pre-calculate or cache the response length manually and pass it directly to `httpd_resp_send` instead of using the `HTTPD_RESP_USE_STRLEN` macro.
+## 2024-05-18 - [Eliminating HTTPD_RESP_USE_STRLEN on large buffers]
+**Learning:** In ESP-IDF's http server, `httpd_resp_send` with `HTTPD_RESP_USE_STRLEN` triggers an implicit `strlen()` on the entire buffer. For dynamically constructed HTML pages (~18KB), this wastes CPU cycles.
+**Action:** When a dynamic HTML buffer is already generated via `sprintf()` or `snprintf()`, capture its integer return value. Use this captured length in `httpd_resp_send` instead of `HTTPD_RESP_USE_STRLEN` to save an O(N) traversal.
