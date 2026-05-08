@@ -49,3 +49,6 @@
 ## 2025-03-05 - Require explicit field values when conditionally activating regex inputs
 **Learning:** HTML5 validation `pattern` attributes for regex do not trigger natively on empty input submissions. The browser will permit the form submission if the input is left empty, bypassing the regex.
 **Action:** When adding regex `pattern` validation to conditionally enabled inputs, always pair it with the `required` attribute. Because disabled elements are natively exempt from HTML5 validation, you can apply `required` unconditionally to the tag to gracefully enforce validation without breaking form submissions when the element is toggled `disabled` by JavaScript.
+## 2025-05-19 - [WPA2 Checkbox Accessible State Sync]
+**Learning:** Found that when dynamically hiding form sections in UI pages (e.g., `#wpa2-container`), using a standard `input` selector failed to target `<textarea>` elements, leaving them active. Furthermore, initial states set by backend injection weren't syncing with the visual toggle.
+**Action:** When creating toggleable sections, always use jQuery's `:input` pseudo-selector to disable all child form elements (including `<textarea>`), and bind the state sync function to `$(document).ready()` as well as the `change` event to guarantee synchronization on page load. Use `aria-expanded` and `aria-controls` for screen reader context.
