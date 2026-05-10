@@ -4,3 +4,7 @@
 ## 2026-05-02 - [HTTPD_RESP_USE_STRLEN Optimization]
 **Learning:** Using `HTTPD_RESP_USE_STRLEN` inside `httpd_resp_send` causes the HTTP server to implicitly call `strlen()` on the entire response buffer. For large HTML pages, this is a redundant O(N) operation.
 **Action:** Pre-calculate or cache the response length manually and pass it directly to `httpd_resp_send` instead of using the `HTTPD_RESP_USE_STRLEN` macro.
+
+## 2024-05-10 - Eliminate O(N) strlen overhead for large embedded static files
+**Learning:** Using `HTTPD_RESP_USE_STRLEN` for serving large static files (like a 87KB jQuery JS file or a 49KB CSS file) incurs a significant O(N) penalty as the ESP32 must traverse the entire buffer to find the null terminator.
+**Action:** When serving static embedded files where start/end linker symbols are available, eliminate the `strlen()` call by passing the pre-calculated size via pointer arithmetic `(size_t)(file_end - file_start) - 1` to `httpd_resp_send()`.
