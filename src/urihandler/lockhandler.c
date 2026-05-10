@@ -214,7 +214,7 @@ esp_err_t lock_handler(httpd_req_t *req)
 
     char *lock_page = malloc(l_html_size + strlen(display) + 1);
 
-    sprintf(lock_page, l_start, display);
+    snprintf(lock_page, l_html_size + strlen(display) + 1, l_start, display);
 
     closeHeader(req);
 

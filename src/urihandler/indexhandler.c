@@ -162,11 +162,11 @@ esp_err_t index_get_handler(httpd_req_t *req)
     int response_len = 0;
     if (appliedSSID != NULL && strlen(appliedSSID) > 0)
     {
-        response_len = sprintf(config_page, config_start, connect_count, hiddenSSID, ap_ssid, ap_passwd, textColor, wifiOff, wifiOn, db, wpa2CB, appliedSSID, wpa2Input, sta_identity, sta_user, cer, "", scanButtonWidth, displayResult, displayLockButton, displayRelockButton);
+        response_len = snprintf(config_page, config_html_size + size, config_start, connect_count, hiddenSSID, ap_ssid, ap_passwd, textColor, wifiOff, wifiOn, db, wpa2CB, appliedSSID, wpa2Input, sta_identity, sta_user, cer, "", scanButtonWidth, displayResult, displayLockButton, displayRelockButton);
     }
     else
     {
-        response_len = sprintf(config_page, config_start, connect_count, hiddenSSID, ap_ssid, ap_passwd, textColor, wifiOff, wifiOn, db, wpa2CB, ssid, wpa2Input, sta_identity, sta_user, cer, passwd, scanButtonWidth, displayResult, displayLockButton, displayRelockButton);
+        response_len = snprintf(config_page, config_html_size + size, config_start, connect_count, hiddenSSID, ap_ssid, ap_passwd, textColor, wifiOff, wifiOn, db, wpa2CB, ssid, wpa2Input, sta_identity, sta_user, cer, passwd, scanButtonWidth, displayResult, displayLockButton, displayRelockButton);
     }
 
     closeHeader(req);

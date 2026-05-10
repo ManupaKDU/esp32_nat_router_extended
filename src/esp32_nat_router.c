@@ -11,7 +11,7 @@
 #include "esp_system.h"
 #include "esp_log.h"
 #include "esp_console.h"
-#include "driver/uart_vfs.h"
+#include <esp_vfs_dev.h>
 #include "driver/uart.h"
 #include "linenoise/linenoise.h"
 #include "argtable3/argtable3.h"
@@ -257,9 +257,9 @@ static void initialize_console(void)
 
 #if CONFIG_CONSOLE_UART_NUM == 0
     /* Minicom, screen, idf_monitor send CR when ENTER key is pressed */
-    uart_vfs_dev_port_set_rx_line_endings(0, ESP_LINE_ENDINGS_CR);
+    esp_vfs_dev_uart_port_set_rx_line_endings(0, ESP_LINE_ENDINGS_CR);
     /* Move the caret to the beginning of the next line on '\n' */
-    uart_vfs_dev_port_set_tx_line_endings(0, ESP_LINE_ENDINGS_CRLF);
+    esp_vfs_dev_uart_port_set_tx_line_endings(0, ESP_LINE_ENDINGS_CRLF);
 
     /* Configure UART. Note that REF_TICK is used so that the baud rate remains
      * correct while APB frequency is changing in light sleep mode.
@@ -281,7 +281,7 @@ static void initialize_console(void)
     ESP_ERROR_CHECK(uart_param_config(CONFIG_ESP_CONSOLE_UART_NUM, &uart_config));
 
     /* Tell VFS to use UART driver */
-    uart_vfs_dev_use_driver(CONFIG_ESP_CONSOLE_UART_NUM);
+    esp_vfs_dev_uart_use_driver(CONFIG_ESP_CONSOLE_UART_NUM);
 #else
     ESP_LOGI(TAG, "UART console is disabled. ");
 #endif
@@ -387,7 +387,7 @@ void setHostName()
         // Generate a random number between 1000 and 9999
         int random_number = esp_random() % 9000 + 1000;
         hostName = (char *)malloc(14 * sizeof(char));
-        sprintf(hostName, "esp32nre%d", random_number);
+        snprintf(hostName, 14, "esp32nre%d", random_number);
         nvs_handle_t nvs;
         ESP_ERROR_CHECK(nvs_open(PARAM_NAMESPACE, NVS_READWRITE, &nvs));
         ESP_ERROR_CHECK(nvs_set_str(nvs, "hostname", hostName));

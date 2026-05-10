@@ -20,7 +20,7 @@ esp_err_t about_get_handler(httpd_req_t *req)
     const char *project_build_date = get_project_build_date();
     char *about_page = malloc(about_html_size + strlen(project_version) + strlen(GLOBAL_HASH) + strlen(project_build_date) + 1);
 
-    sprintf(about_page, about_start, project_version, GLOBAL_HASH, project_build_date);
+    snprintf(about_page, about_html_size + strlen(project_version) + strlen(GLOBAL_HASH) + strlen(project_build_date) + 1, about_start, project_version, GLOBAL_HASH, project_build_date);
 
     closeHeader(req);
 
