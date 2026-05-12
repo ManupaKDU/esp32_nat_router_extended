@@ -4,3 +4,6 @@
 ## 2026-05-02 - [HTTPD_RESP_USE_STRLEN Optimization]
 **Learning:** Using `HTTPD_RESP_USE_STRLEN` inside `httpd_resp_send` causes the HTTP server to implicitly call `strlen()` on the entire response buffer. For large HTML pages, this is a redundant O(N) operation.
 **Action:** Pre-calculate or cache the response length manually and pass it directly to `httpd_resp_send` instead of using the `HTTPD_RESP_USE_STRLEN` macro.
+## 2026-05-12 - [O(1) Static Asset Serving via Assembly Symbols]
+**Learning:** In ESP-IDF, when serving static text/binary files embedded via CMake, calling `httpd_resp_send(req, fileStart, HTTPD_RESP_USE_STRLEN)` causes an O(N) `strlen()` operation. The linker generates both `_start` and `_end` symbols for embedded files.
+**Action:** Declare both `_start` and `_end` symbols using `asm()` and use pointer arithmetic `(size_t)(_end - _start) - 1` to pass the exact length to `httpd_resp_send()`, eliminating runtime string length calculation overhead. (The `- 1` removes the build-system injected trailing null byte).

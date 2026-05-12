@@ -7,27 +7,29 @@ void closeHeader(httpd_req_t *req)
     httpd_resp_set_hdr(req, "Connection", "close");
 }
 
-esp_err_t download(httpd_req_t *req, const char *fileStart)
+esp_err_t download(httpd_req_t *req, const char *fileStart, size_t file_size)
 {
     httpd_resp_set_hdr(req, "Cache-Control", "max-age=31536000");
     closeHeader(req);
-    return httpd_resp_send(req, fileStart, HTTPD_RESP_USE_STRLEN);
+    return httpd_resp_send(req, fileStart, file_size);
 }
 
 esp_err_t styles_download_get_handler(httpd_req_t *req)
 {
     extern const unsigned char styles_start[] asm("_binary_styles_67aa3b0203355627b525be2ea57be7bf_css_start");
+    extern const unsigned char styles_end[] asm("_binary_styles_67aa3b0203355627b525be2ea57be7bf_css_end");
     httpd_resp_set_type(req, "text/css");
     ESP_LOGD(TAG_HANDLER, "Requesting style");
-    return download(req, (const char *)styles_start);
+    return download(req, (const char *)styles_start, (size_t)(styles_end - styles_start) - 1);
 }
 
 esp_err_t jquery_get_handler(httpd_req_t *req)
 {
     extern const unsigned char jquery_js_start[] asm("_binary_jquery_8a1045d9cbf50b52a0805c111ba08e94_js_start");
+    extern const unsigned char jquery_js_end[] asm("_binary_jquery_8a1045d9cbf50b52a0805c111ba08e94_js_end");
     httpd_resp_set_type(req, "text/javascript");
     ESP_LOGD(TAG_HANDLER, "Requesting jquery");
-    return download(req, (const char *)jquery_js_start);
+    return download(req, (const char *)jquery_js_start, (size_t)(jquery_js_end - jquery_js_start) - 1);
 }
 
 // Handler to download a "favicon.ico" file kept on the server
@@ -50,7 +52,7 @@ esp_err_t redirectToRoot(httpd_req_t *req)
     snprintf(str, sizeof(str), "http://%s", currentIP);
     httpd_resp_set_hdr(req, "Location", str);
     httpd_resp_set_hdr(req, "Connection", "Close");
-    httpd_resp_send(req, "", HTTPD_RESP_USE_STRLEN);
+    httpd_resp_send(req, "", 0);
     free(currentIP);
 
     return ESP_OK;
@@ -73,9 +75,10 @@ esp_err_t reset_get_handler(httpd_req_t *req)
 
     httpd_req_to_sockfd(req);
     extern const char reset_start[] asm("_binary_reset_html_start");
+    extern const char reset_end[] asm("_binary_reset_html_end");
 
     closeHeader(req);
 
-    esp_err_t ret = httpd_resp_send(req, reset_start, HTTPD_RESP_USE_STRLEN);
+    esp_err_t ret = httpd_resp_send(req, reset_start, (size_t)(reset_end - reset_start) - 1);
     return ret;
 }
