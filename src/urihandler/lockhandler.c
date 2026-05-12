@@ -212,9 +212,16 @@ esp_err_t lock_handler(httpd_req_t *req)
         display = "none";
     }
 
-    char *lock_page = malloc(l_html_size + strlen(display) + 1);
+    size_t alloc_size = l_html_size + strlen(display) + 1;
+    char *lock_page = malloc(alloc_size);
+    if (lock_page == NULL)
+    {
+        ESP_LOGE(TAG, "Memory allocation failed");
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Out of memory");
+        return ESP_FAIL;
+    }
 
-    sprintf(lock_page, l_start, display);
+    snprintf(lock_page, alloc_size, l_start, display);
 
     closeHeader(req);
 
