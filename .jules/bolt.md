@@ -4,3 +4,6 @@
 ## 2026-05-02 - [HTTPD_RESP_USE_STRLEN Optimization]
 **Learning:** Using `HTTPD_RESP_USE_STRLEN` inside `httpd_resp_send` causes the HTTP server to implicitly call `strlen()` on the entire response buffer. For large HTML pages, this is a redundant O(N) operation.
 **Action:** Pre-calculate or cache the response length manually and pass it directly to `httpd_resp_send` instead of using the `HTTPD_RESP_USE_STRLEN` macro.
+## 2026-05-13 - [Static File Response Optimization]
+**Learning:** The use of `HTTPD_RESP_USE_STRLEN` in `httpd_resp_send` for large embedded static files (like CSS, JS) causes significant O(N) runtime overhead due to implicit `strlen()` calls on strings that are potentially tens of thousands of characters long.
+**Action:** Calculate file sizes at compile time using linker symbol pointer arithmetic (e.g. `(size_t)(file_end - file_start) - 1`) and pass the size explicitly to eliminate this bottleneck.
