@@ -1,0 +1,3 @@
+## YYYY-MM-DD - [Loading Spinners added to wait pages]
+**Learning:** For long-running background processes (like a device reboot or scan), `apply.html` and `scan.html` were using `<meta http-equiv="refresh">` but no visual loading indicators were present. We added bootstrap spinners with visually hidden screen reader text to them. The `spinner-border` and `visually-hidden` css classes had to be appended to the minified `styles-*.css` as they had been purged.
+**Action:** When adding bootstrap components to HTML, verify if the minified CSS has been purged of those classes and append them if necessary.
