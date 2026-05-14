@@ -4,3 +4,6 @@
 ## 2026-05-02 - [HTTPD_RESP_USE_STRLEN Optimization]
 **Learning:** Using `HTTPD_RESP_USE_STRLEN` inside `httpd_resp_send` causes the HTTP server to implicitly call `strlen()` on the entire response buffer. For large HTML pages, this is a redundant O(N) operation.
 **Action:** Pre-calculate or cache the response length manually and pass it directly to `httpd_resp_send` instead of using the `HTTPD_RESP_USE_STRLEN` macro.
+## 2026-05-14 - [HTTPD_RESP_USE_STRLEN Optimization]
+**Learning:** Using `HTTPD_RESP_USE_STRLEN` inside `httpd_resp_send` causes the HTTP server to implicitly call `strlen()` on the entire response buffer. For large HTML/CSS/JS pages, this is a redundant O(N) operation.
+**Action:** Pre-calculate or cache the response length manually (e.g., via pointer arithmetic on linker symbols: `(size_t)(_end - _start) - 1`) and pass it directly to `httpd_resp_send` instead of using the `HTTPD_RESP_USE_STRLEN` macro.
