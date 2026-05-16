@@ -61,11 +61,10 @@ esp_err_t unlock_handler(httpd_req_t *req)
                 }
                 free(lock);
             }
-            free(unlockParam);
         }
         else
         {
-            ESP_LOGE(TAG, "Memory allocation failed for unlockParam");
+            ESP_LOGI(TAG, "Unlock parameter is empty");
         }
         free(unlockParam);
     }
@@ -188,7 +187,7 @@ esp_err_t lock_handler(httpd_req_t *req)
         }
         else
         {
-            ESP_LOGE(TAG, "Memory allocation failed for pass parameters");
+            ESP_LOGE(TAG, "Pass parameters do not match");
         }
         free(passParam);
         free(pass2Param);
