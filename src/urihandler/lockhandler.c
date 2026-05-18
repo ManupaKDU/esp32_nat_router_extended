@@ -49,7 +49,7 @@ esp_err_t unlock_handler(httpd_req_t *req)
             get_config_param_str("lock_pass", &lock);
             if (lock != NULL)
             {
-                if (strcmp(lock, unlockParam) == 0)
+                if (strlen(lock) == strlen(unlockParam) && crypto_memcmp(lock, unlockParam, strlen(lock)))
                 {
                     locked = false;
                     httpd_resp_set_status(req, "302 Found");
