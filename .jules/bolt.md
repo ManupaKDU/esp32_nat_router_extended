@@ -4,3 +4,6 @@
 ## 2026-05-02 - [HTTPD_RESP_USE_STRLEN Optimization]
 **Learning:** Using `HTTPD_RESP_USE_STRLEN` inside `httpd_resp_send` causes the HTTP server to implicitly call `strlen()` on the entire response buffer. For large HTML pages, this is a redundant O(N) operation.
 **Action:** Pre-calculate or cache the response length manually and pass it directly to `httpd_resp_send` instead of using the `HTTPD_RESP_USE_STRLEN` macro.
+## 2024-05-18 - [HTTPD_RESP_USE_STRLEN Revisit: Dynamic Asset Pre-calculation]
+**Learning:** For ESP-IDF embedded binary assets (like CSS and JS files generated from strings with hashes in their filenames), their exact payload sizes can be safely derived by finding the `_start` and `_end` linker symbols from the compiled `.pio/build/esp32/` assembly files. Subtracting `1` from `(_end - _start)` correctly accounts for the `EMBED_TXTFILES` null-terminator byte, avoiding the `strlen` entirely.
+**Action:** Always pre-calculate HTTP response payloads lengths natively using linker pointer math instead of using `HTTPD_RESP_USE_STRLEN` to achieve an O(1) performance response. Ensure 0 is explicitly passed for zero-byte responses (e.g., `""`).
