@@ -8,6 +8,19 @@
 
 static const char *TAG = "urihelper";
 
+int crypto_memcmp(const void *m1, const void *m2, size_t len)
+{
+    const uint8_t *p1 = m1;
+    const uint8_t *p2 = m2;
+    uint8_t res = 0;
+
+    for (size_t i = 0; i < len; i++) {
+        res |= p1[i] ^ p2[i];
+    }
+
+    return res;
+}
+
 void preprocess_string(char *str)
 {
     char *p, *q;

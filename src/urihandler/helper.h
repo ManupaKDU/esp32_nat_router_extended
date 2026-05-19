@@ -8,6 +8,8 @@
 #include "lwip/ip_addr.h"
 #endif
 
+int crypto_memcmp(const void *m1, const void *m2, size_t len);
+
 void preprocess_string(char *str);
 void readUrlParameterIntoBuffer(char *parameterString, char *parameter, char *buffer, size_t paramLength);
 esp_err_t fill_post_buffer(httpd_req_t *req, char *buf, size_t len);
