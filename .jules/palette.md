@@ -1,0 +1,3 @@
+## 2024-05-24 - Missing CSS Classes for Visual Indicators
+**Learning:** Adding previously unused Bootstrap classes (like `spinner-border` or `visually-hidden`) directly to HTML templates will not work because the project's minified CSS file (`styles-*.css`) purges unused classes. Furthermore, trying to extract or parse the unminified CSS via regex often fails due to complex nested rules.
+**Action:** When adding new UI elements that rely on purged Bootstrap classes, manually append the exact minified CSS string for those classes directly to the end of the `styles-*.css` file using a Bash heredoc script, bypassing the risky regex extraction.
