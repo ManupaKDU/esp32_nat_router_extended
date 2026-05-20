@@ -1,3 +1,3 @@
-## 2024-05-24 - Missing CSS Classes for Visual Indicators
-**Learning:** Adding previously unused Bootstrap classes (like `spinner-border` or `visually-hidden`) directly to HTML templates will not work because the project's minified CSS file (`styles-*.css`) purges unused classes. Furthermore, trying to extract or parse the unminified CSS via regex often fails due to complex nested rules.
-**Action:** When adding new UI elements that rely on purged Bootstrap classes, manually append the exact minified CSS string for those classes directly to the end of the `styles-*.css` file using a Bash heredoc script, bypassing the risky regex extraction.
+## 2024-05-20 - Purged CSS in Minified Environments
+**Learning:** This application purges unused Bootstrap CSS classes to save space on the ESP32 (e.g. `spinner-border` was removed). Modifying the minified CSS manually to restore them is unmaintainable and rejected in code review.
+**Action:** When adding UX enhancements, restrict usage to standard classes already in use (e.g., swapping `btn-warning` to `btn-danger` for consistency), or verify presence in the purged CSS before relying on new classes.
