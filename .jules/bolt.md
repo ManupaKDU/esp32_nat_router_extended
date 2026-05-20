@@ -4,3 +4,6 @@
 ## 2026-05-02 - [HTTPD_RESP_USE_STRLEN Optimization]
 **Learning:** Using `HTTPD_RESP_USE_STRLEN` inside `httpd_resp_send` causes the HTTP server to implicitly call `strlen()` on the entire response buffer. For large HTML pages, this is a redundant O(N) operation.
 **Action:** Pre-calculate or cache the response length manually and pass it directly to `httpd_resp_send` instead of using the `HTTPD_RESP_USE_STRLEN` macro.
+## 2026-05-18 - [Embedded Assets & O(1) Length Calculation]
+**Learning:** Embedded text files in ESP-IDF (`COMPONENT_EMBED_TXTFILES`) append a null byte at the end of the data. When eliminating `HTTPD_RESP_USE_STRLEN` and manually calculating the size of an embedded file using linker symbols (e.g., `_end` - `_start`), you must subtract 1 `(size_t)(file_end - file_start) - 1` to avoid sending the trailing null byte over the network.
+**Action:** When replacing `strlen()` or `HTTPD_RESP_USE_STRLEN` for embedded assets, use `(size_t)(_end - _start) - 1` to correctly compute the size.
