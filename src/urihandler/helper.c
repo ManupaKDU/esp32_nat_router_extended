@@ -173,3 +173,13 @@ void sanitize_html(const char *input, char *output, size_t output_size)
     }
     output[out_idx] = '\0';
 }
+int crypto_memcmp(const void *a, const void *b, size_t len)
+{
+    const volatile unsigned char *pa = (const volatile unsigned char *)a;
+    const volatile unsigned char *pb = (const volatile unsigned char *)b;
+    unsigned char res = 0;
+    for (size_t i = 0; i < len; i++) {
+        res |= pa[i] ^ pb[i];
+    }
+    return res == 0 ? 0 : 1;
+}
