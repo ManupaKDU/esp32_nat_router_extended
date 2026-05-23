@@ -1,0 +1,3 @@
+## $(date +%Y-%m-%d) - Dynamic Form Validation Synchronization
+**Learning:** In static HTML templates where backend state is injected via formatting strings, dynamically hidden form sections containing inputs/textareas must have their visibility and disabled states synchronized via JavaScript on page load (`$(document).ready()`). Furthermore, failing to disable all child elements (like `<textarea>`) allows accidental submission of hidden fields.
+**Action:** When dynamically toggling form visibility, explicitly toggle `disabled` properties on all interactive child elements (`input`, `textarea`, `select`), update `aria-expanded` and `aria-controls`, and execute the toggling logic on `$(document).ready()`.
