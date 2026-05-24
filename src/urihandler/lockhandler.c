@@ -56,18 +56,20 @@ esp_err_t unlock_handler(httpd_req_t *req)
                     httpd_resp_set_hdr(req, "Location", "/");
                     free(lock);
                     free(unlockParam);
+                    unlockParam = NULL;
                     free(buf);
                     return httpd_resp_send(req, NULL, 0);
                 }
                 free(lock);
             }
-            free(unlockParam);
         }
         else
         {
             ESP_LOGE(TAG, "Memory allocation failed for unlockParam");
         }
-        free(unlockParam);
+        if (unlockParam != NULL) {
+            free(unlockParam);
+        }
     }
     free(buf);
     if (req->method == HTTP_GET) // Relock if called
