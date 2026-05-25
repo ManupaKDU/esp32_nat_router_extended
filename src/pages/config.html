@@ -163,15 +163,20 @@
                 }, 3000), timeout: 3000
             })
         })();</script>
-    <script>$('#wpa2enabled').change(function () {
-            if ($(this).prop('checked')) {
-                $('#wpa2-container').show();
-                $('#wpa2-container input').prop('disabled', false);
-            } else {
-                $('#wpa2-container').hide();
-                $('#wpa2-container input').prop('disabled', true);
-            }
-        })</script>
+    <script>
+        $(document).ready(function() {
+            $('#wpa2enabled').change(function () {
+                if ($(this).prop('checked')) {
+                    $('#wpa2-container').show();
+                    $('#wpa2-container input, #wpa2-container textarea').prop('disabled', false);
+                } else {
+                    $('#wpa2-container').hide();
+                    $('#wpa2-container input, #wpa2-container textarea').prop('disabled', true);
+                }
+            });
+            $('#wpa2enabled').trigger('change');
+        });
+    </script>
 </body>
 
 </html>
