@@ -18,13 +18,16 @@ esp_err_t about_get_handler(httpd_req_t *req)
 
     const char *project_version = get_project_version();
     const char *project_build_date = get_project_build_date();
-    char *about_page = malloc(about_html_size + strlen(project_version) + strlen(GLOBAL_HASH) + strlen(project_build_date) + 1);
+    size_t alloc_size = about_html_size + strlen(project_version) + strlen(GLOBAL_HASH) + strlen(project_build_date) + 1;
+    char *about_page = malloc(alloc_size);
 
-    sprintf(about_page, about_start, project_version, GLOBAL_HASH, project_build_date);
+    int len = snprintf(about_page, alloc_size, about_start, project_version, GLOBAL_HASH, project_build_date);
+    size_t send_len = (len > 0 && len < alloc_size) ? len : alloc_size - 1;
 
     closeHeader(req);
 
-    esp_err_t out = httpd_resp_send(req, about_page, HTTPD_RESP_USE_STRLEN);
+    // ⚡ Bolt: Pass exact length instead of HTTPD_RESP_USE_STRLEN to eliminate O(N) strlen overhead
+    esp_err_t out = httpd_resp_send(req, about_page, send_len);
     free(about_page);
     return out;
 }
