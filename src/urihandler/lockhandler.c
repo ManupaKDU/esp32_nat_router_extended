@@ -65,9 +65,9 @@ esp_err_t unlock_handler(httpd_req_t *req)
         }
         else
         {
-            ESP_LOGE(TAG, "Memory allocation failed for unlockParam");
+            ESP_LOGW(TAG, "Unlock parameter is empty");
+            free(unlockParam);
         }
-        free(unlockParam);
     }
     free(buf);
     if (req->method == HTTP_GET) // Relock if called
