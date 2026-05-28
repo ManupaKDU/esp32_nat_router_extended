@@ -7,3 +7,6 @@
 ## 2024-05-14 - [Pointer Arithmetic Length vs strlen]
 **Learning:** Using `HTTPD_RESP_USE_STRLEN` on large embedded static files forces the microcontroller to execute an O(N) `strlen()` scan over the entire file, which is slow and thrashes the data cache.
 **Action:** When serving embedded text files (e.g. CSS, JS) via `httpd_resp_send`, use the linker's `_end` and `_start` symbols to calculate the size in O(1) time using pointer arithmetic `(size_t)(file_end - file_start) - 1`. The `- 1` correctly strips the null terminator added by `EMBED_TXTFILES`.
+## 2024-05-14 - [O(N) strlen overhead with HTTPD_RESP_USE_STRLEN and sprintf]
+**Learning:** Using `HTTPD_RESP_USE_STRLEN` triggers an O(N) `strlen()` call over the response buffer inside the ESP-IDF HTTP server logic. When constructing these buffers dynamically with `sprintf()`, this is entirely redundant because `sprintf()` already returns the number of characters written.
+**Action:** Always capture the integer return value of `sprintf()` and pass it directly to `httpd_resp_send()` instead of using `HTTPD_RESP_USE_STRLEN` to save CPU cycles when serving large dynamic HTML buffers.
