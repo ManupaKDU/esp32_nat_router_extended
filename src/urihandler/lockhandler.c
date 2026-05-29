@@ -59,13 +59,16 @@ esp_err_t unlock_handler(httpd_req_t *req)
                     free(buf);
                     return httpd_resp_send(req, NULL, 0);
                 }
+                else
+                {
+                    ESP_LOGE(TAG, "Unlock failed: passwords do not match");
+                }
                 free(lock);
             }
-            free(unlockParam);
         }
         else
         {
-            ESP_LOGE(TAG, "Memory allocation failed for unlockParam");
+            ESP_LOGE(TAG, "Unlock failed: unlock parameter is empty");
         }
         free(unlockParam);
     }
