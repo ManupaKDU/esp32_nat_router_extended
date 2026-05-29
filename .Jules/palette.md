@@ -49,3 +49,7 @@
 ## 2025-03-05 - Require explicit field values when conditionally activating regex inputs
 **Learning:** HTML5 validation `pattern` attributes for regex do not trigger natively on empty input submissions. The browser will permit the form submission if the input is left empty, bypassing the regex.
 **Action:** When adding regex `pattern` validation to conditionally enabled inputs, always pair it with the `required` attribute. Because disabled elements are natively exempt from HTML5 validation, you can apply `required` unconditionally to the tag to gracefully enforce validation without breaking form submissions when the element is toggled `disabled` by JavaScript.
+
+## 2026-04-06 - [Unicode Loading Symbols and Screen Reader Noise]
+**Learning:** Found textual visual loading indicators (e.g., `↻ Restarting...`) added as replacements for non-functional CSS spinners. When these unicode symbols are placed as plain text within headers or other elements without the `aria-hidden="true"` attribute, screen readers awkwardly read out the character (like "clockwise open circle arrow"), creating a distracting auditory experience and detracting from the intended visual-only enhancement.
+**Action:** When implementing decorative textual loading symbols (e.g., `↻`), always wrap the unicode symbol in a `<span aria-hidden="true">` element to prevent screen readers from vocalizing the character, ensuring a cleaner experience.
