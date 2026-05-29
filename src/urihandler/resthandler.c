@@ -19,8 +19,10 @@ esp_err_t rest_handler(httpd_req_t *req)
 
     size_t size = strlen(JSON_TEMPLATE) + 5 + strlen(db) + strlen(textColor);
     char json[size]; // ⚡ Bolt: Use stack VLA instead of malloc to avoid heap fragmentation overhead
-    snprintf(json, sizeof(json), JSON_TEMPLATE, getConnectCount(), db, textColor);
-    esp_err_t ret = httpd_resp_send(req, json, HTTPD_RESP_USE_STRLEN);
+    int len = snprintf(json, sizeof(json), JSON_TEMPLATE, getConnectCount(), db, textColor);
+    // ⚡ Bolt: Avoid O(N) strlen() call by passing the captured snprintf length, bound-checked against buffer size
+    size_t resp_len = (len > 0 && len < sizeof(json)) ? (size_t)len : sizeof(json) - 1;
+    esp_err_t ret = httpd_resp_send(req, json, resp_len);
     ESP_LOGD(TAG, "JSON-Response: %s", json);
     return ret;
 }

@@ -7,3 +7,6 @@
 ## 2024-05-14 - [Pointer Arithmetic Length vs strlen]
 **Learning:** Using `HTTPD_RESP_USE_STRLEN` on large embedded static files forces the microcontroller to execute an O(N) `strlen()` scan over the entire file, which is slow and thrashes the data cache.
 **Action:** When serving embedded text files (e.g. CSS, JS) via `httpd_resp_send`, use the linker's `_end` and `_start` symbols to calculate the size in O(1) time using pointer arithmetic `(size_t)(file_end - file_start) - 1`. The `- 1` correctly strips the null terminator added by `EMBED_TXTFILES`.
+## 2024-05-13 - Capture snprintf length to avoid strlen overhead
+**Learning:** In C applications where strings are dynamically constructed and immediately sent over the network (e.g., via `httpd_resp_send`), the length of the string is already calculated by `snprintf()`.
+**Action:** Instead of using `HTTPD_RESP_USE_STRLEN` which requires a subsequent `strlen()` call (O(N) operation), capture the return value of `snprintf()` and pass it directly to the response function.
