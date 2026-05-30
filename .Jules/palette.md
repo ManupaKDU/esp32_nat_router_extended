@@ -49,3 +49,6 @@
 ## 2025-03-05 - Require explicit field values when conditionally activating regex inputs
 **Learning:** HTML5 validation `pattern` attributes for regex do not trigger natively on empty input submissions. The browser will permit the form submission if the input is left empty, bypassing the regex.
 **Action:** When adding regex `pattern` validation to conditionally enabled inputs, always pair it with the `required` attribute. Because disabled elements are natively exempt from HTML5 validation, you can apply `required` unconditionally to the tag to gracefully enforce validation without breaking form submissions when the element is toggled `disabled` by JavaScript.
+## 2026-05-30 - [Textual Loading Indicators for Purged CSS]
+**Learning:** In environments where CSS is aggressively purged (like embedded devices), standard CSS animations (e.g., Bootstrap's `spinner-border` keyframes) may be stripped out, rendering them non-functional. Using standard unicode characters (like ↻) provides a reliable, zero-dependency visual loading indicator. However, these characters must be hidden from screen readers to prevent awkward vocalizations.
+**Action:** Replace non-functional CSS loading spinners with textual unicode symbols (like ↻) wrapped in `<span aria-hidden="true">` to maintain visual feedback without degrading the auditory accessibility experience.
