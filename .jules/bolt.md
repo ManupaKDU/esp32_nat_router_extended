@@ -1,9 +1,6 @@
-## 2024-05-14 - [O(n^2) String Concatenation Bottleneck]
-**Learning:** Using `strcat` inside a loop requires scanning the entire destination string to find the NUL terminator on every iteration, resulting in O(n^2) performance. Furthermore, performing small, repeated memory allocations (`malloc`/`free`) inside the loop creates unnecessary heap fragmentation and latency.
-**Action:** When building strings iteratively, use the return value of `sprintf`/`snprintf` to advance a pointer directly to the end of the buffer (`ptr += len`), avoiding both `strcat` and redundant memory allocations.
-## 2026-05-02 - [HTTPD_RESP_USE_STRLEN Optimization]
-**Learning:** Using `HTTPD_RESP_USE_STRLEN` inside `httpd_resp_send` causes the HTTP server to implicitly call `strlen()` on the entire response buffer. For large HTML pages, this is a redundant O(N) operation.
-**Action:** Pre-calculate or cache the response length manually and pass it directly to `httpd_resp_send` instead of using the `HTTPD_RESP_USE_STRLEN` macro.
-## 2024-05-14 - [Pointer Arithmetic Length vs strlen]
-**Learning:** Using `HTTPD_RESP_USE_STRLEN` on large embedded static files forces the microcontroller to execute an O(N) `strlen()` scan over the entire file, which is slow and thrashes the data cache.
-**Action:** When serving embedded text files (e.g. CSS, JS) via `httpd_resp_send`, use the linker's `_end` and `_start` symbols to calculate the size in O(1) time using pointer arithmetic `(size_t)(file_end - file_start) - 1`. The `- 1` correctly strips the null terminator added by `EMBED_TXTFILES`.
+## 2024-05-18 - Avoid redundant strlen() calculations in httpd_resp_send()
+**Learning:** `HTTPD_RESP_USE_STRLEN` is a macro that evaluates to `-1`, which causes `httpd_resp_send()` to call `strlen()` internally. When using `snprintf()` or `sprintf()` to construct dynamically generated HTTP response payloads in C, these functions return the total length of the string they wrote. If we discard that integer and instead pass `HTTPD_RESP_USE_STRLEN` to `httpd_resp_send()`, we are unnecessarily performing an O(N) string length calculation on a string whose length we just computed. In an embedded context like ESP32 where CPU cycles and battery are limited, this is a waste.
+**Action:** When dynamically generating HTTP response payloads using `sprintf`, `snprintf`, or if you already know the size, use that explicit length instead of `HTTPD_RESP_USE_STRLEN` to avoid redundant O(N) `strlen()` calculations.
+## 2024-05-18 - Safe handling of snprintf return values for buffer lengths
+**Learning:** `snprintf()` returns the number of characters that *would* have been written if the buffer was large enough, not necessarily the number of characters actually written. If a string is truncated, passing the raw return value to a function like `httpd_resp_send()` will result in an out-of-bounds memory read.
+**Action:** When capturing the return value of `snprintf()` to avoid `strlen()`, always validate or clamp the return value against the actual buffer size minus one (for the null terminator) before using it as a length argument, e.g., `MIN(response_len, sizeof(buffer) - 1)`.
