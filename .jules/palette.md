@@ -1,0 +1,3 @@
+## 2024-06-25 - Purged CSS Animations & Textual Loading States
+**Learning:** The project uses a aggressively purged and minified Bootstrap CSS file. Keyframe animations required for standard Bootstrap spinners (`spinner-border`) are purged, making them non-functional.
+**Action:** For pages simulating long-running operations (like `apply.html` and `scan.html` using meta-refresh), implement textual visual loading indicators (e.g., `↻ Restarting...`) instead. Always wrap the decorative unicode symbol in `<span aria-hidden="true">` to prevent screen readers from vocalizing the symbol awkwardly, ensuring an accessible experience.
