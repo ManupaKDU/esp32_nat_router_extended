@@ -1,0 +1,3 @@
+## 2026-06-05 - Textual Loading Indicators for Wait States
+**Learning:** Due to the use of a purged and minified Bootstrap CSS file (`styles-*.css`), keyframe animations for standard loading elements like `spinner-border` are not available. This constraint requires an alternative approach for wait states (like device restart/scan). Additionally, when replacing non-functional CSS spinners with unicode symbols (e.g., `↻`), wrapping the character in `<span aria-hidden="true">` ensures that screen readers do not vocalize the symbol, providing a better auditory experience.
+**Action:** When implementing visual loading cues where CSS animations are stripped, utilize textual symbols enhanced with `aria-hidden="true"` to create accessible and maintainable wait states.
