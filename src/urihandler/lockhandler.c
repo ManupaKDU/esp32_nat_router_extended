@@ -76,9 +76,11 @@ esp_err_t unlock_handler(httpd_req_t *req)
         ESP_LOGI(TAG, "UI relocked");
     }
     extern const char ul_start[] asm("_binary_unlock_html_start");
+    extern const char ul_end[] asm("_binary_unlock_html_end");
+    const size_t ul_html_size = (ul_end - ul_start) - 1; // ⚡ Bolt: Pre-calculate static file size to avoid O(N) strlen()
 
     closeHeader(req);
-    return httpd_resp_send(req, ul_start, HTTPD_RESP_USE_STRLEN);
+    return httpd_resp_send(req, ul_start, ul_html_size);
 }
 
 esp_err_t redirectToLock(httpd_req_t *req)
