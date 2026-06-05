@@ -44,12 +44,14 @@ esp_err_t index_get_handler(httpd_req_t *req)
             ESP_LOGI(TAG, "Scan result is available and not shown already. Forwarding to scan page");
             httpd_resp_set_status(req, "302 Found");
             httpd_resp_set_hdr(req, "Location", "/result");
+            free(result_param);
             return httpd_resp_send(req, NULL, 0);
         }
 
         scanButtonWidth = "9";
         displayResult = "block";
     }
+    free(result_param);
 
     httpd_req_to_sockfd(req);
     extern const char config_start[] asm("_binary_config_html_start");
@@ -71,6 +73,7 @@ esp_err_t index_get_handler(httpd_req_t *req)
         displayLockButton = "block";
         displayRelockButton = "none";
     }
+    free(lock_pass);
 
     int32_t ssidHidden = 0;
     char *hiddenSSID = NULL;
@@ -118,9 +121,12 @@ esp_err_t index_get_handler(httpd_req_t *req)
 
     char *cert = NULL;
     get_config_param_str("sta_identity", &sta_identity);
+    char *orig_sta_identity = sta_identity;
     get_config_param_str("sta_user", &sta_user);
+    char *orig_sta_user = sta_user;
 
     get_config_param_blob("cer", &cert, &len);
+    char *orig_cert = cert;
     char *cer = NULL;
     if (len > 0)
     {
@@ -179,6 +185,10 @@ esp_err_t index_get_handler(httpd_req_t *req)
     {
         free(cer);
     }
+
+    free(orig_sta_identity);
+    free(orig_sta_user);
+    free(orig_cert);
 
     return ret;
 }

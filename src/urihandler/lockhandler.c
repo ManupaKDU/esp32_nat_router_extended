@@ -211,6 +211,7 @@ esp_err_t lock_handler(httpd_req_t *req)
     {
         display = "none";
     }
+    free(lock_pass);
 
     char *lock_page = malloc(l_html_size + strlen(display) + 1);
 
