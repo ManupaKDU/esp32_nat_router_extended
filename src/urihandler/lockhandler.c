@@ -76,9 +76,11 @@ esp_err_t unlock_handler(httpd_req_t *req)
         ESP_LOGI(TAG, "UI relocked");
     }
     extern const char ul_start[] asm("_binary_unlock_html_start");
+    extern const char ul_end[] asm("_binary_unlock_html_end");
 
     closeHeader(req);
-    return httpd_resp_send(req, ul_start, HTTPD_RESP_USE_STRLEN);
+    // ⚡ Bolt: Eliminate O(N) strlen() overhead by using pre-calculated static size
+    return httpd_resp_send(req, ul_start, (ul_end - ul_start) - 1);
 }
 
 esp_err_t redirectToLock(httpd_req_t *req)
@@ -214,11 +216,12 @@ esp_err_t lock_handler(httpd_req_t *req)
 
     char *lock_page = malloc(l_html_size + strlen(display) + 1);
 
-    sprintf(lock_page, l_start, display);
+    // ⚡ Bolt: Eliminate O(N) strlen() overhead by using sprintf's return length
+    int out_len = sprintf(lock_page, l_start, display);
 
     closeHeader(req);
 
-    esp_err_t out = httpd_resp_send(req, lock_page, HTTPD_RESP_USE_STRLEN);
+    esp_err_t out = httpd_resp_send(req, lock_page, out_len);
     free(lock_page);
     return out;
 }
