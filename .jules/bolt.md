@@ -6,4 +6,7 @@
 **Action:** Pre-calculate or cache the response length manually and pass it directly to `httpd_resp_send` instead of using the `HTTPD_RESP_USE_STRLEN` macro.
 ## 2024-05-14 - [Pointer Arithmetic Length vs strlen]
 **Learning:** Using `HTTPD_RESP_USE_STRLEN` on large embedded static files forces the microcontroller to execute an O(N) `strlen()` scan over the entire file, which is slow and thrashes the data cache.
-**Action:** When serving embedded text files (e.g. CSS, JS) via `httpd_resp_send`, use the linker's `_end` and `_start` symbols to calculate the size in O(1) time using pointer arithmetic `(size_t)(file_end - file_start) - 1`. The `- 1` correctly strips the null terminator added by `EMBED_TXTFILES`.
+
+## 2024-05-18 - Pre-calculated Linker Size for Static HTML
+**Learning:** For static TEXT embeddings on ESP32, using linker symbols (`_start` and `_end`) to calculate size (`(end - start) - 1`) instead of `HTTPD_RESP_USE_STRLEN` eliminates an unnecessary O(N) string length calculation.
+**Action:** When adding or optimizing statically served HTML pages in ESP-IDF, always declare the `_end` symbol and calculate the size.
