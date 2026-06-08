@@ -1,0 +1,3 @@
+## 2024-05-19 - Accessible Textual Spinners over CSS Spinners
+**Learning:** Due to aggressive CSS purging (minification) removing keyframe animations for standard Bootstrap classes like `spinner-border`, attempting to use these results in non-functional static circles. Additionally, screen readers can vocalize raw unicode loading characters awkwardly.
+**Action:** When a long-running wait operation exists (like a page simulating restart with meta refresh), implement an accessible textual spinner ` <span aria-hidden="true">↻</span> Restarting...` instead of standard CSS classes to provide clear visual feedback without introducing auditory clutter for screen readers.
