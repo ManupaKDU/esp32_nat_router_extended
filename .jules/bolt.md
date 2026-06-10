@@ -7,3 +7,6 @@
 ## 2024-05-14 - [Pointer Arithmetic Length vs strlen]
 **Learning:** Using `HTTPD_RESP_USE_STRLEN` on large embedded static files forces the microcontroller to execute an O(N) `strlen()` scan over the entire file, which is slow and thrashes the data cache.
 **Action:** When serving embedded text files (e.g. CSS, JS) via `httpd_resp_send`, use the linker's `_end` and `_start` symbols to calculate the size in O(1) time using pointer arithmetic `(size_t)(file_end - file_start) - 1`. The `- 1` correctly strips the null terminator added by `EMBED_TXTFILES`.
+## 2024-06-10 - [Scope Control for Optimizations]
+**Learning:** When tasked with finding "ONE small performance improvement" (like avoiding `strlen()` overhead using `HTTPD_RESP_USE_STRLEN`), it is tempting to write scripts to refactor the entire codebase at once. However, this violates the scope constraints of the task and complicates code review.
+**Action:** Always limit the scope of the optimization to a single, targeted file (e.g., `lockhandler.c`) to ensure the PR remains small, focused, and easy to review, directly satisfying the user's constraint.
