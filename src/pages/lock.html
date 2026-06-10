@@ -19,7 +19,7 @@
         <form action=/lock method=POST>
             <div class="form-group row"> <label for=lockpass class=col-3>Password</label>
                 <div class=col-9> <input type=password class=form-control name=lockpass id=lockpass value maxlength=64
-                        placeholder="Lock password" oninput="document.getElementById('lockpass2').setCustomValidity(this.value !== document.getElementById('lockpass2').value ? 'Passwords do not match.' : '')"> </div>
+                        placeholder="Lock password" autofocus oninput="document.getElementById('lockpass2').setCustomValidity(this.value !== document.getElementById('lockpass2').value ? 'Passwords do not match.' : '')"> </div>
             </div>
             <div class="form-group row mt-2"> <label for=lockpass2 class=col-3>Repeat</label>
                 <div class=col-9> <input type=password class=form-control name=lockpass2 id=lockpass2 value maxlength=64

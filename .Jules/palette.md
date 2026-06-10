@@ -49,3 +49,7 @@
 ## 2025-03-05 - Require explicit field values when conditionally activating regex inputs
 **Learning:** HTML5 validation `pattern` attributes for regex do not trigger natively on empty input submissions. The browser will permit the form submission if the input is left empty, bypassing the regex.
 **Action:** When adding regex `pattern` validation to conditionally enabled inputs, always pair it with the `required` attribute. Because disabled elements are natively exempt from HTML5 validation, you can apply `required` unconditionally to the tag to gracefully enforce validation without breaking form submissions when the element is toggled `disabled` by JavaScript.
+
+## 2026-06-10 - [Autofocus for single-action forms]
+**Learning:** Found simple, single-action forms like login or unlock screens (e.g., `src/pages/unlock.html`) lacking the `autofocus` attribute on their primary input fields. This requires the user to explicitly click or tap the input field before typing, adding unnecessary friction.
+**Action:** When implementing simple, single-action forms (like unlock/lock UI), use the HTML5 `autofocus` attribute on the primary input field to place the user's cursor immediately upon page load, saving a click and reducing friction.
