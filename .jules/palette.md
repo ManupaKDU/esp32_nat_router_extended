@@ -1,0 +1,3 @@
+## 2026-06-06 - Password Visibility Toggles
+**Learning:** Adding password visibility toggles should be implemented using vanilla JavaScript rather than relying on external dependencies like jQuery, to keep the UX improvements self-contained and avoid adding unnecessary libraries to simple pages. The toggle UI component consists of an `input-group` wrapper and a clickable `span` with an eye SVG icon.
+**Action:** When adding new password fields or modifying existing ones, ensure the input is wrapped in `.input-group`, the eye icon `span` is present, and a vanilla JS event listener is included to toggle the `type` attribute between `text` and `password`.
