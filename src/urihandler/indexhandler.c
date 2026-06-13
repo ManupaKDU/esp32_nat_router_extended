@@ -118,7 +118,9 @@ esp_err_t index_get_handler(httpd_req_t *req)
 
     char *cert = NULL;
     get_config_param_str("sta_identity", &sta_identity);
+    char *orig_sta_identity = sta_identity;
     get_config_param_str("sta_user", &sta_user);
+    char *orig_sta_user = sta_user;
 
     get_config_param_blob("cer", &cert, &len);
     char *cer = NULL;
@@ -179,6 +181,12 @@ esp_err_t index_get_handler(httpd_req_t *req)
     {
         free(cer);
     }
+
+    free(result_param);
+    free(lock_pass);
+    free(orig_sta_identity);
+    free(orig_sta_user);
+    free(cert);
 
     return ret;
 }
