@@ -180,6 +180,11 @@ esp_err_t index_get_handler(httpd_req_t *req)
         free(cer);
     }
 
+    free(result_param);
+    free(lock_pass);
+    free(sta_identity);
+    free(sta_user);
+
     return ret;
 }
 
