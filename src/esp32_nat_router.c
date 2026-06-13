@@ -857,6 +857,7 @@ void app_main(void)
         nvs_set_i32(nvs, "result_shown", ++result_shown);
         ESP_LOGI(TAG, "result_shown increased to %ld after reboot", result_shown);
     }
+    free(scan_result);
 
     get_portmap_tab();
 

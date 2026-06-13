@@ -158,6 +158,10 @@ void getOtaUrl(char *url, char *label)
         strcpy(label, "Custom build");
         strcpy(url, customUrl);
     }
+    if (customUrl != NULL)
+    {
+        free(customUrl);
+    }
     else
     {
         const char *usedUrl = get_default_url();
