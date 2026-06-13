@@ -44,6 +44,7 @@ esp_err_t index_get_handler(httpd_req_t *req)
             ESP_LOGI(TAG, "Scan result is available and not shown already. Forwarding to scan page");
             httpd_resp_set_status(req, "302 Found");
             httpd_resp_set_hdr(req, "Location", "/result");
+            free(result_param);
             return httpd_resp_send(req, NULL, 0);
         }
 
@@ -71,6 +72,7 @@ esp_err_t index_get_handler(httpd_req_t *req)
         displayLockButton = "block";
         displayRelockButton = "none";
     }
+    free(lock_pass);
 
     int32_t ssidHidden = 0;
     char *hiddenSSID = NULL;
@@ -118,15 +120,19 @@ esp_err_t index_get_handler(httpd_req_t *req)
 
     char *cert = NULL;
     get_config_param_str("sta_identity", &sta_identity);
+    char *orig_sta_identity = sta_identity;
     get_config_param_str("sta_user", &sta_user);
+    char *orig_sta_user = sta_user;
 
     get_config_param_blob("cer", &cert, &len);
+    char *orig_cert = cert;
     char *cer = NULL;
     if (len > 0)
     {
         cer = (char *)malloc(len + 1 * sizeof(char));
         strncpy(cer, cert, len + 1);
     }
+    char *orig_cer = cer;
     if ((sta_identity != NULL && strlen(sta_identity) != 0) || (sta_user != NULL && strlen(sta_user) != 0))
     {
         wpa2CB = "checked";
@@ -175,9 +181,13 @@ esp_err_t index_get_handler(httpd_req_t *req)
     free(config_page);
     free(appliedSSID);
     appliedSSID = NULL;
-    if (strlen(cer) > 0) // Error on C3
+    free(result_param);
+    free(orig_sta_identity);
+    free(orig_sta_user);
+    free(orig_cert);
+    if (orig_cer != NULL)
     {
-        free(cer);
+        free(orig_cer);
     }
 
     return ret;
