@@ -5,3 +5,6 @@
 ## 2024-06-12 - [Textual Loading Symbol Accessibility]
 **Learning:** When using decorative unicode characters (like `↻`) to simulate loading states where functional CSS spinners are unavailable, wrapping them in `<span aria-hidden="true">` prevents screen readers from awkwardly vocalizing the character. This ensures a cleaner auditory experience while providing visual feedback for sighted users.
 **Action:** Always wrap decorative unicode text symbols with `<span aria-hidden="true">` when adding them to the DOM.
+## 2024-06-13 - Semantic HTML Tables
+**Learning:** Using `<th>` for data cells in tables (like `ota.html` and `otalog.html`) severely degrades accessibility because screen readers announce those cells as row headers, causing confusion for blind users.
+**Action:** Always ensure that data cells use `<td>`, and use `<th scope="row">` specifically and only for the leading headers of a row to ensure accurate table navigation and comprehension.

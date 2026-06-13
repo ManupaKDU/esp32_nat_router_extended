@@ -36,7 +36,7 @@ void appendToLog(const char *message)
 {
     if (otalog_len < sizeof(otalog) - 1)
     {
-        int added = snprintf(otalog + otalog_len, sizeof(otalog) - otalog_len, "<tr><th>%s</th></tr>", message);
+        int added = snprintf(otalog + otalog_len, sizeof(otalog) - otalog_len, "<tr><td>%s</td></tr>", message);
         if (added > 0 && added < sizeof(otalog) - otalog_len)
         {
             otalog_len += added;
@@ -52,7 +52,7 @@ void appendToLog(const char *message)
 void setResultLog(const char *message, const char *cssClass)
 {
 
-    snprintf(resultLog, sizeof(resultLog), "<tr><th class=\"%s\">%s</th></tr>", cssClass, message);
+    snprintf(resultLog, sizeof(resultLog), "<tr><td class=\"%s\">%s</td></tr>", cssClass, message);
 
     ESP_LOGI(TAG, "%s", message);
 }
