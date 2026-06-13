@@ -322,7 +322,7 @@ esp_err_t otalog_get_handler(httpd_req_t *req)
         ESP_LOGE(TAG, "Memory allocation failed");
         return ESP_FAIL;
     }
-    snprintf(otalog_page, alloc_size, otalog_start, otaLogRedirect, progressInt, progressLabel, label, otalog, resultLog);
+    snprintf(otalog_page, alloc_size, otalog_start, otaLogRedirect, progressInt, progressInt, progressLabel, label, otalog, resultLog);
 
     closeHeader(req);
 
