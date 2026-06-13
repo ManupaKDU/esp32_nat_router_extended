@@ -18,13 +18,15 @@ esp_err_t about_get_handler(httpd_req_t *req)
 
     const char *project_version = get_project_version();
     const char *project_build_date = get_project_build_date();
-    char *about_page = malloc(about_html_size + strlen(project_version) + strlen(GLOBAL_HASH) + strlen(project_build_date) + 1);
+    size_t size = about_html_size + strlen(project_version) + strlen(GLOBAL_HASH) + strlen(project_build_date) + 1;
+    char *about_page = malloc(size);
 
-    sprintf(about_page, about_start, project_version, GLOBAL_HASH, project_build_date);
+    // ⚡ Bolt: Capture dynamic string length to avoid redundant O(N) strlen() in httpd_resp_send
+    int response_len = snprintf(about_page, size, about_start, project_version, GLOBAL_HASH, project_build_date);
 
     closeHeader(req);
 
-    esp_err_t out = httpd_resp_send(req, about_page, HTTPD_RESP_USE_STRLEN);
+    esp_err_t out = httpd_resp_send(req, about_page, (response_len > 0 && response_len < size) ? response_len : HTTPD_RESP_USE_STRLEN);
     free(about_page);
     return out;
 }
