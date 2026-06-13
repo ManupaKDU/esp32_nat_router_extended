@@ -7,3 +7,6 @@
 ## 2024-05-14 - [Pointer Arithmetic Length vs strlen]
 **Learning:** Using `HTTPD_RESP_USE_STRLEN` on large embedded static files forces the microcontroller to execute an O(N) `strlen()` scan over the entire file, which is slow and thrashes the data cache.
 **Action:** When serving embedded text files (e.g. CSS, JS) via `httpd_resp_send`, use the linker's `_end` and `_start` symbols to calculate the size in O(1) time using pointer arithmetic `(size_t)(file_end - file_start) - 1`. The `- 1` correctly strips the null terminator added by `EMBED_TXTFILES`.
+## 2024-05-14 - [NVS RAM Caching Optimization]
+**Learning:** Checking configuration parameters (like `lock_pass`) directly from NVS flash storage on every HTTP request causes slow, blocking I/O overhead.
+**Action:** When a global configuration parameter is accessed frequently by request handlers, cache it in RAM during boot and synchronize updates. Protect the cached value with a `pthread_mutex_t` to ensure thread-safe reads and writes across concurrent HTTP requests.

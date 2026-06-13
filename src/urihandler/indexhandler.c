@@ -59,9 +59,7 @@ esp_err_t index_get_handler(httpd_req_t *req)
     char *displayLockButton = NULL;
     char *displayRelockButton = NULL;
 
-    char *lock_pass = NULL;
-    get_config_param_str("lock_pass", &lock_pass);
-    if (lock_pass != NULL && strlen(lock_pass) > 0)
+    if (is_lock_pass_set())
     {
         displayLockButton = "none";
         displayRelockButton = "flex";
