@@ -180,6 +180,19 @@ esp_err_t index_get_handler(httpd_req_t *req)
         free(cer);
     }
 
+    if (lock_pass != NULL) {
+        free(lock_pass);
+    }
+    if (result_param != NULL) {
+        free(result_param);
+    }
+    if (sta_identity != NULL) {
+        free(sta_identity);
+    }
+    if (sta_user != NULL) {
+        free(sta_user);
+    }
+
     return ret;
 }
 

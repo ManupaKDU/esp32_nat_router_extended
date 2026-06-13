@@ -220,5 +220,8 @@ esp_err_t lock_handler(httpd_req_t *req)
 
     esp_err_t out = httpd_resp_send(req, lock_page, HTTPD_RESP_USE_STRLEN);
     free(lock_page);
+    if (lock_pass != NULL) {
+        free(lock_pass);
+    }
     return out;
 }
