@@ -66,6 +66,7 @@ esp_err_t unlock_handler(httpd_req_t *req)
                 free(lock);
             }
             free(unlockParam);
+            unlockParam = NULL;
         }
         else
         {
