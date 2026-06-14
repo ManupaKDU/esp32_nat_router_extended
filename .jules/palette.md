@@ -8,3 +8,7 @@
 ## 2024-06-13 - Semantic HTML Tables
 **Learning:** Using `<th>` for data cells in tables (like `ota.html` and `otalog.html`) severely degrades accessibility because screen readers announce those cells as row headers, causing confusion for blind users.
 **Action:** Always ensure that data cells use `<td>`, and use `<th scope="row">` specifically and only for the leading headers of a row to ensure accurate table navigation and comprehension.
+
+## 2024-06-14 - [Dynamic Form Sections Synchronization]
+**Learning:** When dynamically hiding or showing form sections using JavaScript, failing to synchronize `aria-expanded` and disabling all child input elements (including `<textarea>` and `<select>`) can lead to confusing screen reader experiences and accidental submission of hidden data.
+**Action:** Always ensure controlling elements possess an `aria-controls` attribute, synchronize `aria-expanded` dynamically, and explicitly disable all input types within hidden sections. Trigger this logic on `$(document).ready()` to correctly reflect any backend-injected initial state.
