@@ -383,10 +383,13 @@ esp_err_t apply_get_handler(httpd_req_t *req)
     char *apply_page = malloc(apply_page_size);
 
     ESP_LOGI(TAG, "Redirecting after apply to '%s'", redirectUrl);
-    snprintf(apply_page, apply_page_size, apply_start, redirectUrl);
+    // ⚡ Bolt: Capture dynamic string length to avoid redundant O(N) strlen() in httpd_resp_send
+    int response_len = snprintf(apply_page, apply_page_size, apply_start, redirectUrl);
     free(redirectUrl);
 
-    return httpd_resp_send(req, apply_page, HTTPD_RESP_USE_STRLEN);
+    esp_err_t ret = httpd_resp_send(req, apply_page, (response_len > 0 && response_len < apply_page_size) ? response_len : HTTPD_RESP_USE_STRLEN);
+    free(apply_page);
+    return ret;
 }
 esp_err_t apply_post_handler(httpd_req_t *req)
 {

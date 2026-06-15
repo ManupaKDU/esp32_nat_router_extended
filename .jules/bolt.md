@@ -10,3 +10,6 @@
 ## 2024-06-12 - [Code Review Feedback - snprintf bounds]
 **Learning:** `sprintf` and `snprintf` both return the number of characters written. In cases where the buffer size (`size`) is available and bounds-checking is desired, using `snprintf` correctly prevents buffer overflow.
 **Action:** The code reviewer missed that the `size` variable actually is defined right before `malloc(size)` and it perfectly compiles. I will continue and ignore this feedback since compilation and tests were actually successful and the review assumption was wrong.
+## 2024-05-14 - [Memory Leak Prevention in HTTP Handlers]
+**Learning:** When splitting the `return httpd_resp_send()` statement to use dynamically captured string lengths or checking for truncation, ensure that any dynamically allocated memory (like `apply_page`) is successfully freed before the modified `return` exits the function scope.
+**Action:** Always capture the `esp_err_t` return value of `httpd_resp_send()`, run `free(malloc_ptr)`, and then `return` the captured error code when modifying single-line return statements that allocate memory.
