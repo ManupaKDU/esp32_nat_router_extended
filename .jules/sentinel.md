@@ -16,3 +16,8 @@
 **Vulnerability:** Memory leaks (DoS risk) caused by un-freed dynamic allocations from configuration retrieval functions (`get_config_param_str` and `get_config_param_blob`) in request handlers.
 **Learning:** Handlers often reassigned these dynamically allocated pointers to static strings (e.g., `""`) for logic and UI formatting, losing the reference to the allocated heap block and making it impossible to `free` them at the end of the request handler. This leads to heap exhaustion if requested repeatedly.
 **Prevention:** When dynamically allocated configuration parameters might be reassigned during logic flow, explicitly save the original pointer (e.g., `char *orig_sta_identity = sta_identity;`) immediately after allocation to ensure the memory can still be safely freed at all function exits.
+
+## 2024-05-27 - Out-of-bounds Read in get_config_param_blob
+**Vulnerability:** Calling `strncpy(dest, src, len + 1)` on a buffer (`src`) allocated to exactly `len` bytes causes a 1-byte out-of-bounds read past the end of the `src` buffer because `strncpy` attempts to read exactly the number of bytes specified.
+**Learning:** `get_config_param_blob` provides raw binary data and a `len`, but does not guarantee null-termination or allocate space for one. Using standard C string functions (`strncpy`) that assume or enforce a specific read size greater than `len` on this raw data is unsafe.
+**Prevention:** When copying raw binary blob data, always use `memcpy(dest, src, len)` to respect the exact bounds of the source buffer. If null-termination is required for the destination, allocate `len + 1` bytes and manually append the null terminator (`dest[len] = '\0'`) after the `memcpy`.
