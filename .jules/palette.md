@@ -8,3 +8,6 @@
 ## 2024-06-13 - Semantic HTML Tables
 **Learning:** Using `<th>` for data cells in tables (like `ota.html` and `otalog.html`) severely degrades accessibility because screen readers announce those cells as row headers, causing confusion for blind users.
 **Action:** Always ensure that data cells use `<td>`, and use `<th scope="row">` specifically and only for the leading headers of a row to ensure accurate table navigation and comprehension.
+## 2024-06-15 - Dynamic Form Section Accessibility
+**Learning:** When dynamically hiding/showing form sections (e.g., `#wpa2-container`) via checkboxes, using `aria-controls` on the toggle and explicitly synchronizing its `aria-expanded` state is crucial for screen reader users. Also, elements within the hidden container (including `input`, `textarea`, and `select`) must be explicitly disabled to prevent accidental submission of hidden data, and this state must be initialized on `document.ready` to reflect any backend-injected initial state.
+**Action:** Always add `aria-controls`, bind `aria-expanded` to the toggle's boolean state, explicitly disable *all* child input types when hidden, and trigger the logic on load to sync with the backend.
