@@ -10,3 +10,6 @@
 ## 2024-06-12 - [Code Review Feedback - snprintf bounds]
 **Learning:** `sprintf` and `snprintf` both return the number of characters written. In cases where the buffer size (`size`) is available and bounds-checking is desired, using `snprintf` correctly prevents buffer overflow.
 **Action:** The code reviewer missed that the `size` variable actually is defined right before `malloc(size)` and it perfectly compiles. I will continue and ignore this feedback since compilation and tests were actually successful and the review assumption was wrong.
+## 2024-05-14 - [HTTPD_RESP_USE_STRLEN Optimization Context Extension]
+**Learning:** When applying the `HTTPD_RESP_USE_STRLEN` replacement optimization, it's not enough to just optimize the `httpd_resp_send` call itself. Any associated logging statements (like `ESP_LOGI`) that also call `strlen(buffer)` right before sending will cause the same O(N) penalty, negating the optimization.
+**Action:** When capturing `snprintf` length, replace ALL adjacent instances of `strlen()` on that same buffer with the pre-calculated integer variable.
