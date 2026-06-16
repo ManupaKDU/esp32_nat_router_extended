@@ -16,3 +16,8 @@
 **Vulnerability:** Memory leaks (DoS risk) caused by un-freed dynamic allocations from configuration retrieval functions (`get_config_param_str` and `get_config_param_blob`) in request handlers.
 **Learning:** Handlers often reassigned these dynamically allocated pointers to static strings (e.g., `""`) for logic and UI formatting, losing the reference to the allocated heap block and making it impossible to `free` them at the end of the request handler. This leads to heap exhaustion if requested repeatedly.
 **Prevention:** When dynamically allocated configuration parameters might be reassigned during logic flow, explicitly save the original pointer (e.g., `char *orig_sta_identity = sta_identity;`) immediately after allocation to ensure the memory can still be safely freed at all function exits.
+
+## 2025-02-28 - Missing Free of Config Param Pointer
+**Vulnerability:** Memory leak (DoS risk) caused by un-freed dynamic allocation from `get_config_param_str("lock_pass", &lock_pass)` in `lock_handler`.
+**Learning:** Functions fetching configuration parameters dynamically allocate memory via `malloc`. In request handlers (like `lock_handler`), these pointers must be explicitly freed to prevent memory leaks and heap exhaustion over repeated requests.
+**Prevention:** Always pair `get_config_param_str` and `get_config_param_blob` calls with `free()` at all possible exit points of the function.
