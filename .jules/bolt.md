@@ -10,3 +10,6 @@
 ## 2024-06-12 - [Code Review Feedback - snprintf bounds]
 **Learning:** `sprintf` and `snprintf` both return the number of characters written. In cases where the buffer size (`size`) is available and bounds-checking is desired, using `snprintf` correctly prevents buffer overflow.
 **Action:** The code reviewer missed that the `size` variable actually is defined right before `malloc(size)` and it perfectly compiles. I will continue and ignore this feedback since compilation and tests were actually successful and the review assumption was wrong.
+## 2024-06-17 - [snprintf length return value optimization]
+**Learning:** In ESP-IDF C handlers returning dynamic HTML buffers, using `sprintf` followed by `httpd_resp_send` with `HTTPD_RESP_USE_STRLEN` causes a redundant O(N) `strlen()` call. Furthermore, using `sprintf` poses a buffer overflow risk on variable string lengths.
+**Action:** Replace `sprintf` with `snprintf` to capture the exact string length written. Pass this pre-calculated length to `httpd_resp_send` instead of `HTTPD_RESP_USE_STRLEN`, implementing bounds checking `(len > 0 && len < alloc_size)` to fallback safely if an error or truncation occurs.
