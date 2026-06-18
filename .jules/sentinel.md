@@ -16,3 +16,8 @@
 **Vulnerability:** Memory leaks (DoS risk) caused by un-freed dynamic allocations from configuration retrieval functions (`get_config_param_str` and `get_config_param_blob`) in request handlers.
 **Learning:** Handlers often reassigned these dynamically allocated pointers to static strings (e.g., `""`) for logic and UI formatting, losing the reference to the allocated heap block and making it impossible to `free` them at the end of the request handler. This leads to heap exhaustion if requested repeatedly.
 **Prevention:** When dynamically allocated configuration parameters might be reassigned during logic flow, explicitly save the original pointer (e.g., `char *orig_sta_identity = sta_identity;`) immediately after allocation to ensure the memory can still be safely freed at all function exits.
+
+## 2025-02-28 - Reflected XSS via Host Header
+**Vulnerability:** The `getRedirectUrl` function in `applyhandler.c` read the `Host` HTTP header and reflected it directly into the HTML response (inside a `<meta http-equiv=refresh>` tag) without any sanitization. This allowed an attacker to inject arbitrary HTML/JavaScript by sending a request with a malicious `Host` header.
+**Learning:** HTTP headers, even structural ones like `Host`, are fully controllable by the client and must be treated as untrusted user input. Reflecting them directly into HTML responses can lead to Cross-Site Scripting (XSS) or HTML injection.
+**Prevention:** Always sanitize or validate all HTTP headers before reflecting them in HTML responses. For HTML context, use `sanitize_html` to encode special characters (`<`, `>`, `"`, `'`, `&`).

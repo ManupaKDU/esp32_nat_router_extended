@@ -148,10 +148,14 @@ char *getRedirectUrl(httpd_req_t *req)
     if (httpd_req_get_hdr_value_str(req, "Host", host, sizeof(host)) != ESP_OK) {
         host[0] = '\0';
     }
-    ESP_LOGI(TAG, "Host of request is '%s'", host);
-    size_t str_size = (sizeof("http://") - 1) + strlen(host) + 16;
+
+    char sanitized_host[32 * 6];
+    sanitize_html(host, sanitized_host, sizeof(sanitized_host));
+
+    ESP_LOGI(TAG, "Host of request is '%s'", sanitized_host);
+    size_t str_size = (sizeof("http://") - 1) + strlen(sanitized_host) + 16;
     char *str = malloc(str_size);
-    if (strcmp(host, DEFAULT_AP_IP_CLASS_A) == 0 || strcmp(host, DEFAULT_AP_IP_CLASS_B) == 0 || strcmp(host, DEFAULT_AP_IP_CLASS_C) == 0)
+    if (strcmp(sanitized_host, DEFAULT_AP_IP_CLASS_A) == 0 || strcmp(sanitized_host, DEFAULT_AP_IP_CLASS_B) == 0 || strcmp(sanitized_host, DEFAULT_AP_IP_CLASS_C) == 0)
     {
         char *defaultIP = getDefaultIPByNetmask();
         snprintf(str, str_size, "http://%s", defaultIP);
@@ -159,7 +163,7 @@ char *getRedirectUrl(httpd_req_t *req)
     }
     else
     {
-        snprintf(str, str_size, "http://%s", host);
+        snprintf(str, str_size, "http://%s", sanitized_host);
     }
 
     return str;
