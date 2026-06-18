@@ -8,3 +8,6 @@
 ## 2024-06-13 - Semantic HTML Tables
 **Learning:** Using `<th>` for data cells in tables (like `ota.html` and `otalog.html`) severely degrades accessibility because screen readers announce those cells as row headers, causing confusion for blind users.
 **Action:** Always ensure that data cells use `<td>`, and use `<th scope="row">` specifically and only for the leading headers of a row to ensure accurate table navigation and comprehension.
+## 2024-06-18 - Dynamic Form Section Accessibility
+**Learning:** When dynamically hiding or showing form sections using JavaScript, the controlling element (e.g., a toggle switch) must possess an `aria-controls` attribute and a dynamically synchronized `aria-expanded` attribute. Furthermore, explicitly disabling *all* child input elements (including `<textarea>` and `<select>`) within the hidden section is required to prevent accidental submission of hidden data. This visibility/disabled synchronization must also be triggered on page load (e.g., `$(document).ready()`) to correctly reflect any initial state injected by the backend.
+**Action:** Always verify `aria-controls`, `aria-expanded`, and the comprehensive disabling of child inputs for dynamically toggled form sections.
