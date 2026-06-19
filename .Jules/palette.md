@@ -53,3 +53,7 @@
 ## 2026-06-10 - [Autofocus for single-action forms]
 **Learning:** Found simple, single-action forms like login or unlock screens (e.g., `src/pages/unlock.html`) lacking the `autofocus` attribute on their primary input fields. This requires the user to explicitly click or tap the input field before typing, adding unnecessary friction.
 **Action:** When implementing simple, single-action forms (like unlock/lock UI), use the HTML5 `autofocus` attribute on the primary input field to place the user's cursor immediately upon page load, saving a click and reducing friction.
+
+## 2025-05-18 - [Dynamic Form Sections and Accessibility]
+**Learning:** When dynamically hiding or showing form sections (like `#wpa2-container`) using JavaScript, ensure the controlling element (e.g., a toggle switch) possesses an `aria-controls` attribute and a dynamically synchronized `aria-expanded` attribute. Furthermore, explicitly disable *all* child input elements (including `<textarea>` and `<select>`) within the hidden section to prevent accidental submission of hidden data, and trigger this visibility/disabled synchronization on `$(document).ready()` to correctly reflect any backend-injected initial state.
+**Action:** Always add `aria-controls` and `aria-expanded` to toggle buttons/checkboxes that control the visibility of other content blocks. Use JS to sync the `aria-expanded` state with the visual state and ensure disabled states cascade to all input types.
