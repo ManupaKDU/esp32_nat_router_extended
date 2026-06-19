@@ -219,13 +219,15 @@ esp_err_t lock_handler(httpd_req_t *req)
         display = "none";
     }
 
-    char *lock_page = malloc(l_html_size + strlen(display) + 1);
+    size_t size = l_html_size + strlen(display) + 1;
+    char *lock_page = malloc(size);
 
-    sprintf(lock_page, l_start, display);
+    // ⚡ Bolt: Capture dynamic string length to avoid redundant O(N) strlen() in httpd_resp_send
+    int response_len = snprintf(lock_page, size, l_start, display);
 
     closeHeader(req);
 
-    esp_err_t out = httpd_resp_send(req, lock_page, HTTPD_RESP_USE_STRLEN);
+    esp_err_t out = httpd_resp_send(req, lock_page, (response_len > 0 && response_len < size) ? response_len : HTTPD_RESP_USE_STRLEN);
     free(lock_page);
     return out;
 }
