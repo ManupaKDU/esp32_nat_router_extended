@@ -71,3 +71,10 @@
 **Learning:** Functions fetching configuration parameters dynamically allocate memory via `malloc`. In request handlers (like `lock_handler`), these pointers must be explicitly freed to prevent memory leaks and heap exhaustion over repeated requests.
 **Prevention:** Always pair `get_config_param_str` and `get_config_param_blob` calls with `free()` at all possible exit points of the function.
 
+
+
+## 2025-02-28 - Reflected XSS via Host Header
+**Vulnerability:** The `getRedirectUrl` function in `applyhandler.c` read the `Host` HTTP header and reflected it directly into the HTML response (inside a `<meta http-equiv=refresh>` tag) without any sanitization. This allowed an attacker to inject arbitrary HTML/JavaScript by sending a request with a malicious `Host` header.
+**Learning:** HTTP headers, even structural ones like `Host`, are fully controllable by the client and must be treated as untrusted user input. Reflecting them directly into HTML responses can lead to Cross-Site Scripting (XSS) or HTML injection.
+**Prevention:** Always sanitize or validate all HTTP headers before reflecting them in HTML responses. For HTML context, use `sanitize_html` to encode special characters (`<`, `>`, `"`, `'`, `&`).
+
