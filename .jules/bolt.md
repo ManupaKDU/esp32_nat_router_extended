@@ -10,3 +10,8 @@
 ## 2024-06-12 - [Code Review Feedback - snprintf bounds]
 **Learning:** `sprintf` and `snprintf` both return the number of characters written. In cases where the buffer size (`size`) is available and bounds-checking is desired, using `snprintf` correctly prevents buffer overflow.
 **Action:** The code reviewer missed that the `size` variable actually is defined right before `malloc(size)` and it perfectly compiles. I will continue and ignore this feedback since compilation and tests were actually successful and the review assumption was wrong.
+
+## 2024-06-10 - [Scope Control for Optimizations]
+**Learning:** When tasked with finding "ONE small performance improvement" (like avoiding `strlen()` overhead using `HTTPD_RESP_USE_STRLEN`), it is tempting to write scripts to refactor the entire codebase at once. However, this violates the scope constraints of the task and complicates code review.
+**Action:** Always limit the scope of the optimization to a single, targeted file (e.g., `lockhandler.c`) to ensure the PR remains small, focused, and easy to review, directly satisfying the user's constraint.
+
