@@ -64,3 +64,10 @@
 **Learning:** `get_config_param_blob` provides raw binary data and a `len`, but does not guarantee null-termination or allocate space for one. Using standard C string functions (`strncpy`) that assume or enforce a specific read size greater than `len` on this raw data is unsafe.
 **Prevention:** When copying raw binary blob data, always use `memcpy(dest, src, len)` to respect the exact bounds of the source buffer. If null-termination is required for the destination, allocate `len + 1` bytes and manually append the null terminator (`dest[len] = '\0'`) after the `memcpy`.
 
+
+
+## 2025-02-28 - Missing Free of Config Param Pointer
+**Vulnerability:** Memory leak (DoS risk) caused by un-freed dynamic allocation from `get_config_param_str("lock_pass", &lock_pass)` in `lock_handler`.
+**Learning:** Functions fetching configuration parameters dynamically allocate memory via `malloc`. In request handlers (like `lock_handler`), these pointers must be explicitly freed to prevent memory leaks and heap exhaustion over repeated requests.
+**Prevention:** Always pair `get_config_param_str` and `get_config_param_blob` calls with `free()` at all possible exit points of the function.
+

@@ -228,5 +228,6 @@ esp_err_t lock_handler(httpd_req_t *req)
     if (lock_pass != NULL) {
         free(lock_pass);
     }
+
     return out;
 }
