@@ -179,6 +179,7 @@ esp_err_t index_get_handler(httpd_req_t *req)
     closeHeader(req);
 
     esp_err_t ret = httpd_resp_send(req, config_page, response_len);
+    free(result_param);
     free(config_page);
     free(appliedSSID);
     appliedSSID = NULL;
@@ -192,20 +193,9 @@ esp_err_t index_get_handler(httpd_req_t *req)
     }
     free(result_param);
     free(lock_pass);
+    free(cert);
     free(orig_sta_identity);
     free(orig_sta_user);
-    free(cert);
-
-    free(result_param);
-    free(lock_pass);
-    free(orig_sta_identity);
-    free(orig_sta_user);
-    free(cert);
-
-    free(result_param);
-    free(lock_pass);
-    free(sta_identity);
-    free(sta_user);
 
     return ret;
 }

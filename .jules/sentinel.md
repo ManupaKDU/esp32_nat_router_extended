@@ -45,3 +45,9 @@
 **Learning:** Functions that allocate and return memory, like `get_config_param_str`, must have their corresponding `free()` calls in the calling context to prevent memory exhaustion and DoS attacks.
 **Prevention:** Always verify the memory lifecycle of functions returning strings or structs, and explicitly call `free()` for all dynamically allocated memory in handlers before the HTTP response completes.
 
+
+## 2024-06-06 - Memory Leaks in Configuration Retrieval
+**Vulnerability:** Memory leaks (and potential DoS) in handlers that call `get_config_param_str` and `get_config_param_blob`. These functions dynamically allocate memory that the caller must free. Many handlers across the codebase (e.g., `indexhandler.c`, `lockhandler.c`, `resulthandler.c`, `esp32_nat_router.c`) failed to `free()` the returned pointers.
+**Learning:** Functions that allocate and return memory implicitly transfer ownership and responsibility for cleanup to the caller. This is a common source of memory leaks in C. If these are configuration parameters accessed on every request, it will eventually exhaust heap memory.
+**Prevention:** When using custom helper functions that retrieve data, carefully check their implementation to determine if they allocate memory dynamically. If they do, always ensure a corresponding `free()` is called in all execution paths of the calling function, especially before returning. Use proxy variables to hold original pointers if the local pointer variables might be reassigned to static strings.
+
