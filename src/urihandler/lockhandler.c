@@ -53,21 +53,14 @@ esp_err_t unlock_handler(httpd_req_t *req)
 
         if (strlen(unlockParam) > 0)
         {
-            char *lock = NULL;
-            get_config_param_str("lock_pass", &lock);
-            if (lock != NULL)
+            if (check_lock_pass(unlockParam))
             {
-                if (strlen(lock) == strlen(unlockParam) && crypto_memcmp(lock, unlockParam, strlen(lock)) == 0)
-                {
-                    locked = false;
-                    httpd_resp_set_status(req, "302 Found");
-                    httpd_resp_set_hdr(req, "Location", "/");
-                    free(lock);
-                    free(unlockParam);
-                    free(buf);
-                    return httpd_resp_send(req, NULL, 0);
-                }
-                free(lock);
+                locked = false;
+                httpd_resp_set_status(req, "302 Found");
+                httpd_resp_set_hdr(req, "Location", "/");
+                free(unlockParam);
+                free(buf);
+                return httpd_resp_send(req, NULL, 0);
             }
             free(unlockParam);
         }
@@ -173,6 +166,7 @@ esp_err_t lock_handler(httpd_req_t *req)
                 nvs_set_str(nvs, "lock_pass", passParam);
                 nvs_commit(nvs);
                 nvs_close(nvs);
+                update_lock_pass(passParam);
                 httpd_resp_set_status(req, "302 Found");
                 if (strlen(passParam) > 0)
                 {
@@ -212,9 +206,7 @@ esp_err_t lock_handler(httpd_req_t *req)
 
     char *display = NULL;
 
-    char *lock_pass = NULL;
-    get_config_param_str("lock_pass", &lock_pass);
-    if (lock_pass != NULL && strlen(lock_pass) > 0)
+    if (is_lock_pass_set())
     {
         display = "block";
     }

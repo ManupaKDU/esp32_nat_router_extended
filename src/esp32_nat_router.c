@@ -85,6 +85,41 @@ char *subnet_mask = NULL;
 char *gateway_addr = NULL;
 char *ap_ssid = NULL;
 char *lock_pass = NULL;
+static pthread_mutex_t lock_pass_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+bool is_lock_pass_set() {
+    pthread_mutex_lock(&lock_pass_mutex);
+    bool is_set = (lock_pass != NULL && strlen(lock_pass) > 0);
+    pthread_mutex_unlock(&lock_pass_mutex);
+    return is_set;
+}
+
+bool check_lock_pass(const char *unlockParam) {
+    if (unlockParam == NULL) return false;
+    pthread_mutex_lock(&lock_pass_mutex);
+    bool matches = false;
+    if (lock_pass != NULL) {
+        size_t len = strlen(lock_pass);
+        if (len == strlen(unlockParam) && crypto_memcmp(lock_pass, unlockParam, len) == 0) {
+            matches = true;
+        }
+    }
+    pthread_mutex_unlock(&lock_pass_mutex);
+    return matches;
+}
+
+void update_lock_pass(const char *new_pass) {
+    pthread_mutex_lock(&lock_pass_mutex);
+    if (lock_pass != NULL) {
+        free(lock_pass);
+    }
+    if (new_pass != NULL) {
+        lock_pass = strdup(new_pass);
+    } else {
+        lock_pass = NULL;
+    }
+    pthread_mutex_unlock(&lock_pass_mutex);
+}
 
 char *ap_passwd = NULL;
 char *ap_ip = NULL;
@@ -833,10 +868,15 @@ void app_main(void)
     get_config_param_str("sta_user", &sta_user);
     get_config_param_str("sta_identity", &sta_identity);
 
-    get_config_param_str("lock_pass", &lock_pass);
-    if (lock_pass == NULL)
+    char *temp_lock_pass = NULL;
+    get_config_param_str("lock_pass", &temp_lock_pass);
+    if (temp_lock_pass == NULL)
     {
-        lock_pass = param_set_default("");
+        temp_lock_pass = param_set_default("");
+    }
+    update_lock_pass(temp_lock_pass);
+    if(temp_lock_pass != NULL) {
+        free(temp_lock_pass);
     }
 
     char *scan_result = NULL;

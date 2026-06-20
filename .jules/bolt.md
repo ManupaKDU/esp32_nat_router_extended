@@ -15,3 +15,8 @@
 **Learning:** When tasked with finding "ONE small performance improvement" (like avoiding `strlen()` overhead using `HTTPD_RESP_USE_STRLEN`), it is tempting to write scripts to refactor the entire codebase at once. However, this violates the scope constraints of the task and complicates code review.
 **Action:** Always limit the scope of the optimization to a single, targeted file (e.g., `lockhandler.c`) to ensure the PR remains small, focused, and easy to review, directly satisfying the user's constraint.
 
+
+## 2024-05-14 - [NVS RAM Caching Optimization]
+**Learning:** Checking configuration parameters (like `lock_pass`) directly from NVS flash storage on every HTTP request causes slow, blocking I/O overhead.
+**Action:** When a global configuration parameter is accessed frequently by request handlers, cache it in RAM during boot and synchronize updates. Protect the cached value with a `pthread_mutex_t` to ensure thread-safe reads and writes across concurrent HTTP requests.
+

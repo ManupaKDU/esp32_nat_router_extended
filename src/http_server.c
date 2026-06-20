@@ -157,11 +157,9 @@ httpd_handle_t start_webserver(void)
 
     initializeRestartTimer();
 
-    char *lock_pass = NULL;
     int32_t keepAlive = 0;
 
-    get_config_param_str("lock_pass", &lock_pass);
-    if (lock_pass != NULL && strlen(lock_pass) > 0)
+    if (is_lock_pass_set())
     {
         lockUI();
         ESP_LOGI(TAG, "UI is locked with password");
