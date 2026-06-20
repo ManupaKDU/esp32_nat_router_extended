@@ -53,3 +53,7 @@
 ## 2026-06-10 - [Autofocus for single-action forms]
 **Learning:** Found simple, single-action forms like login or unlock screens (e.g., `src/pages/unlock.html`) lacking the `autofocus` attribute on their primary input fields. This requires the user to explicitly click or tap the input field before typing, adding unnecessary friction.
 **Action:** When implementing simple, single-action forms (like unlock/lock UI), use the HTML5 `autofocus` attribute on the primary input field to place the user's cursor immediately upon page load, saving a click and reducing friction.
+
+## 2026-06-20 - [Synchronizing Progress Bar Accessibility]
+**Learning:** Found dynamic progress bars in HTML templates (like `otalog.html`) where the visual width (`style="width: %d%%"`) was populated by the backend C code, but the accessible state (`aria-valuenow=""`) was left empty. This causes screen readers to miss the current progress percentage, leading to a degraded auditory experience during long operations like OTA updates.
+**Action:** When updating HTML templates with dynamic progress bars using C-style backend string formatting (e.g., `snprintf`), ensure both the visual width and the accessible state (`aria-valuenow="%d"`) are populated with the same integer variable from the backend to keep screen readers and visual presentation synchronized.
