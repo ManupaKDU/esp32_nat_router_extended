@@ -43,3 +43,6 @@
 ## 2026-04-14 - Prevent Redundant NVS Reads
 **Learning:** Calling `get_config_param_str()` multiple times for the same NVS key within a single function causes redundant flash reads and unnecessary `malloc` overhead.
 **Action:** Reuse the initially allocated string pointer instead of falling through conditionals to fetch it again. Remember to explicitly `free()` the primary allocated pointers at the end of the function.
+## 2024-07-28 - [HTTPD_RESP_USE_STRLEN Optimization via snprintf]
+**Learning:** Using `HTTPD_RESP_USE_STRLEN` on `httpd_resp_send` causes an O(N) `strlen()` call over the entire buffer inside the HTTP server framework. When dynamically building responses (e.g., HTML pages) using `sprintf`, this `strlen()` calculation is redundant because the string formatting function can return the final length.
+**Action:** Replace `sprintf` with `snprintf(buffer, alloc_size, ...)` to add buffer bounds checking, capture the returned length, and pass this exact length directly to `httpd_resp_send` instead of `HTTPD_RESP_USE_STRLEN`, implementing both a performance optimization and safety improvement.
