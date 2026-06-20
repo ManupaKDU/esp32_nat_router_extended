@@ -177,6 +177,10 @@ httpd_handle_t start_webserver(void)
         ESP_LOGI(TAG, "Keep alive is disabled");
     }
 
+    if (lock_pass != NULL) {
+        free(lock_pass);
+    }
+
     // Start the httpd server
     ESP_LOGI(TAG, "Starting server on port: '%d'", config.server_port);
     if (httpd_start(&server, &config) == ESP_OK)
