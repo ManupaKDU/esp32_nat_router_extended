@@ -387,13 +387,15 @@ esp_err_t ota_download_get_handler(httpd_req_t *req)
         ESP_LOGE(TAG, "Memory allocation failed");
         return ESP_FAIL;
     }
-    snprintf(ota_page, alloc_size, ota_start, project_version, latest_version, changelog, customUrl, label, chip_type);
+    // ⚡ Bolt: Capture dynamic string length to avoid redundant O(N) strlen() in httpd_resp_send
+    int response_len = snprintf(ota_page, alloc_size, ota_start, project_version, latest_version, changelog, customUrl, label, chip_type);
 
     closeHeader(req);
 
-    ESP_LOGI(TAG, "Requesting OTA page with additional size of %d", strlen(ota_page));
+    int ota_page_len = (response_len > 0 && response_len < alloc_size) ? response_len : strlen(ota_page);
+    ESP_LOGI(TAG, "Requesting OTA page with additional size of %d", ota_page_len);
 
-    esp_err_t ret = httpd_resp_send(req, ota_page, HTTPD_RESP_USE_STRLEN);
+    esp_err_t ret = httpd_resp_send(req, ota_page, ota_page_len);
     free(ota_page);
     return ret;
 }

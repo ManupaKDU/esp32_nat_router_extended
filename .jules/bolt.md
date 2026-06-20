@@ -30,3 +30,8 @@
 **Learning:** When splitting the `return httpd_resp_send()` statement to use dynamically captured string lengths or checking for truncation, ensure that any dynamically allocated memory (like `apply_page`) is successfully freed before the modified `return` exits the function scope.
 **Action:** Always capture the `esp_err_t` return value of `httpd_resp_send()`, run `free(malloc_ptr)`, and then `return` the captured error code when modifying single-line return statements that allocate memory.
 
+
+## 2024-05-14 - [HTTPD_RESP_USE_STRLEN Optimization Context Extension]
+**Learning:** When applying the `HTTPD_RESP_USE_STRLEN` replacement optimization, it's not enough to just optimize the `httpd_resp_send` call itself. Any associated logging statements (like `ESP_LOGI`) that also call `strlen(buffer)` right before sending will cause the same O(N) penalty, negating the optimization.
+**Action:** When capturing `snprintf` length, replace ALL adjacent instances of `strlen()` on that same buffer with the pre-calculated integer variable.
+
