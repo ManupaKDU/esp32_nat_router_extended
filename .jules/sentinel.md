@@ -16,3 +16,8 @@
 **Vulnerability:** Memory leaks (DoS risk) caused by un-freed dynamic allocations from configuration retrieval functions (`get_config_param_str` and `get_config_param_blob`) in request handlers.
 **Learning:** Handlers often reassigned these dynamically allocated pointers to static strings (e.g., `""`) for logic and UI formatting, losing the reference to the allocated heap block and making it impossible to `free` them at the end of the request handler. This leads to heap exhaustion if requested repeatedly.
 **Prevention:** When dynamically allocated configuration parameters might be reassigned during logic flow, explicitly save the original pointer (e.g., `char *orig_sta_identity = sta_identity;`) immediately after allocation to ensure the memory can still be safely freed at all function exits.
+## 2024-06-10 - [DoS] Fix missing bounds check on HTTP POST content length
+**Vulnerability:** Several HTTP POST request handlers (`applyhandler.c`, `indexhandler.c`, `lockhandler.c`, `portmaphandler.c`) were dynamically allocating buffers using `malloc(req->content_len + 1)` without upper bounding the size of `req->content_len`.
+**Learning:** The ESP32 `http_server` framework allows arbitrary values for `content_len` if not bounded. Malicious clients could specify massive payload sizes, leading to immediate memory exhaustion and device crashes (Denial of Service).
+**Prevention:** Always validate `req->content_len` against a reasonable limit (e.g., `< 2048`) and reject oversized requests (`HTTPD_400_BAD_REQUEST`) prior to calling `malloc`.
+>>>>>>> pr-208
