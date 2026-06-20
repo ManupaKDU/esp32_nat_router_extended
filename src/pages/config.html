@@ -62,7 +62,8 @@
                 </svg> (signal strength: <span id="db">%s</span> db)
             </p>
             <div class="form-check form-switch mt-4">
-                <input class="form-check-input" type="checkbox" id="wpa2enabled" aria-controls="wpa2-container" %s>
+                <input class="form-check-input" type="checkbox" id="wpa2enabled" aria-controls="wpa2-container" aria-expanded="%s" %s>
+
                 <label class="form-check-label" for="wpa2enabled">WPA2 Enterprise</label>
             </div>
             <div class="form-group row mt-4"> <label class="col-3" for="ssid">SSID</label>
@@ -170,14 +171,10 @@
                 $(this).attr('aria-expanded', isChecked);
                 if (isChecked) {
                     $('#wpa2-container').show();
+<<<<<<< HEAD
                     $('#wpa2-container').find('input, textarea, select').prop('disabled', false);
                 } else {
+                                   $('#wpa2-container input, #wpa2-container textarea, #wpa2-container select').prop('disabled', false);
+                } else {
                     $('#wpa2-container').hide();
-                    $('#wpa2-container').find('input, textarea, select').prop('disabled', true);
-                }
-            }).trigger('change');
-        });
-    </script>
-</body>
-
-</html>
+                    $('#wpa2-container input, #wpa2-container textarea, #wpa2-container select').prop('disabled', true);

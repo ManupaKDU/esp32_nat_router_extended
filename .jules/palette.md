@@ -28,3 +28,8 @@
 **Learning:** When dynamically hiding or showing form sections using JavaScript, failing to synchronize `aria-expanded` and disabling all child input elements (including `<textarea>` and `<select>`) can lead to confusing screen reader experiences and accidental submission of hidden data.
 **Action:** Always ensure controlling elements possess an `aria-controls` attribute, synchronize `aria-expanded` dynamically, and explicitly disable all input types within hidden sections. Trigger this logic on `$(document).ready()` to correctly reflect any backend-injected initial state.
 
+
+## 2024-06-15 - Dynamic Form Section Accessibility
+**Learning:** When dynamically hiding/showing form sections (e.g., `#wpa2-container`) via checkboxes, using `aria-controls` on the toggle and explicitly synchronizing its `aria-expanded` state is crucial for screen reader users. Also, elements within the hidden container (including `input`, `textarea`, and `select`) must be explicitly disabled to prevent accidental submission of hidden data, and this state must be initialized on `document.ready` to reflect any backend-injected initial state.
+**Action:** Always add `aria-controls`, bind `aria-expanded` to the toggle's boolean state, explicitly disable *all* child input types when hidden, and trigger the logic on load to sync with the backend.
+
