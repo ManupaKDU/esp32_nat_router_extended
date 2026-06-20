@@ -35,3 +35,8 @@
 **Learning:** When applying the `HTTPD_RESP_USE_STRLEN` replacement optimization, it's not enough to just optimize the `httpd_resp_send` call itself. Any associated logging statements (like `ESP_LOGI`) that also call `strlen(buffer)` right before sending will cause the same O(N) penalty, negating the optimization.
 **Action:** When capturing `snprintf` length, replace ALL adjacent instances of `strlen()` on that same buffer with the pre-calculated integer variable.
 
+
+## 2024-06-17 - [snprintf length return value optimization]
+**Learning:** In ESP-IDF C handlers returning dynamic HTML buffers, using `sprintf` followed by `httpd_resp_send` with `HTTPD_RESP_USE_STRLEN` causes a redundant O(N) `strlen()` call. Furthermore, using `sprintf` poses a buffer overflow risk on variable string lengths.
+**Action:** Replace `sprintf` with `snprintf` to capture the exact string length written. Pass this pre-calculated length to `httpd_resp_send` instead of `HTTPD_RESP_USE_STRLEN`, implementing bounds checking `(len > 0 && len < alloc_size)` to fallback safely if an error or truncation occurs.
+
