@@ -27,3 +27,9 @@
 **Learning:** Blindly trusting `req->content_len` for memory allocation allows an attacker to send requests with massive `Content-Length` headers, causing the device to attempt a huge `malloc`, leading to heap exhaustion and a Denial of Service (DoS) crash.
 **Prevention:** Always validate `req->content_len` against a reasonable upper bound (e.g., `< 2048`) before attempting dynamic memory allocation for the request payload. Return `HTTPD_400_BAD_REQUEST` if the size exceeds the bound.
 
+
+## 2025-02-28 - Missing Content Length Validation in POST Handlers
+**Vulnerability:** Several POST handlers (`index_post_handler`, `apply_post_handler`, `unlock_handler`, `portmap_post_handler`) allocated memory based on `req->content_len` without checking if it exceeded a reasonable maximum length. This allows attackers to send requests with extremely large payloads, potentially causing memory allocation failures, leading to Denial of Service (DoS) via heap exhaustion.
+**Learning:** Request handlers must always validate client-supplied length boundaries before relying on them for dynamic memory allocations. The pattern previously established in `lock_handler.c` (`if (req->content_len >= 2048)`) must be applied consistently to all endpoints receiving POST payloads.
+**Prevention:** Whenever allocating memory for a request payload based on `req->content_len`, always insert a max-bounds check (`if (req->content_len >= 2048) { return HTTPD_400_BAD_REQUEST; }`) before the `malloc` call.
+

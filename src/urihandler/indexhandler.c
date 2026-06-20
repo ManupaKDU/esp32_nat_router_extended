@@ -216,6 +216,10 @@ esp_err_t index_post_handler(httpd_req_t *req)
         return ESP_FAIL;
     }
     size_t content_len = req->content_len;
+    if (content_len >= 2048) {
+        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Payload too large");
+        return ESP_FAIL;
+    }
     char *buf = malloc(content_len + 1);
     if (buf == NULL)
     {
