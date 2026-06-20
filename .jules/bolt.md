@@ -25,3 +25,8 @@
 **Learning:** In the ESP-IDF HTTP server, `httpd_resp_send()` calculates response lengths using an O(N) `strlen()` call when `HTTPD_RESP_USE_STRLEN` is passed. For large, dynamically constructed HTML pages (like `clientshandler.c`), this redundantly iterates over a string that was just constructed, causing unnecessary CPU overhead.
 **Action:** When dynamically building HTTP response pages with `sprintf` or `snprintf` (where safe and bounds-checked), capture the returned integer length and pass it directly to `httpd_resp_send()`. Always check that the return value is greater than 0 and less than the buffer size to prevent out-of-bounds reads on error.
 
+
+## 2024-05-14 - [Memory Leak Prevention in HTTP Handlers]
+**Learning:** When splitting the `return httpd_resp_send()` statement to use dynamically captured string lengths or checking for truncation, ensure that any dynamically allocated memory (like `apply_page`) is successfully freed before the modified `return` exits the function scope.
+**Action:** Always capture the `esp_err_t` return value of `httpd_resp_send()`, run `free(malloc_ptr)`, and then `return` the captured error code when modifying single-line return statements that allocate memory.
+
