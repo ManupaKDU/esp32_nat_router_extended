@@ -57,3 +57,10 @@
 **Learning:** In C, freeing a pointer twice leads to undefined behavior, often resulting in heap corruption or program crashes. When variables are freed conditionally based on specific logic branches, extra care must be taken to ensure they are not freed again on the main execution path.
 **Prevention:** Avoid scattering `free()` calls inside conditional blocks. Instead, design functions to have a single exit point or clear cleanup path where all dynamically allocated memory is freed exactly once. Alternatively, if memory is conditionally freed, set the pointer to `NULL` immediately after, as `free(NULL)` is a safe no-op.
 
+
+
+## 2024-05-27 - Out-of-bounds Read in get_config_param_blob
+**Vulnerability:** Calling `strncpy(dest, src, len + 1)` on a buffer (`src`) allocated to exactly `len` bytes causes a 1-byte out-of-bounds read past the end of the `src` buffer because `strncpy` attempts to read exactly the number of bytes specified.
+**Learning:** `get_config_param_blob` provides raw binary data and a `len`, but does not guarantee null-termination or allocate space for one. Using standard C string functions (`strncpy`) that assume or enforce a specific read size greater than `len` on this raw data is unsafe.
+**Prevention:** When copying raw binary blob data, always use `memcpy(dest, src, len)` to respect the exact bounds of the source buffer. If null-termination is required for the destination, allocate `len + 1` bytes and manually append the null terminator (`dest[len] = '\0'`) after the `memcpy`.
+

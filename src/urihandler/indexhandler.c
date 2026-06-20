@@ -132,6 +132,7 @@ esp_err_t index_get_handler(httpd_req_t *req)
             memcpy(cer, cert, len);
             cer[len] = '\0';
         }
+
     }
     char *orig_cer = cer;
     if ((sta_identity != NULL && strlen(sta_identity) != 0) || (sta_user != NULL && strlen(sta_user) != 0))
