@@ -198,10 +198,6 @@ esp_err_t portmap_post_handler(httpd_req_t *req)
         httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Payload too large");
         return ESP_FAIL;
     }
-<<<<<<< HEAD
-=======
-
->>>>>>> pr-208
     size_t content_len = req->content_len;
     char *buf = malloc(content_len + 1);
     if (buf == NULL)

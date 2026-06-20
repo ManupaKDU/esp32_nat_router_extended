@@ -21,3 +21,9 @@
 **Learning:** The ESP32 `http_server` framework allows arbitrary values for `content_len` if not bounded. Malicious clients could specify massive payload sizes, leading to immediate memory exhaustion and device crashes (Denial of Service).
 **Prevention:** Always validate `req->content_len` against a reasonable limit (e.g., `< 2048`) and reject oversized requests (`HTTPD_400_BAD_REQUEST`) prior to calling `malloc`.
 >>>>>>> pr-208
+
+## 2025-02-28 - Unbounded Memory Allocation leading to DoS
+**Vulnerability:** Several POST handlers allocated heap memory directly using `req->content_len` without checking if the length was within reasonable bounds.
+**Learning:** Blindly trusting `req->content_len` for memory allocation allows an attacker to send requests with massive `Content-Length` headers, causing the device to attempt a huge `malloc`, leading to heap exhaustion and a Denial of Service (DoS) crash.
+**Prevention:** Always validate `req->content_len` against a reasonable upper bound (e.g., `< 2048`) before attempting dynamic memory allocation for the request payload. Return `HTTPD_400_BAD_REQUEST` if the size exceeds the bound.
+
