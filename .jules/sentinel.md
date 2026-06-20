@@ -39,3 +39,9 @@
 **Learning:** Reassigning these pointers (e.g., to `""`) inside the handler logic caused the original heap address to be lost, making it impossible to `free()` and leading to progressive heap exhaustion on repeated HTTP requests.
 **Prevention:** Always create a copy of the original pointer immediately after dynamic allocation (e.g., `char *orig_sta_identity = sta_identity;`) if reassignment is possible, and ensure the original pointers are explicitly freed at the end of the handler scope and before any early returns.
 
+
+## 2025-02-28 - Memory Leak in Handlers (DoS Risk)
+**Vulnerability:** Several HTTP handlers called `get_config_param_str` which internally allocated strings via `malloc`, but failed to call `free()` before returning. This led to a heap memory leak on every request.
+**Learning:** Functions that allocate and return memory, like `get_config_param_str`, must have their corresponding `free()` calls in the calling context to prevent memory exhaustion and DoS attacks.
+**Prevention:** Always verify the memory lifecycle of functions returning strings or structs, and explicitly call `free()` for all dynamically allocated memory in handlers before the HTTP response completes.
+

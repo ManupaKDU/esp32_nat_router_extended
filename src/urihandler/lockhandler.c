@@ -27,10 +27,6 @@ esp_err_t unlock_handler(httpd_req_t *req)
         httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Payload too large");
         return ESP_FAIL;
     }
-<<<<<<< HEAD
-=======
-
->>>>>>> pr-220
     size_t content_len = req->content_len;
     if (content_len >= 2048) {
         httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Payload too large");

@@ -103,5 +103,8 @@ esp_err_t result_download_get_handler(httpd_req_t *req)
 
     nvs_commit(nvs);
     nvs_close(nvs);
+
+    free(result_param);
+
     return ret;
 }
