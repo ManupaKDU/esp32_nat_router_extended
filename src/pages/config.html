@@ -171,10 +171,7 @@
                 $(this).attr('aria-expanded', isChecked);
                 if (isChecked) {
                     $('#wpa2-container').show();
-<<<<<<< HEAD
                     $('#wpa2-container').find('input, textarea, select').prop('disabled', false);
                 } else {
-                                   $('#wpa2-container input, #wpa2-container textarea, #wpa2-container select').prop('disabled', false);
-                } else {
                     $('#wpa2-container').hide();
-                    $('#wpa2-container input, #wpa2-container textarea, #wpa2-container select').prop('disabled', true);
+                    $('#wpa2-container').find('input, textarea, select').prop('disabled', true);
