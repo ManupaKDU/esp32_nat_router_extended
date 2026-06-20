@@ -20,3 +20,8 @@
 **Learning:** Checking configuration parameters (like `lock_pass`) directly from NVS flash storage on every HTTP request causes slow, blocking I/O overhead.
 **Action:** When a global configuration parameter is accessed frequently by request handlers, cache it in RAM during boot and synchronize updates. Protect the cached value with a `pthread_mutex_t` to ensure thread-safe reads and writes across concurrent HTTP requests.
 
+
+## 2024-06-14 - HTTP Response Length Caching
+**Learning:** In the ESP-IDF HTTP server, `httpd_resp_send()` calculates response lengths using an O(N) `strlen()` call when `HTTPD_RESP_USE_STRLEN` is passed. For large, dynamically constructed HTML pages (like `clientshandler.c`), this redundantly iterates over a string that was just constructed, causing unnecessary CPU overhead.
+**Action:** When dynamically building HTTP response pages with `sprintf` or `snprintf` (where safe and bounds-checked), capture the returned integer length and pass it directly to `httpd_resp_send()`. Always check that the return value is greater than 0 and less than the buffer size to prevent out-of-bounds reads on error.
+
