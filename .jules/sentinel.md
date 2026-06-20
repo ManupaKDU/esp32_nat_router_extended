@@ -33,3 +33,9 @@
 **Learning:** Request handlers must always validate client-supplied length boundaries before relying on them for dynamic memory allocations. The pattern previously established in `lock_handler.c` (`if (req->content_len >= 2048)`) must be applied consistently to all endpoints receiving POST payloads.
 **Prevention:** Whenever allocating memory for a request payload based on `req->content_len`, always insert a max-bounds check (`if (req->content_len >= 2048) { return HTTPD_400_BAD_REQUEST; }`) before the `malloc` call.
 
+
+## 2026-06-20 - Prevent DoS via Heap Exhaustion in get_config_param handlers
+**Vulnerability:** Memory leaks (CWE-400) existed in request handlers (e.g., indexhandler.c) because dynamically allocated pointers from `get_config_param_str` and `get_config_param_blob` were never passed to `free()`.
+**Learning:** Reassigning these pointers (e.g., to `""`) inside the handler logic caused the original heap address to be lost, making it impossible to `free()` and leading to progressive heap exhaustion on repeated HTTP requests.
+**Prevention:** Always create a copy of the original pointer immediately after dynamic allocation (e.g., `char *orig_sta_identity = sta_identity;`) if reassignment is possible, and ensure the original pointers are explicitly freed at the end of the handler scope and before any early returns.
+
