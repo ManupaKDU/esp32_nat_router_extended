@@ -8,3 +8,8 @@
 ## 2024-06-13 - Semantic HTML Tables
 **Learning:** Using `<th>` for data cells in tables (like `ota.html` and `otalog.html`) severely degrades accessibility because screen readers announce those cells as row headers, causing confusion for blind users.
 **Action:** Always ensure that data cells use `<td>`, and use `<th scope="row">` specifically and only for the leading headers of a row to ensure accurate table navigation and comprehension.
+
+## 2026-06-09 - Add autofocus to unlock password field
+**Learning:** For simple, single-action pages like the unlock screen, users have to manually click the password input field before they can start typing, which adds unnecessary friction.
+**Action:** Use the HTML5 `autofocus` attribute on the primary input field for such simple forms to immediately place the user's cursor in the right place, saving a click and improving the overall usability flow.
+
