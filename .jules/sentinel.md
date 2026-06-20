@@ -51,3 +51,9 @@
 **Learning:** Functions that allocate and return memory implicitly transfer ownership and responsibility for cleanup to the caller. This is a common source of memory leaks in C. If these are configuration parameters accessed on every request, it will eventually exhaust heap memory.
 **Prevention:** When using custom helper functions that retrieve data, carefully check their implementation to determine if they allocate memory dynamically. If they do, always ensure a corresponding `free()` is called in all execution paths of the calling function, especially before returning. Use proxy variables to hold original pointers if the local pointer variables might be reassigned to static strings.
 
+
+## 2025-02-28 - Double-Free Vulnerability in Memory Management
+**Vulnerability:** A double-free vulnerability existed in the `unlock_handler` function where the `unlockParam` pointer was conditionally freed during password comparison failure, and then unconditionally freed again at the end of the block.
+**Learning:** In C, freeing a pointer twice leads to undefined behavior, often resulting in heap corruption or program crashes. When variables are freed conditionally based on specific logic branches, extra care must be taken to ensure they are not freed again on the main execution path.
+**Prevention:** Avoid scattering `free()` calls inside conditional blocks. Instead, design functions to have a single exit point or clear cleanup path where all dynamically allocated memory is freed exactly once. Alternatively, if memory is conditionally freed, set the pointer to `NULL` immediately after, as `free(NULL)` is a safe no-op.
+
