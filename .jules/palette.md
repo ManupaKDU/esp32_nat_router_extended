@@ -18,3 +18,8 @@
 **Learning:** Found an instance in `otalog.html` where `aria-valuenow` was left empty (`aria-valuenow=""`) while the visual width was being dynamically updated via a format string. This pattern breaks accessibility as screen readers cannot announce the progress value.
 **Action:** When updating HTML templates with progress bars, always ensure both the visual `style="width: %d%%"` and the accessible `aria-valuenow="%d"` are populated with the same value using the backend formatting string to keep visual and accessible states synchronized.
 
+
+## 2026-06-06 - Password Visibility Toggles
+**Learning:** Adding password visibility toggles should be implemented using vanilla JavaScript rather than relying on external dependencies like jQuery, to keep the UX improvements self-contained and avoid adding unnecessary libraries to simple pages. The toggle UI component consists of an `input-group` wrapper and a clickable `span` with an eye SVG icon.
+**Action:** When adding new password fields or modifying existing ones, ensure the input is wrapped in `.input-group`, the eye icon `span` is present, and a vanilla JS event listener is included to toggle the `type` attribute between `text` and `password`.
+

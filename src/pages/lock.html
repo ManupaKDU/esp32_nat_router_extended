@@ -18,12 +18,35 @@
         <h2 class="mt-2 text-center">To lock interface insert a password twice.</h2>
         <form action=/lock method=POST>
             <div class="form-group row"> <label for=lockpass class=col-3>Password</label>
-                <div class=col-9> <input type=password class=form-control name=lockpass id=lockpass value maxlength=64
-                        placeholder="Lock password" autofocus oninput="document.getElementById('lockpass2').setCustomValidity(this.value !== document.getElementById('lockpass2').value ? 'Passwords do not match.' : '')"> </div>
+                <div class=col-9>
+                    <div class="input-group"> <input type=password class=form-control name=lockpass id=lockpass value maxlength=64
+                        placeholder="Lock password" oninput="document.getElementById('lockpass2').setCustomValidity(this.value !== document.getElementById('lockpass2').value ? 'Passwords do not match.' : '')">
+                        <span class="input-group-text password" role="button" tabindex="0" style="cursor: pointer;" title="show password" aria-label="Show or hide password"><svg aria-hidden="true"
+                                xmlns=http://www.w3.org/2000/svg width="16" height="16" fill="currentColor"
+                                class="bi bi-eye" viewBox="0 0 16 16" aria-hidden="true">
+                                <path
+                                    d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z" />
+                                <path
+                                    d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z" />
+                            </svg></span>
+                    </div>
+                </div>
+
             </div>
             <div class="form-group row mt-2"> <label for=lockpass2 class=col-3>Repeat</label>
-                <div class=col-9> <input type=password class=form-control name=lockpass2 id=lockpass2 value maxlength=64
-                        placeholder=Repeat oninput="this.setCustomValidity(this.value !== document.getElementById('lockpass').value ? 'Passwords do not match.' : '')"> </div>
+                <div class=col-9>
+                    <div class="input-group"> <input type=password class=form-control name=lockpass2 id=lockpass2 value maxlength=64
+                        placeholder=Repeat oninput="this.setCustomValidity(this.value !== document.getElementById('lockpass').value ? 'Passwords do not match.' : '')">
+                        <span class="input-group-text password" role="button" tabindex="0" style="cursor: pointer;" title="show password" aria-label="Show or hide password"><svg aria-hidden="true"
+                                xmlns=http://www.w3.org/2000/svg width="16" height="16" fill="currentColor"
+                                class="bi bi-eye" viewBox="0 0 16 16" aria-hidden="true">
+                                <path
+                                    d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z" />
+                                <path
+                                    d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z" />
+                            </svg></span>
+                    </div>
+                </div>
             </div>
             <div class="form-group row col-9 offset-3"> <small class="form-text text-muted">Both fields empty will
                     remove the password</small> </div>
@@ -37,6 +60,7 @@
         </form>
         <div class="form-group row col-4 offset-4 mt-5"> <a href=/ class="btn btn-light">Back</a> </div>
     </div>
+    <script>document.querySelectorAll('.password').forEach(function(el) { ['mousedown', 'mouseup', 'mouseout', 'touchstart', 'touchend', 'keydown', 'keyup'].forEach(function(evt) { el.addEventListener(evt, function(e) { if (e.type === "keydown" || e.type === "keyup") { if (e.key !== "Enter" && e.key !== " ") return; if (e.type === "keydown") e.preventDefault(); } var field = this.parentElement.querySelector('input'); if (e.type === "mousedown" || e.type === "touchstart" || e.type === "keydown") { field.type = 'text'; } else { field.type = 'password'; } }); }); });</script>
 </body>
 
 </html>
