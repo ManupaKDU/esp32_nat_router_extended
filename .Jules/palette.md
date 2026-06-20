@@ -57,3 +57,8 @@
 ## 2026-06-20 - [Synchronizing Progress Bar Accessibility]
 **Learning:** Found dynamic progress bars in HTML templates (like `otalog.html`) where the visual width (`style="width: %d%%"`) was populated by the backend C code, but the accessible state (`aria-valuenow=""`) was left empty. This causes screen readers to miss the current progress percentage, leading to a degraded auditory experience during long operations like OTA updates.
 **Action:** When updating HTML templates with dynamic progress bars using C-style backend string formatting (e.g., `snprintf`), ensure both the visual width and the accessible state (`aria-valuenow="%d"`) are populated with the same integer variable from the backend to keep screen readers and visual presentation synchronized.
+
+## 2025-05-18 - [Dynamic Form Sections and Accessibility]
+**Learning:** When dynamically hiding or showing form sections (like `#wpa2-container`) using JavaScript, ensure the controlling element (e.g., a toggle switch) possesses an `aria-controls` attribute and a dynamically synchronized `aria-expanded` attribute. Furthermore, explicitly disable *all* child input elements (including `<textarea>` and `<select>`) within the hidden section to prevent accidental submission of hidden data, and trigger this visibility/disabled synchronization on `$(document).ready()` to correctly reflect any backend-injected initial state.
+**Action:** Always add `aria-controls` and `aria-expanded` to toggle buttons/checkboxes that control the visibility of other content blocks. Use JS to sync the `aria-expanded` state with the visual state and ensure disabled states cascade to all input types.
+
