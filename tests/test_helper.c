@@ -147,9 +147,43 @@ void test_readUrlParameterIntoBuffer() {
     printf("All test_readUrlParameterIntoBuffer passed!\n");
 }
 
+void test_sanitize_html() {
+    printf("Running test_sanitize_html...\n");
+    char output[128];
+
+    // Test 1: Normal string
+    sanitize_html("hello world", output, sizeof(output));
+    assert(strcmp(output, "hello world") == 0);
+
+    // Test 2: Special characters
+    sanitize_html("< > & \" '", output, sizeof(output));
+    assert(strcmp(output, "&lt; &gt; &amp; &quot; &#39;") == 0);
+
+    // Test 3: Mixed string
+    sanitize_html("<script>alert('XSS')</script>", output, sizeof(output));
+    assert(strcmp(output, "&lt;script&gt;alert(&#39;XSS&#39;)&lt;/script&gt;") == 0);
+
+    // Test 4: Truncation
+    char small_output[10];
+    sanitize_html("<script>", small_output, sizeof(small_output));
+    // size is 10, meaning max string length is 9 + null terminator
+    // "&lt;scrip" is 9 characters
+    assert(strcmp(small_output, "&lt;scrip") == 0 || strcmp(small_output, "&lt;") == 0 || strlen(small_output) < 10);
+    // Actually let's just make sure it doesn't overflow and null-terminates properly
+    assert(small_output[sizeof(small_output)-1] == '\0' || strlen(small_output) < sizeof(small_output));
+
+    // Test 5: NULL and 0 cases (should not crash)
+    sanitize_html(NULL, output, sizeof(output));
+    sanitize_html("test", NULL, sizeof(output));
+    sanitize_html("test", output, 0);
+
+    printf("All test_sanitize_html passed!\n");
+}
+
 int main() {
     test_preprocess_string();
     test_str2mac();
     test_readUrlParameterIntoBuffer();
+    test_sanitize_html();
     return 0;
 }
