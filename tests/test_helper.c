@@ -147,9 +147,34 @@ void test_readUrlParameterIntoBuffer() {
     printf("All test_readUrlParameterIntoBuffer passed!\n");
 }
 
+void test_is_valid_subnet_mask() {
+    printf("Running test_is_valid_subnet_mask...\n");
+
+    // Test 1: Valid subnet masks
+    assert(is_valid_subnet_mask((char *)"255.255.255.0") == true);
+    assert(is_valid_subnet_mask((char *)"255.255.0.0") == true);
+    assert(is_valid_subnet_mask((char *)"255.0.0.0") == true);
+    assert(is_valid_subnet_mask((char *)"255.255.255.255") == true);
+    assert(is_valid_subnet_mask((char *)"128.0.0.0") == true);
+
+    // Test 2: Invalid subnet masks (non-contiguous 1s)
+    assert(is_valid_subnet_mask((char *)"255.255.255.1") == false);
+    assert(is_valid_subnet_mask((char *)"255.255.0.255") == false);
+    assert(is_valid_subnet_mask((char *)"255.0.255.0") == false);
+    assert(is_valid_subnet_mask((char *)"192.168.1.1") == false);
+
+    // Test 3: Invalid formats
+    assert(is_valid_subnet_mask((char *)"255.255.255.256") == false);
+    assert(is_valid_subnet_mask((char *)"invalid") == false);
+    assert(is_valid_subnet_mask((char *)"") == false);
+
+    printf("All test_is_valid_subnet_mask passed!\n");
+}
+
 int main() {
     test_preprocess_string();
     test_str2mac();
     test_readUrlParameterIntoBuffer();
+    test_is_valid_subnet_mask();
     return 0;
 }
