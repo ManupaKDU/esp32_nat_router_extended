@@ -164,7 +164,7 @@ httpd_handle_t start_webserver(void)
         lockUI();
         ESP_LOGI(TAG, "UI is locked with password");
     }
-    free(lock_pass);
+
     get_config_param_int("keep_alive", &keepAlive);
     if (keepAlive == 1)
     {
@@ -174,10 +174,6 @@ httpd_handle_t start_webserver(void)
     else
     {
         ESP_LOGI(TAG, "Keep alive is disabled");
-    }
-
-    if (lock_pass != NULL) {
-        free(lock_pass);
     }
 
     // Start the httpd server
