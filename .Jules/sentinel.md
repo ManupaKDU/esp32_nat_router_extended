@@ -38,3 +38,8 @@
 **Vulnerability:** In `src/urihandler/indexhandler.c`, binary blob data like WPA2 Enterprise certificates (`cer`) was retrieved using `get_config_param_blob` which provides a length `len`. The code then allocated `len + 1` bytes and copied the blob using `strncpy(cer, cert, len + 1)`. Since blobs are not guaranteed to be null-terminated and only have `len` bytes of valid data, `strncpy` attempting to read `len + 1` bytes caused an out-of-bounds read, potentially leading to a crash or minor information leak.
 **Learning:** String copy functions like `strncpy` must never be used on opaque binary blobs or data of unknown null-termination status, especially when the requested copy size exceeds the known bounds of the source buffer.
 **Prevention:** When dealing with blobs that need to be treated as strings, allocate exactly `len + 1` bytes, use `memcpy(dest, src, len)` to safely copy exactly the known amount of data, and manually null-terminate the destination buffer by setting `dest[len] = '\0';`.
+
+## 2025-05-30 - Buffer Overflow via Unsafe sprintf for Hostname Generation
+**Vulnerability:** Unsafe sprintf usage for generated hostname could cause buffer overflow.
+**Learning:** Using sprintf to format strings into dynamically allocated buffers without bounds checking is unsafe.
+**Prevention:** Always use snprintf with the size of the allocated buffer.
