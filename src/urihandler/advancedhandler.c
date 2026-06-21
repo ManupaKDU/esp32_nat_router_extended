@@ -144,8 +144,8 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
     ESP_ERROR_CHECK(esp_base_mac_addr_get(base_mac_addr));
     ESP_ERROR_CHECK(esp_efuse_mac_get_default(default_mac_addr));
 
-    sprintf(currentMAC, "%x:%x:%x:%x:%x:%x", base_mac_addr[0], base_mac_addr[1], base_mac_addr[2], base_mac_addr[3], base_mac_addr[4], base_mac_addr[5]);
-    sprintf(defaultMAC, "%x:%x:%x:%x:%x:%x", default_mac_addr[0], default_mac_addr[1], default_mac_addr[2], default_mac_addr[3], default_mac_addr[4], default_mac_addr[5]);
+    snprintf(currentMAC, sizeof(currentMAC), "%x:%x:%x:%x:%x:%x", base_mac_addr[0], base_mac_addr[1], base_mac_addr[2], base_mac_addr[3], base_mac_addr[4], base_mac_addr[5]);
+    snprintf(defaultMAC, sizeof(defaultMAC), "%x:%x:%x:%x:%x:%x", default_mac_addr[0], default_mac_addr[1], default_mac_addr[2], default_mac_addr[3], default_mac_addr[4], default_mac_addr[5]);
 
     get_config_param_str("custom_mac", &macSetting);
 
