@@ -46,7 +46,3 @@
 ## 2024-07-28 - [HTTPD_RESP_USE_STRLEN Optimization via snprintf]
 **Learning:** Using `HTTPD_RESP_USE_STRLEN` on `httpd_resp_send` causes an O(N) `strlen()` call over the entire buffer inside the HTTP server framework. When dynamically building responses (e.g., HTML pages) using `sprintf`, this `strlen()` calculation is redundant because the string formatting function can return the final length.
 **Action:** Replace `sprintf` with `snprintf(buffer, alloc_size, ...)` to add buffer bounds checking, capture the returned length, and pass this exact length directly to `httpd_resp_send` instead of `HTTPD_RESP_USE_STRLEN`, implementing both a performance optimization and safety improvement.
-## 2024-06-25 - Prevent Network Overhead in HTTP Chunking
-
-**Learning:** When generating HTTP responses containing multiple small, repetitive elements (like table rows for portmap entries inside a loop), sending each element as an individual chunk using `httpd_resp_send_chunk` incurs high overhead.
-**Action:** Concatenate the small chunks into a moderately sized stack buffer (e.g., 2048 bytes) using `snprintf` with offset tracking. Flush the buffer only when it approaches its capacity or after the loop finishes. This significantly minimizes the number of underlying HTTP chunk writes and improves networking performance.
