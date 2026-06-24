@@ -38,6 +38,7 @@ extern "C"
    extern char *gateway_addr;
    extern char *ap_ssid;
    extern char *ap_passwd;
+   extern char *lock_pass;
 
    bool is_lock_pass_set();
    bool check_lock_pass(const char *unlockParam);
