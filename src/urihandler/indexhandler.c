@@ -70,7 +70,6 @@ esp_err_t index_get_handler(httpd_req_t *req)
         displayLockButton = "block";
         displayRelockButton = "none";
     }
-    free(lock_pass);
 
     int32_t ssidHidden = 0;
     char *hiddenSSID = NULL;
@@ -118,9 +117,7 @@ esp_err_t index_get_handler(httpd_req_t *req)
 
     char *cert = NULL;
     get_config_param_str("sta_identity", &sta_identity);
-    char *orig_sta_identity = sta_identity;
     get_config_param_str("sta_user", &sta_user);
-    char *orig_sta_user = sta_user;
 
     get_config_param_blob("cer", &cert, &len);
     char *orig_cert = cert;
@@ -188,18 +185,13 @@ esp_err_t index_get_handler(httpd_req_t *req)
     free(appliedSSID);
     appliedSSID = NULL;
     free(result_param);
-    free(orig_sta_identity);
-    free(orig_sta_user);
     free(orig_cert);
     if (orig_cer != NULL)
     {
         free(orig_cer);
     }
     free(result_param);
-    free(lock_pass);
     free(cert);
-    free(orig_sta_identity);
-    free(orig_sta_user);
 
     return ret;
 }
