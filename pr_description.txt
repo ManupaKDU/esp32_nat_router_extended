@@ -1,0 +1,4 @@
+💡 What: Added the native HTML5 `autofocus` attribute to the primary password input fields on the lock and unlock screens (`src/pages/lock.html` and `src/pages/unlock.html`).
+🎯 Why: These are single-action forms. Without `autofocus`, users are forced to manually click or tap the input field to begin typing. This micro-UX improvement places the cursor immediately upon page load, removing unnecessary friction.
+📸 Before/After: N/A (Behavioral change: cursor focus).
+♿ Accessibility: Reduces physical interaction cost for keyboard users and provides immediate context upon navigating to the page.
