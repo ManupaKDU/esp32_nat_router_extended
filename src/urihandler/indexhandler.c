@@ -1,4 +1,5 @@
 #include "handler.h"
+extern char *lock_pass;
 #include <sys/param.h>
 #include "router_globals.h"
 
@@ -198,8 +199,6 @@ esp_err_t index_get_handler(httpd_req_t *req)
     free(result_param);
     free(lock_pass);
     free(cert);
-    free(orig_sta_identity);
-    free(orig_sta_user);
 
     return ret;
 }
