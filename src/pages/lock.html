@@ -20,7 +20,7 @@
             <div class="form-group row"> <label for=lockpass class=col-3>Password</label>
                 <div class=col-9>
                     <div class="input-group"> <input type=password class=form-control name=lockpass id=lockpass value maxlength=64
-                        placeholder="Lock password" oninput="document.getElementById('lockpass2').setCustomValidity(this.value !== document.getElementById('lockpass2').value ? 'Passwords do not match.' : '')">
+                        placeholder="Lock password" autofocus oninput="document.getElementById('lockpass2').setCustomValidity(this.value !== document.getElementById('lockpass2').value ? 'Passwords do not match.' : '')">
                         <span class="input-group-text password" role="button" tabindex="0" style="cursor: pointer;" title="show password" aria-label="Show or hide password"><svg aria-hidden="true"
                                 xmlns=http://www.w3.org/2000/svg width="16" height="16" fill="currentColor"
                                 class="bi bi-eye" viewBox="0 0 16 16" aria-hidden="true">
