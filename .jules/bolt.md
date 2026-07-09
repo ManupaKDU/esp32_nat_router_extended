@@ -45,3 +45,6 @@
 **Learning:** Even small files can benefit from passing explicit lengths when `snprintf` is already calculating it, eliminating a redundant `strlen` pass during `httpd_resp_send`.
 **Action:** Always capture the integer return value of `snprintf` and check it against the buffer size bounds before replacing `HTTPD_RESP_USE_STRLEN` to maintain safety.
 
+## 2024-06-25 - [HTTPD_RESP_USE_STRLEN Optimization Context - Extraneous changes]
+**Learning:** When attempting targeted performance optimizations using tools like `replace_with_git_merge_diff`, it is critical to ensure the `SEARCH` and `REPLACE` blocks do not inadvertently delete or modify unrelated adjacent code. Deleting necessary `free()` calls during a refactor introduces severe memory leak regressions that override the benefit of the optimization.
+**Action:** Always scrutinize the exact lines within a `SEARCH`/`REPLACE` diff. If a block must be large for context, guarantee every unrelated line in the `SEARCH` block is perfectly preserved in the `REPLACE` block.
