@@ -46,3 +46,7 @@
 ## 2024-07-28 - [HTTPD_RESP_USE_STRLEN Optimization via snprintf]
 **Learning:** Using `HTTPD_RESP_USE_STRLEN` on `httpd_resp_send` causes an O(N) `strlen()` call over the entire buffer inside the HTTP server framework. When dynamically building responses (e.g., HTML pages) using `sprintf`, this `strlen()` calculation is redundant because the string formatting function can return the final length.
 **Action:** Replace `sprintf` with `snprintf(buffer, alloc_size, ...)` to add buffer bounds checking, capture the returned length, and pass this exact length directly to `httpd_resp_send` instead of `HTTPD_RESP_USE_STRLEN`, implementing both a performance optimization and safety improvement.
+
+## 2024-07-25 - [snprintf HTTPD_RESP_USE_STRLEN Optimization Check]
+**Learning:** Even when calculating dynamic string sizes, replacing `sprintf` with `snprintf` prevents buffer overflow and captures the length in O(1) time. This length can then substitute both `HTTPD_RESP_USE_STRLEN` inside `httpd_resp_send` and subsequent `strlen()` calls (e.g. for logging), effectively removing multiple O(N) operations. However, strict bounds-checking `(len > 0 && len < buffer_size)` must be applied to ensure safety if `snprintf` fails or truncates.
+**Action:** When dynamically building HTML pages (e.g. `resulthandler.c`), use `snprintf` to capture the length. Implement bounds-checking and use the verified length for all adjacent operations that would otherwise require string iteration.
