@@ -326,13 +326,13 @@ esp_err_t otalog_get_handler(httpd_req_t *req)
         ESP_LOGE(TAG, "Memory allocation failed");
         return ESP_FAIL;
     }
-    snprintf(otalog_page, alloc_size, otalog_start, otaLogRedirect, progressInt, progressInt, progressLabel, label, otalog, resultLog);
+    int response_len = snprintf(otalog_page, alloc_size, otalog_start, otaLogRedirect, progressInt, progressInt, progressLabel, label, otalog, resultLog);
 
     closeHeader(req);
 
     ESP_LOGI(TAG, "Requesting OTA-Log page");
 
-    esp_err_t ret = httpd_resp_send(req, otalog_page, HTTPD_RESP_USE_STRLEN);
+    esp_err_t ret = httpd_resp_send(req, otalog_page, (response_len > 0 && response_len < alloc_size) ? response_len : HTTPD_RESP_USE_STRLEN);
     free(otalog_page);
     return ret;
 }
