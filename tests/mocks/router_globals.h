@@ -5,3 +5,5 @@
 
 void get_config_param_str(char* name, char** param);
 void get_config_param_int(char* name, int32_t* param);
+
+extern char *lock_pass;
