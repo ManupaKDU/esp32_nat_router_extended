@@ -113,7 +113,7 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
     {
         allocatedDNS = malloc(16);
         currentDNS = allocatedDNS;
-        sprintf(currentDNS, IPSTR, IP2STR(&(dns.ip.u_addr.ip4)));
+        snprintf(currentDNS, 16, IPSTR, IP2STR(&(dns.ip.u_addr.ip4)));
         ESP_LOGI(TAG, "Current DNS is: %s", currentDNS);
     }
 

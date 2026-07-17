@@ -111,7 +111,6 @@ bool check_lock_pass(const char *unlockParam) {
 void update_lock_pass(const char *new_pass) {
     pthread_mutex_lock(&lock_pass_mutex);
     if (lock_pass != NULL) {
-        free(lock_pass);
     }
     if (new_pass != NULL) {
         lock_pass = strdup(new_pass);
