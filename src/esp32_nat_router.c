@@ -723,8 +723,15 @@ void wifi_init(const char *ssid, const char *passwd, const char *static_ip, cons
 
 char *param_set_default(const char *def_val)
 {
-    char *retval = malloc(strlen(def_val) + 1);
-    strcpy(retval, def_val);
+    if (def_val == NULL) {
+        return NULL;
+    }
+    size_t len = strlen(def_val);
+    char *retval = malloc(len + 1);
+    if (retval != NULL) {
+        strncpy(retval, def_val, len);
+        retval[len] = '\0';
+    }
     return retval;
 }
 

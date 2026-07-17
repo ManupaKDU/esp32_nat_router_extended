@@ -42,6 +42,8 @@ extern "C"
    bool is_lock_pass_set();
    bool check_lock_pass(const char *unlockParam);
    void update_lock_pass(const char *new_pass);
+
+   extern char *lock_pass;
   
    extern bool ap_connect;
 

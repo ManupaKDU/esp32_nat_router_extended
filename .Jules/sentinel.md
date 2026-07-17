@@ -47,3 +47,8 @@
 **Vulnerability:** `sprintf` was used to format user MAC addresses into statically sized arrays (`char currentMAC[18]`). If formatting rules changed or unexpected data occurred, `sprintf` could overflow the fixed-size buffers, risking stack corruption and potential code execution.
 **Learning:** Hardcoded formatting operations in C without strict bounds checking are inherently fragile and create unnecessary memory corruption risks.
 **Prevention:** Always use bounds-checked formatting functions like `snprintf` with `sizeof()` (for statically allocated stack arrays) or explicitly defined maximum buffer constraints instead of unbounded `sprintf` calls.
+
+## 2026-06-21 - Buffer Overflow via Unsafe strcpy in Default Parameters
+**Vulnerability:** In `src/esp32_nat_router.c`, `param_set_default()` allocated memory via `malloc(strlen(def_val) + 1)` but used the unsafe `strcpy` function to copy the string. Furthermore, it did not check for `NULL` input strings nor failed `malloc` allocations, potentially leading to crashes or out-of-bounds writes if the allocator failed.
+**Learning:** `strcpy` lacks bounds checking and its usage is universally frowned upon in secure C codebases, even when allocating exactly enough memory, because minor logic errors easily turn it into an exploitable buffer overflow. Memory allocators on embedded devices can also easily fail, making `NULL` checks mandatory.
+**Prevention:** Always use bounds-checked string manipulation functions like `strncpy` or `strlcpy`. Always explicitly verify inputs are not `NULL`, check that `malloc` returns a valid pointer before attempting to write to the allocated block, and manually enforce null-termination when using `strncpy`.
