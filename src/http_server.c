@@ -1,4 +1,5 @@
 #include "urihandler/handler.h"
+extern char *lock_pass;
 
 #include "router_globals.h"
 #include "timer.h"

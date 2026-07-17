@@ -1,4 +1,5 @@
 #include "handler.h"
+extern char *lock_pass;
 #include <sys/param.h>
 #include "router_globals.h"
 

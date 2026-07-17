@@ -1,4 +1,5 @@
 #include "handler.h"
+extern char *lock_pass;
 #include "timer.h"
 
 #include <sys/param.h>
