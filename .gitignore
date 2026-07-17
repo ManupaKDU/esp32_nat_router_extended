@@ -6,3 +6,4 @@ release/**
 commands.txt
 ws.code-workspace
 tests/test_helper
+tests/test_cmd_nvs
