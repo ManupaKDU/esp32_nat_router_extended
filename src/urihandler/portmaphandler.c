@@ -29,7 +29,8 @@ esp_err_t portmap_get_handler(httpd_req_t *req)
 
     // send entries
     bool entriesSent = false;
-    char template[1024] = {0};
+    char template[2048] = {0};
+    int offset = 0;
     for (int i = 0; i < PORTMAP_MAX; i++)
     {
         if (portmap_tab[i].valid)
@@ -50,18 +51,32 @@ esp_err_t portmap_get_handler(httpd_req_t *req)
             char delParam[50];
             snprintf(delParam, sizeof(delParam), "%s_%hu_%s_%hu", protocol, portmap_tab[i].mport, ip_str, portmap_tab[i].dport);
 
-            snprintf(template, sizeof(template), PORTMAP_ROW_TEMPLATE, protocol, portmap_tab[i].mport, ip_str, portmap_tab[i].dport, portmap_tab[i].mport, delParam, portmap_tab[i].mport);
+            int len = snprintf(template + offset, sizeof(template) - offset, PORTMAP_ROW_TEMPLATE, protocol, portmap_tab[i].mport, ip_str, portmap_tab[i].dport, portmap_tab[i].mport, delParam, portmap_tab[i].mport);
 
-            ESP_LOGI(TAG, "Sending portmap entry part");
-            ESP_ERROR_CHECK(httpd_resp_send_chunk(req, template, HTTPD_RESP_USE_STRLEN));
+            if (len > 0 && len < sizeof(template) - offset) {
+                offset += len;
+            }
+
+            ESP_LOGI(TAG, "Buffered portmap entry part");
+
+            if (sizeof(template) - offset < 600) {
+                ESP_ERROR_CHECK(httpd_resp_send_chunk(req, template, offset));
+                offset = 0;
+            }
+
             entriesSent = true;
         }
     }
+
+    if (offset > 0) {
+        ESP_ERROR_CHECK(httpd_resp_send_chunk(req, template, offset));
+    }
+
     if (!entriesSent)
     {
         ESP_LOGI(TAG, "Sending no entry part");
-        const char *template = "<tr><td colspan='5' class='text-muted'>No portmap entries found</td></tr>";
-        ESP_ERROR_CHECK(httpd_resp_send_chunk(req, template, HTTPD_RESP_USE_STRLEN));
+        const char *empty_template = "<tr><td colspan='5' class='text-muted'>No portmap entries found</td></tr>";
+        ESP_ERROR_CHECK(httpd_resp_send_chunk(req, empty_template, HTTPD_RESP_USE_STRLEN));
     }
 
     // send end
