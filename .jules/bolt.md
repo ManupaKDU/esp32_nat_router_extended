@@ -45,3 +45,6 @@
 **Learning:** Even small files can benefit from passing explicit lengths when `snprintf` is already calculating it, eliminating a redundant `strlen` pass during `httpd_resp_send`.
 **Action:** Always capture the integer return value of `snprintf` and check it against the buffer size bounds before replacing `HTTPD_RESP_USE_STRLEN` to maintain safety.
 
+## 2024-06-22 - [C Performance Pattern: Replacing Adjacent strlen Calls]
+**Learning:** When optimizing buffer length calculations (e.g., by capturing `snprintf` return values for `httpd_resp_send`), remember to also replace any adjacent, redundant `strlen()` calls on the same buffer (such as those in subsequent `ESP_LOGI` logging statements).
+**Action:** When capturing the length variable, aggressively check for and replace any adjacent `strlen` calls to completely eliminate unnecessary O(N) buffer traversals.
