@@ -171,27 +171,29 @@ esp_err_t index_get_handler(httpd_req_t *req)
     int response_len = 0;
     if (appliedSSID != NULL && strlen(appliedSSID) > 0)
     {
-        response_len = sprintf(config_page, config_start, connect_count, hiddenSSID, ap_ssid, ap_passwd, textColor, wifiOff, wifiOn, db, ariaExpanded, wpa2CB, appliedSSID, wpa2Input, sta_identity, sta_user, cer, "", scanButtonWidth, displayResult, displayLockButton, displayRelockButton);
+        // ⚡ Bolt: Capture dynamic string length from snprintf to avoid redundant O(N) strlen() inside httpd_resp_send
+        response_len = snprintf(config_page, config_html_size + size, config_start, connect_count, hiddenSSID, ap_ssid, ap_passwd, textColor, wifiOff, wifiOn, db, ariaExpanded, wpa2CB, appliedSSID, wpa2Input, sta_identity, sta_user, cer, "", scanButtonWidth, displayResult, displayLockButton, displayRelockButton);
     }
     else
     {
-        response_len = sprintf(config_page, config_start, connect_count, hiddenSSID, ap_ssid, ap_passwd, textColor, wifiOff, wifiOn, db, ariaExpanded, wpa2CB, ssid, wpa2Input, sta_identity, sta_user, cer, passwd, scanButtonWidth, displayResult, displayLockButton, displayRelockButton);
+        // ⚡ Bolt: Capture dynamic string length from snprintf to avoid redundant O(N) strlen() inside httpd_resp_send
+        response_len = snprintf(config_page, config_html_size + size, config_start, connect_count, hiddenSSID, ap_ssid, ap_passwd, textColor, wifiOff, wifiOn, db, ariaExpanded, wpa2CB, ssid, wpa2Input, sta_identity, sta_user, cer, passwd, scanButtonWidth, displayResult, displayLockButton, displayRelockButton);
     }
 
     closeHeader(req);
 
-    esp_err_t ret = httpd_resp_send(req, config_page, response_len);
+    esp_err_t ret = httpd_resp_send(req, config_page, (response_len > 0 && response_len < config_html_size + size) ? response_len : HTTPD_RESP_USE_STRLEN);
     free(result_param);
     free(config_page);
     free(appliedSSID);
     appliedSSID = NULL;
-    free(result_param);
+    free(orig_sta_identity);
+    free(orig_sta_user);
     free(orig_cert);
     if (orig_cer != NULL)
     {
         free(orig_cer);
     }
-    free(result_param);
     free(cert);
 
     return ret;
