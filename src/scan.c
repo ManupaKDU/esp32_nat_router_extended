@@ -157,7 +157,7 @@ static char *wifi_scan(void)
         ESP_LOGE(TAG, "Failed to allocate memory for scan result");
         return NULL;
     }
-    strcpy(result, "");
+    result[0] = '\0';
 
     // Bolt Optimization: Prevent O(N^2) concatenation by tracking string length
     // and using snprintf with an offset, turning the append operation into O(N).

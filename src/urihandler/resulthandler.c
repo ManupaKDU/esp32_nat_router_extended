@@ -45,7 +45,7 @@ esp_err_t result_download_get_handler(httpd_req_t *req)
     int allocatedSize = (strlen(ROW_TEMPLATE) + 100) * DEFAULT_SCAN_LIST_SIZE;
 
     char result[allocatedSize];
-    strcpy(result, "");
+    result[0] = '\0';
 
     // Bolt Optimization: Replace O(N^2) strcat looping with a running offset
     // and snprintf, to make HTML string concatenation scale efficiently.
