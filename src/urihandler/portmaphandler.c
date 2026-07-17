@@ -63,7 +63,6 @@ esp_err_t portmap_get_handler(httpd_req_t *req)
                 ESP_ERROR_CHECK(httpd_resp_send_chunk(req, template, offset));
                 offset = 0;
             }
-
             entriesSent = true;
         }
     }
@@ -76,7 +75,7 @@ esp_err_t portmap_get_handler(httpd_req_t *req)
     {
         ESP_LOGI(TAG, "Sending no entry part");
         const char *empty_template = "<tr><td colspan='5' class='text-muted'>No portmap entries found</td></tr>";
-        ESP_ERROR_CHECK(httpd_resp_send_chunk(req, empty_template, HTTPD_RESP_USE_STRLEN));
+        ESP_ERROR_CHECK(httpd_resp_send_chunk(req, empty_template, sizeof("<tr><td colspan='5' class='text-muted'>No portmap entries found</td></tr>") - 1));
     }
 
     // send end
@@ -90,9 +89,10 @@ esp_err_t portmap_get_handler(httpd_req_t *req)
     ip_prefix[strlen(defaultIP) - 1] = '\0';
     char *portmap_page = malloc(portmap_html_size + strlen(ip_prefix) + 1);
     if (portmap_page != NULL) {
-        snprintf(portmap_page, portmap_html_size + strlen(ip_prefix) + 1, portmap_end_start, ip_prefix);
+        int len = snprintf(portmap_page, portmap_html_size + strlen(ip_prefix) + 1, portmap_end_start, ip_prefix);
         ESP_LOGI(TAG, "Sending portmap end part");
-        ESP_ERROR_CHECK(httpd_resp_send_chunk(req, portmap_page, HTTPD_RESP_USE_STRLEN));
+        // ⚡ Bolt: Eliminate HTTPD_RESP_USE_STRLEN O(N) overhead by passing snprintf length
+        ESP_ERROR_CHECK(httpd_resp_send_chunk(req, portmap_page, (len > 0 && len < portmap_html_size + strlen(ip_prefix) + 1) ? len : HTTPD_RESP_USE_STRLEN));
         free(portmap_page);
     }
 
