@@ -192,7 +192,8 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
     char *advanced_page = malloc(size);
 
     char subMac[18]; // ⚡ Bolt: Use stack buffer to avoid malloc overhead for small string
-    strcpy(subMac, defaultMAC);
+    strncpy(subMac, defaultMAC, sizeof(subMac) - 1);
+    subMac[sizeof(subMac) - 1] = '\0';
     subMac[strlen(subMac) - 2] = '\0';
 
     // ⚡ Bolt: Capture dynamic string length to avoid redundant O(N) strlen() in httpd_resp_send
