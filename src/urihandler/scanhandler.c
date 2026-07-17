@@ -13,14 +13,14 @@ void fillInfoData(char *db, char **textColor)
     memset(&apinfo, 0, sizeof(apinfo));
     if (esp_wifi_sta_get_ap_info(&apinfo) == ESP_OK)
     {
-        sprintf(db, "%d", apinfo.rssi);
+        snprintf(db, 8, "%d", apinfo.rssi);
         *textColor = findTextColorForSSID(apinfo.rssi);
         ESP_LOGD(TAG, "RSSI: %d", apinfo.rssi);
         ESP_LOGD(TAG, "SSID: %s", apinfo.ssid);
     }
     else
     {
-        sprintf(db, "%d", 0);
+        snprintf(db, 8, "%d", 0);
         *textColor = "muted";
     }
 }
