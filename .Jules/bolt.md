@@ -46,3 +46,7 @@
 ## 2024-07-28 - [HTTPD_RESP_USE_STRLEN Optimization via snprintf]
 **Learning:** Using `HTTPD_RESP_USE_STRLEN` on `httpd_resp_send` causes an O(N) `strlen()` call over the entire buffer inside the HTTP server framework. When dynamically building responses (e.g., HTML pages) using `sprintf`, this `strlen()` calculation is redundant because the string formatting function can return the final length.
 **Action:** Replace `sprintf` with `snprintf(buffer, alloc_size, ...)` to add buffer bounds checking, capture the returned length, and pass this exact length directly to `httpd_resp_send` instead of `HTTPD_RESP_USE_STRLEN`, implementing both a performance optimization and safety improvement.
+## 2024-06-26 - Automated Reviewer Hallucination on NVS Caching Refactor
+
+**Learning:** When refactoring NVS parameter fetching to use global cached variables accessed via state checks (like `is_lock_pass_set`), the automated code reviewer may incorrectly flag the removal of legacy `free(lock_pass)` calls as a memory leak.
+**Action:** Do not blindly trust the automated reviewer if it flags the removal of `free()` for variables that are no longer declared locally. Re-introducing the `free()` calls will lead to 'undeclared identifier' compilation errors and CI failure. Document the hallucination and proceed with removing the invalid `free()` calls to maintain a clean build.
