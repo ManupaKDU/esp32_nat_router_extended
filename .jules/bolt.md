@@ -48,3 +48,7 @@
 ## 2024-06-22 - [C Performance Pattern: Replacing Adjacent strlen Calls]
 **Learning:** When optimizing buffer length calculations (e.g., by capturing `snprintf` return values for `httpd_resp_send`), remember to also replace any adjacent, redundant `strlen()` calls on the same buffer (such as those in subsequent `ESP_LOGI` logging statements).
 **Action:** When capturing the length variable, aggressively check for and replace any adjacent `strlen` calls to completely eliminate unnecessary O(N) buffer traversals.
+
+## 2024-06-25 - [HTTPD_RESP_USE_STRLEN Optimization Context - Extraneous changes]
+**Learning:** When attempting targeted performance optimizations using tools like `replace_with_git_merge_diff`, it is critical to ensure the `SEARCH` and `REPLACE` blocks do not inadvertently delete or modify unrelated adjacent code. Deleting necessary `free()` calls during a refactor introduces severe memory leak regressions that override the benefit of the optimization.
+**Action:** Always scrutinize the exact lines within a `SEARCH`/`REPLACE` diff. If a block must be large for context, guarantee every unrelated line in the `SEARCH` block is perfectly preserved in the `REPLACE` block.
