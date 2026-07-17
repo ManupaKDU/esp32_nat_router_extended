@@ -148,23 +148,23 @@ void sanitize_html(const char *input, char *output, size_t output_size)
     while (*input && out_idx < output_size - 1) {
         if (*input == '<') {
             if (out_idx + 4 >= output_size) break;
-            strcpy(output + out_idx, "&lt;");
+            memcpy(output + out_idx, "&lt;", 4);
             out_idx += 4;
         } else if (*input == '>') {
             if (out_idx + 4 >= output_size) break;
-            strcpy(output + out_idx, "&gt;");
+            memcpy(output + out_idx, "&gt;", 4);
             out_idx += 4;
         } else if (*input == '&') {
             if (out_idx + 5 >= output_size) break;
-            strcpy(output + out_idx, "&amp;");
+            memcpy(output + out_idx, "&amp;", 5);
             out_idx += 5;
         } else if (*input == '"') {
             if (out_idx + 6 >= output_size) break;
-            strcpy(output + out_idx, "&quot;");
+            memcpy(output + out_idx, "&quot;", 6);
             out_idx += 6;
         } else if (*input == '\'') {
             if (out_idx + 5 >= output_size) break;
-            strcpy(output + out_idx, "&#39;");
+            memcpy(output + out_idx, "&#39;", 5);
             out_idx += 5;
         } else {
             output[out_idx++] = *input;
