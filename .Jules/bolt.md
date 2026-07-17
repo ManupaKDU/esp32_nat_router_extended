@@ -46,3 +46,6 @@
 ## 2024-07-28 - [HTTPD_RESP_USE_STRLEN Optimization via snprintf]
 **Learning:** Using `HTTPD_RESP_USE_STRLEN` on `httpd_resp_send` causes an O(N) `strlen()` call over the entire buffer inside the HTTP server framework. When dynamically building responses (e.g., HTML pages) using `sprintf`, this `strlen()` calculation is redundant because the string formatting function can return the final length.
 **Action:** Replace `sprintf` with `snprintf(buffer, alloc_size, ...)` to add buffer bounds checking, capture the returned length, and pass this exact length directly to `httpd_resp_send` instead of `HTTPD_RESP_USE_STRLEN`, implementing both a performance optimization and safety improvement.
+
+## 2026-05-18 - C Refactoring Pattern (NVS Caching)
+**Learning:** When optimizing code by converting locally fetched NVS parameters (e.g., `lock_pass` fetched via `get_config_param_str`) into global cached variables accessed via state checks (e.g., `is_lock_pass_set()`), ensure all legacy `free()` calls corresponding to the removed local variables are also deleted. Leaving them in causes `undeclared identifier` compilation errors. If an automated code reviewer falsely flags the removal of these invalid `free()` calls as a memory leak, document the hallucination in your journal rather than re-introducing invalid code.
