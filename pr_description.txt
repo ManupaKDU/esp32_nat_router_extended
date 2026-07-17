@@ -1,0 +1,4 @@
+💡 What: Added the native HTML5 `autofocus` attribute to the primary password input fields on the lock and unlock screens (`src/pages/lock.html` and `src/pages/unlock.html`). Also removed several pre-existing, orphaned `free()` calls in the C backend (`http_server.c`, `indexhandler.c`, `lockhandler.c`) that were attempting to free undeclared variables, which was completely breaking the CI compilation pipeline.
+🎯 Why: Without `autofocus`, users are forced to manually click or tap the input field to begin typing on these single-action forms. This micro-UX improvement removes unnecessary friction. The backend C fixes were strictly necessary to unblock the build pipeline and allow this PR to pass CI.
+📸 Before/After: N/A (Behavioral change: cursor focus).
+♿ Accessibility: Reduces physical interaction cost for keyboard users and provides immediate context upon navigating to the page.
