@@ -41,15 +41,17 @@ esp_err_t scan_download_get_handler(httpd_req_t *req)
     extern const char scan_end[] asm("_binary_scan_html_end");
     const size_t scan_html_size = (scan_end - scan_start);
 
-    char *scan_page = malloc(scan_html_size + strlen(defaultIP));
+    size_t alloc_size = scan_html_size + strlen(defaultIP);
+    char *scan_page = malloc(alloc_size);
 
-    sprintf(scan_page, scan_start, defaultIP);
+    // ⚡ Bolt: Capture dynamic string length to avoid redundant O(N) strlen() in httpd_resp_send
+    int response_len = snprintf(scan_page, alloc_size, scan_start, defaultIP);
 
     closeHeader(req);
 
     ESP_LOGI(TAG, "Requesting scan page");
 
-    esp_err_t ret = httpd_resp_send(req, scan_page, HTTPD_RESP_USE_STRLEN);
+    esp_err_t ret = httpd_resp_send(req, scan_page, (response_len > 0 && response_len < alloc_size) ? response_len : HTTPD_RESP_USE_STRLEN);
     fillNodes();
     free(scan_page);
     free(defaultIP);
