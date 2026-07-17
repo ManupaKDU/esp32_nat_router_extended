@@ -723,9 +723,10 @@ void wifi_init(const char *ssid, const char *passwd, const char *static_ip, cons
 
 char *param_set_default(const char *def_val)
 {
-    char *retval = malloc(strlen(def_val) + 1);
-    strcpy(retval, def_val);
-    return retval;
+    if (def_val == NULL) {
+        return NULL;
+    }
+    return strdup(def_val);
 }
 
 bool checkForResetPinAndReset()
