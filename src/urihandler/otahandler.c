@@ -266,7 +266,8 @@ void updateVersion()
             switch (lineNumber)
             {
             case 1:
-                strcpy(latest_version, line);
+                strncpy(latest_version, line, sizeof(latest_version) - 1);
+                latest_version[sizeof(latest_version) - 1] = '\0';
                 break;
 
             default:
