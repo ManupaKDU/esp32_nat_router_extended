@@ -147,9 +147,54 @@ void test_readUrlParameterIntoBuffer() {
     printf("All test_readUrlParameterIntoBuffer passed!\n");
 }
 
+void test_sanitize_html() {
+    printf("Running test_sanitize_html...\n");
+    char buffer[128];
+
+    // Test 1: NULL inputs and zero length
+    sanitize_html(NULL, buffer, sizeof(buffer)); // Should not crash
+    sanitize_html("test", NULL, sizeof(buffer)); // Should not crash
+    buffer[0] = 'x';
+    sanitize_html("test", buffer, 0); // Should not modify
+    assert(buffer[0] == 'x');
+
+    // Test 2: Normal string
+    sanitize_html("hello world", buffer, sizeof(buffer));
+    assert(strcmp(buffer, "hello world") == 0);
+
+    // Test 3: Special characters < > & " '
+    sanitize_html("<script>alert('xss' & \"test\")</script>", buffer, sizeof(buffer));
+    assert(strcmp(buffer, "&lt;script&gt;alert(&#39;xss&#39; &amp; &quot;test&quot;)&lt;/script&gt;") == 0);
+
+    // Test 4: Buffer limit behavior (normal chars)
+    char small_buf[5];
+    sanitize_html("12345", small_buf, sizeof(small_buf));
+    assert(strcmp(small_buf, "1234") == 0);
+
+    // Test 5: Buffer limit behavior (truncated tag)
+    char small_buf2[8];
+    // "&lt;" is 4 chars, 'a' is 1. We need room for null.
+    sanitize_html("<ab", small_buf2, sizeof(small_buf2));
+    // Length 8: 0 to 6 are chars, 7 is null.
+    // '<' -> "&lt;" (4 bytes). Next is 'a' (1 byte). Next is 'b' (1 byte). Total 6 bytes + null = 7 bytes.
+    assert(strcmp(small_buf2, "&lt;ab") == 0);
+
+    // Test 6: Buffer limit behavior (not enough room for full tag)
+    char small_buf3[5];
+    sanitize_html("a<b", small_buf3, sizeof(small_buf3));
+    // 'a' (1). '<' needs 4 bytes. Total 5 + 1 = 6 bytes needed.
+    // Capacity 5, out_idx=0. 'a' -> out_idx=1.
+    // next is '<', out_idx + 4 = 1 + 4 = 5 >= output_size (5). Break.
+    // Output: "a\0"
+    assert(strcmp(small_buf3, "a") == 0);
+
+    printf("All test_sanitize_html passed!\n");
+}
+
 int main() {
     test_preprocess_string();
     test_str2mac();
     test_readUrlParameterIntoBuffer();
+    test_sanitize_html();
     return 0;
 }
