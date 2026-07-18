@@ -8,13 +8,15 @@ char *appliedSSID = NULL;
 
 bool isWrongHost(httpd_req_t *req)
 {
-    char *currentIP = getDefaultIPByNetmask();
     char host[32]; // ⚡ Bolt: Use stack buffer for short predictable string to avoid malloc overhead
     if (httpd_req_get_hdr_value_str(req, "Host", host, sizeof(host)) != ESP_OK) {
         host[0] = '\0';
     }
+    ip4_addr_t addr;
+    addr.addr = my_ap_ip;
+    char currentIP[16]; // ⚡ Bolt: Use stack buffer and global IP variable instead of expensive NVS reads and malloc
+    snprintf(currentIP, sizeof(currentIP), IPSTR, IP2STR(&addr));
     bool out = strcmp(host, currentIP) != 0;
-    free(currentIP);
     return out;
 }
 

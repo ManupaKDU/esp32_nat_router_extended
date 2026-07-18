@@ -46,3 +46,7 @@
 ## 2024-07-28 - [HTTPD_RESP_USE_STRLEN Optimization via snprintf]
 **Learning:** Using `HTTPD_RESP_USE_STRLEN` on `httpd_resp_send` causes an O(N) `strlen()` call over the entire buffer inside the HTTP server framework. When dynamically building responses (e.g., HTML pages) using `sprintf`, this `strlen()` calculation is redundant because the string formatting function can return the final length.
 **Action:** Replace `sprintf` with `snprintf(buffer, alloc_size, ...)` to add buffer bounds checking, capture the returned length, and pass this exact length directly to `httpd_resp_send` instead of `HTTPD_RESP_USE_STRLEN`, implementing both a performance optimization and safety improvement.
+
+## 2026-07-18 - Optimize Global State Access Over NVS Reads
+**Learning:** Retrieving global state (like AP IP address) by invoking helper functions that fetch from NVS and dynamically allocate memory (like `getDefaultIPByNetmask()`) causes severe performance hits due to unnecessary flash wear, I/O latency, and heap fragmentation, especially on frequently hit routes like the root index handler's host check.
+**Action:** When a global variable (e.g., `my_ap_ip`) holds the exact cached state needed, reference it directly and use string conversion (e.g., `snprintf(buf, sizeof(buf), IPSTR, IP2STR(&addr))`) into a stack buffer instead of calling expensive NVS read and allocation helpers.
