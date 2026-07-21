@@ -1,6 +1,6 @@
-⚡ Bolt: Optimize index_get_handler by avoiding implicit strlen()
+🎨 Palette: Add autofocus to lock and unlock forms
 
-In src/urihandler/indexhandler.c, capture the return value of sprintf
-when building the config_page buffer. Pass this length directly to
-httpd_resp_send instead of using HTTPD_RESP_USE_STRLEN, which saves
-an expensive implicit strlen() call on the ~18KB HTML response buffer.
+💡 What: Added the `autofocus` attribute to the primary password inputs in both the lock and unlock pages.
+🎯 Why: These are single-action forms (either locking or unlocking the interface). Adding autofocus immediately places the user's cursor in the input field, reducing friction and making the interaction smoother.
+📸 Before/After: N/A - non-visual UX improvement.
+♿ Accessibility: Improves keyboard accessibility by correctly routing focus upon page load.
