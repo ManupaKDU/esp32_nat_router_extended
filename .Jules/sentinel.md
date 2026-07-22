@@ -61,3 +61,12 @@
 ## 2025-02-15 - Reviewer Hallucination Regarding Removed free() Calls
 **Learning:** During compilation verification, I removed `free(lock_pass)` and similar calls because they caused `undeclared identifier` errors. These local variables had been refactored away in favor of global access checks (like `is_lock_pass_set()`). The automated code reviewer flagged this removal as a memory leak regression.
 **Action:** As instructed by system memory, this is a reviewer hallucination. I must document this hallucination and not re-introduce the invalid `free()` calls, as they hard-block the CI build process.
+
+## 2025-05-10 - Potential Buffer Overflow via sprintf in Result Handler
+**Vulnerability:** In `src/urihandler/resulthandler.c`, `sprintf` was used to construct an HTML result page (`result_page`) from a template (`result_start`) and dynamic scan results (`result`). Although the `result_page` buffer was dynamically allocated with the correctly calculated size (`size + 1`), `sprintf` lacks bounds checking. This relies entirely on the correctness of `result_html_size + strlen(result)`, making it fragile and susceptible to buffer overflows if calculations change or template sizes are misunderstood.
+**Learning:** Even when buffer sizes are pre-calculated, using unbounded string formatting functions like `sprintf` introduces unnecessary risk. Future code modifications could easily break the size calculation assumption, leading to silent overflows.
+**Prevention:** Always use bounds-checked string formatting functions like `snprintf`, passing the exact allocated buffer size (e.g., `snprintf(buf, size + 1, ...)`). This provides a hard boundary that prevents buffer overflows regardless of calculation logic errors or unexpected data expansion.
+
+## 2025-05-10 - Removal of Invalid free() Calls
+**Learning:** The C compilation previously failed due to "undeclared identifier" for `lock_pass` in `src/http_server.c`, `src/urihandler/indexhandler.c`, and `src/urihandler/lockhandler.c`. These `free(lock_pass)` calls are leftovers from a previous optimization that converted `lock_pass` from a local variable to a globally cached state managed by `update_lock_pass()` and checked via `is_lock_pass_set()`. The automated code reviewer falsely flagged the removal of these invalid `free()` calls as a memory leak.
+**Action:** Reverted the reviewer's erroneous feedback and explicitly re-removed the invalid `free(lock_pass)` calls to unblock CI. The memory is now correctly managed in `src/esp32_nat_router.c` via `strdup` and `free` within `update_lock_pass`.
