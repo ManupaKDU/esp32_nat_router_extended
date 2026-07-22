@@ -44,6 +44,26 @@ static void register_set_ap_ip(void);
 static void register_show(void);
 static void register_portmap(void);
 
+static esp_err_t get_config_param_str_from_nvs(nvs_handle_t nvs, char *name, char **param)
+{
+    size_t len;
+    esp_err_t err;
+    if ((err = nvs_get_str(nvs, name, NULL, &len)) == ESP_OK)
+    {
+        *param = (char *)malloc(len);
+        err = nvs_get_str(nvs, name, *param, &len);
+        if (strstr(name, "pass") != NULL ||
+            strstr(name, "unlock") != NULL ||
+            strstr(name, "user") != NULL ||
+            strstr(name, "identity") != NULL) {
+            ESP_LOGI(TAG, "%s ***REDACTED***", name);
+        } else {
+            ESP_LOGI(TAG, "%s %s", name, *param);
+        }
+    }
+    return err;
+}
+
 esp_err_t get_config_param_str(char *name, char **param)
 {
     nvs_handle_t nvs;
@@ -51,31 +71,10 @@ esp_err_t get_config_param_str(char *name, char **param)
     esp_err_t err = nvs_open(PARAM_NAMESPACE, NVS_READONLY, &nvs);
     if (err == ESP_OK)
     {
-        size_t len;
-        if ((err = nvs_get_str(nvs, name, NULL, &len)) == ESP_OK)
-        {
-            *param = (char *)malloc(len);
-            err = nvs_get_str(nvs, name, *param, &len);
-            if (strstr(name, "pass") != NULL ||
-                strstr(name, "unlock") != NULL ||
-                strstr(name, "user") != NULL ||
-                strstr(name, "identity") != NULL) {
-                ESP_LOGI(TAG, "%s ***REDACTED***", name);
-            } else {
-                ESP_LOGI(TAG, "%s %s", name, *param);
-            }
-        }
-        else
-        {
-            return err;
-        }
+        err = get_config_param_str_from_nvs(nvs, name, param);
         nvs_close(nvs);
     }
-    else
-    {
-        return err;
-    }
-    return ESP_OK;
+    return err;
 }
 
 esp_err_t get_config_param_blob(char *name, char **param, size_t *blob_len)
@@ -622,13 +621,18 @@ static int show(int argc, char **argv)
     char *ap_ssid = NULL;
     char *ap_passwd = NULL;
 
-    get_config_param_str("ssid", &ssid);
-    get_config_param_str("passwd", &passwd);
-    get_config_param_str("static_ip", &static_ip);
-    get_config_param_str("subnet_mask", &subnet_mask);
-    get_config_param_str("gateway_addr", &gateway_addr);
-    get_config_param_str("ap_ssid", &ap_ssid);
-    get_config_param_str("ap_passwd", &ap_passwd);
+    nvs_handle_t nvs;
+    if (nvs_open(PARAM_NAMESPACE, NVS_READONLY, &nvs) == ESP_OK)
+    {
+        get_config_param_str_from_nvs(nvs, "ssid", &ssid);
+        get_config_param_str_from_nvs(nvs, "passwd", &passwd);
+        get_config_param_str_from_nvs(nvs, "static_ip", &static_ip);
+        get_config_param_str_from_nvs(nvs, "subnet_mask", &subnet_mask);
+        get_config_param_str_from_nvs(nvs, "gateway_addr", &gateway_addr);
+        get_config_param_str_from_nvs(nvs, "ap_ssid", &ap_ssid);
+        get_config_param_str_from_nvs(nvs, "ap_passwd", &ap_passwd);
+        nvs_close(nvs);
+    }
 
     printf("STA SSID: %s Password: ***REDACTED***\n", ssid != NULL ? ssid : "<undef>");
     printf("AP SSID: %s Password: ***REDACTED***\n", ap_ssid != NULL ? ap_ssid : "<undef>");
