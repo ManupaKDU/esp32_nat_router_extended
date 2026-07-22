@@ -194,7 +194,10 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
     char subMac[18]; // ⚡ Bolt: Use stack buffer to avoid malloc overhead for small string
     strncpy(subMac, defaultMAC, sizeof(subMac) - 1);
     subMac[sizeof(subMac) - 1] = '\0';
-    subMac[strlen(subMac) - 2] = '\0';
+    if (strlen(subMac) >= 2)
+    {
+        subMac[strlen(subMac) - 2] = '\0';
+    }
 
     // ⚡ Bolt: Capture dynamic string length to avoid redundant O(N) strlen() in httpd_resp_send
     int response_len = snprintf(advanced_page, size, advanced_start, hostName, octet, lowSelected, mediumSelected, highSelected, bwHigh, bwLow, ledCB, aliveCB, natCB, currentDNS, defCB, cloudCB, adguardCB, customCB, customDNSIP, currentMAC, defMacCB, defaultMAC, rndMacCB, subMac, customMacCB, customMac, netmask, classCCB, octet, classBCB, octet, classACB, octet, customMaskCB, customMask);
