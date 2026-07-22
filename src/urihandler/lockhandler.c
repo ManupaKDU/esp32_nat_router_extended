@@ -151,15 +151,19 @@ esp_err_t lock_handler(httpd_req_t *req)
 
         readUrlParameterIntoBuffer(buf, "lockpass", passParam, req->content_len);
         readUrlParameterIntoBuffer(buf, "lockpass2", pass2Param, req->content_len);
-        if (strlen(passParam) == strlen(pass2Param) && crypto_memcmp(passParam, pass2Param, strlen(passParam)) == 0)
+        size_t passLen = strlen(passParam);
+        size_t pass2Len = strlen(pass2Param);
+        if (passLen == pass2Len && crypto_memcmp(passParam, pass2Param, passLen) == 0)
         {
             readUrlParameterIntoBuffer(buf, "lockpass", passParam, req->content_len);
             readUrlParameterIntoBuffer(buf, "lockpass2", pass2Param, req->content_len);
+            passLen = strlen(passParam);
+            pass2Len = strlen(pass2Param);
             ESP_LOGI(TAG, "Found pass2 parameter => ***REDACTED***");
-            if (strlen(passParam) == strlen(pass2Param) && crypto_memcmp(passParam, pass2Param, strlen(passParam)) == 0)
+            if (passLen == pass2Len && crypto_memcmp(passParam, pass2Param, passLen) == 0)
             {
                 ESP_LOGI(TAG, "Passes are equal. Password will be changed.");
-                if (strlen(passParam) == 0)
+                if (passLen == 0)
                 {
                     ESP_LOGI(TAG, "Pass will be removed");
                 }
@@ -170,7 +174,7 @@ esp_err_t lock_handler(httpd_req_t *req)
                 nvs_close(nvs);
                 update_lock_pass(passParam);
                 httpd_resp_set_status(req, "302 Found");
-                if (strlen(passParam) > 0)
+                if (passLen > 0)
                 {
                     httpd_resp_set_hdr(req, "Location", "/lock");
                     lockUI();
