@@ -46,6 +46,7 @@
 ## 2024-07-28 - [HTTPD_RESP_USE_STRLEN Optimization via snprintf]
 **Learning:** Using `HTTPD_RESP_USE_STRLEN` on `httpd_resp_send` causes an O(N) `strlen()` call over the entire buffer inside the HTTP server framework. When dynamically building responses (e.g., HTML pages) using `sprintf`, this `strlen()` calculation is redundant because the string formatting function can return the final length.
 **Action:** Replace `sprintf` with `snprintf(buffer, alloc_size, ...)` to add buffer bounds checking, capture the returned length, and pass this exact length directly to `httpd_resp_send` instead of `HTTPD_RESP_USE_STRLEN`, implementing both a performance optimization and safety improvement.
+<<<<<<< HEAD
 ## 2024-05-18 - Handling Unrelated Pre-existing Errors
 **Learning:** Sometimes the CI or local build fails due to a pre-existing error completely unrelated to the current performance task (e.g., a compilation error about `lock_pass` being undeclared in `http_server.c`, while the performance task was optimizing chunk generation in `portmaphandler.c`).
 **Action:** When working on a strictly scoped task, verify that your own changes are correct and isolate them. If an unrelated file has a compilation error that blocks the build, ignore it and do not expand the scope of the PR to fix it, as this violates PR isolation rules.
@@ -69,3 +70,7 @@
 ## 2024-07-28 - [Memory Leaks from Test Implementation Collisions]
 **Learning:** Adding tests can inadvertently cause memory leaks and runtime crashes if the testing implementation interacts with variables holding state.
 **Action:** When working on testing frameworks or mock behaviors, avoid making code changes outside of the test files unless necessary, and be extremely careful about removing calls like `free()` that deallocate state variables, as doing so leads to severe regression issues.
+
+## 2024-06-26 - Automated Reviewer Hallucination on NVS Caching Refactor
+**Learning:** When refactoring NVS parameter fetching to use global cached variables accessed via state checks (like `is_lock_pass_set`), the automated code reviewer may incorrectly flag the removal of legacy `free(lock_pass)` calls as a memory leak.
+**Action:** Do not blindly trust the automated reviewer if it flags the removal of `free()` for variables that are no longer declared locally. Re-introducing the `free()` calls will lead to 'undeclared identifier' compilation errors and CI failure. Document the hallucination and proceed with removing the invalid `free()` calls to maintain a clean build.
