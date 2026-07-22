@@ -90,6 +90,9 @@ esp_err_t fill_post_buffer(httpd_req_t *req, char *buf, size_t len)
 
 bool is_valid_subnet_mask(char *subnet_mask)
 {
+    if (subnet_mask == NULL) return false;
+    if (strlen(subnet_mask) == 0) return true;
+
     ip_addr_t ip_addr;
 
     // ⚡ Bolt: Use ipaddr_aton to validate directly instead of expensive string copying and multiple strtok/atoi calls

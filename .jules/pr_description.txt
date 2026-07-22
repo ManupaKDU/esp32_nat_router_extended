@@ -1,0 +1,3 @@
+🎯 **What:** The testing gap addressed: Missing tests for `is_valid_subnet_mask` in `src/urihandler/helper.c` which parses subnet masks, including missing `NULL` check and empty string check tests. The `is_valid_subnet_mask` function itself was updated to correctly handle `NULL` and empty strings.
+📊 **Coverage:** What scenarios are now tested: Null pointers (`NULL`) and empty string (`""`) edge cases.
+✨ **Result:** The improvement in test coverage: We now have full coverage for valid formats, invalid formats, non-contiguous masks, and missing inputs (NULL, empty string) for the `is_valid_subnet_mask` function, increasing code reliability.
