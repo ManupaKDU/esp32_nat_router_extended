@@ -189,12 +189,8 @@ esp_err_t index_get_handler(httpd_req_t *req)
     free(config_page);
     free(appliedSSID);
     appliedSSID = NULL;
-<<<<<<< HEAD
     free(orig_sta_identity);
     free(orig_sta_user);
-=======
-    free(result_param);
->>>>>>> pr-297
     free(orig_cert);
     if (orig_cer != NULL)
     {
