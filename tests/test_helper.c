@@ -179,6 +179,7 @@ void test_readUrlParameterIntoBuffer() {
     printf("All test_readUrlParameterIntoBuffer passed!\n");
 }
 
+<<<<<<< HEAD
 void test_is_valid_subnet_mask() {
     printf("Running test_is_valid_subnet_mask...\n");
 
@@ -242,14 +243,42 @@ void test_sanitize_html() {
 }
 
 
+=======
+void test_crypto_memcmp() {
+    printf("Running test_crypto_memcmp...\n");
+
+    // Test 1: Identical strings
+    const char *str1 = "secretpassword";
+    const char *str2 = "secretpassword";
+    assert(crypto_memcmp(str1, str2, strlen(str1)) == 0);
+
+    // Test 2: Difference at the beginning
+    const char *str3 = "Secretpassword";
+    assert(crypto_memcmp(str1, str3, strlen(str1)) == 1);
+
+    // Test 3: Difference at the end
+    const char *str4 = "secretpasswore";
+    assert(crypto_memcmp(str1, str4, strlen(str1)) == 1);
+
+    // Test 4: Zero length comparison
+    assert(crypto_memcmp(str1, str4, 0) == 0);
+
+    // Test 5: Binary data with null bytes
+    const unsigned char bin1[] = {0x00, 0x01, 0x00, 0x02};
+    const unsigned char bin2[] = {0x00, 0x01, 0x00, 0x02};
+    const unsigned char bin3[] = {0x00, 0x01, 0x00, 0x03};
+    assert(crypto_memcmp(bin1, bin2, sizeof(bin1)) == 0);
+    assert(crypto_memcmp(bin1, bin3, sizeof(bin1)) == 1);
+
+    printf("All test_crypto_memcmp passed!\n");
+}
+
 int main() {
     test_preprocess_string();
     test_str2mac();
     test_readUrlParameterIntoBuffer();
     test_is_valid_subnet_mask();
-<<<<<<< HEAD
     test_sanitize_html();
-=======
->>>>>>> pr-280
+    test_crypto_memcmp();
     return 0;
 }

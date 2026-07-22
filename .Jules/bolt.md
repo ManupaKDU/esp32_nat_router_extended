@@ -65,3 +65,7 @@
 ## 2025-05-18 - Automated Code Reviewer False Positive on free() removals
 **Learning:** The automated code reviewer falsely flagged the removal of `free()` calls (like `free(lock_pass)`) as a memory leak, despite them being invalid due to `undeclared identifier` errors caused by prior refactoring.
 **Action:** Ignore this specific reviewer hallucination to avoid re-introducing compilation-breaking invalid code.
+
+## 2024-07-28 - [Memory Leaks from Test Implementation Collisions]
+**Learning:** Adding tests can inadvertently cause memory leaks and runtime crashes if the testing implementation interacts with variables holding state.
+**Action:** When working on testing frameworks or mock behaviors, avoid making code changes outside of the test files unless necessary, and be extremely careful about removing calls like `free()` that deallocate state variables, as doing so leads to severe regression issues.
