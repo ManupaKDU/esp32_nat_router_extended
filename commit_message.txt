@@ -1,6 +1,0 @@
-⚡ Bolt: Eliminate redundant strlen() in httpd_resp_send via snprintf
-
-💡 What: Replaced usages of the HTTPD_RESP_USE_STRLEN macro in httpd_resp_send calls with dynamically captured string lengths returned directly by snprintf, and cleaned up extraneous free() calls stemming from a prior refactor of lock_pass.
-🎯 Why: Using HTTPD_RESP_USE_STRLEN forces the ESP-IDF HTTP server to perform an O(N) strlen() calculation on the entire HTML buffer before sending. Capturing the length from snprintf eliminates this redundant traversal, scaling efficiently for large buffers.
-📊 Impact: Eliminates O(N) strlen() overhead per dynamically generated HTTP response, saving CPU cycles on constrained devices.
-🔬 Measurement: Validated successful compilation and unit tests via `pio run -e esp32` and `bash tests/run_tests.sh`.

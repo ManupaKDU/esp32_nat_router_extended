@@ -25,7 +25,6 @@
 #include "esp_wifi.h"
 #include "dhcpserver/dhcpserver.h"
 
-// #include "lwip/opt.h"
 #include "lwip/err.h"
 #include "lwip/sys.h"
 
