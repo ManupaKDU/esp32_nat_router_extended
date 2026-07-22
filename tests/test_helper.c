@@ -203,7 +203,10 @@ void test_is_valid_subnet_mask() {
     assert(is_valid_subnet_mask((char *)"255.255.255.256") == false);
     assert(is_valid_subnet_mask((char *)"256.255.255.0") == false);
     assert(is_valid_subnet_mask((char *)"invalid") == false);
-    assert(is_valid_subnet_mask((char *)"") == false);
+
+    // Test 4: Edge cases
+    assert(is_valid_subnet_mask(NULL) == false);
+    assert(is_valid_subnet_mask((char *)"") == true);
 
     printf("All test_is_valid_subnet_mask passed!\n");
 }
