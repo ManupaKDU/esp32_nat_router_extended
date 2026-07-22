@@ -48,6 +48,7 @@
 **Action:** Replace `sprintf` with `snprintf(buffer, alloc_size, ...)` to add buffer bounds checking, capture the returned length, and pass this exact length directly to `httpd_resp_send` instead of `HTTPD_RESP_USE_STRLEN`, implementing both a performance optimization and safety improvement.
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 ## 2024-05-18 - Handling Unrelated Pre-existing Errors
 **Learning:** Sometimes the CI or local build fails due to a pre-existing error completely unrelated to the current performance task (e.g., a compilation error about `lock_pass` being undeclared in `http_server.c`, while the performance task was optimizing chunk generation in `portmaphandler.c`).
 **Action:** When working on a strictly scoped task, verify that your own changes are correct and isolate them. If an unrelated file has a compilation error that blocks the build, ignore it and do not expand the scope of the PR to fix it, as this violates PR isolation rules.
@@ -78,3 +79,7 @@
 
 ## 2026-05-18 - C Refactoring Pattern (NVS Caching)
 **Learning:** When optimizing code by converting locally fetched NVS parameters (e.g., `lock_pass` fetched via `get_config_param_str`) into global cached variables accessed via state checks (e.g., `is_lock_pass_set()`), ensure all legacy `free()` calls corresponding to the removed local variables are also deleted. Leaving them in causes `undeclared identifier` compilation errors. If an automated code reviewer falsely flags the removal of these invalid `free()` calls as a memory leak, document the hallucination in your journal rather than re-introducing invalid code.
+
+## 2026-07-18 - Optimize Global State Access Over NVS Reads
+**Learning:** Retrieving global state (like AP IP address) by invoking helper functions that fetch from NVS and dynamically allocate memory (like `getDefaultIPByNetmask()`) causes severe performance hits due to unnecessary flash wear, I/O latency, and heap fragmentation, especially on frequently hit routes like the root index handler's host check.
+**Action:** When a global variable (e.g., `my_ap_ip`) holds the exact cached state needed, reference it directly and use string conversion (e.g., `snprintf(buf, sizeof(buf), IPSTR, IP2STR(&addr))`) into a stack buffer instead of calling expensive NVS read and allocation helpers.
