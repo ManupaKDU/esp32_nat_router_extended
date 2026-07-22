@@ -187,7 +187,22 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
         customMask = netmask;
     }
 
-    u_int size = advanced_html_size + strlen(aliveCB) + strlen(ledCB) + strlen(natCB) + strlen(currentDNS) + strlen(currentMAC) + 3 * (sizeof("checked") - 1) + strlen(customDNSIP) + 2 * strlen(defaultMAC) + strlen(customMac) + strlen(netmask) + strlen(hostName) + 2 * (sizeof("selected") - 1) + strlen(customMask) + 4 /* 4 * Octet - 4 *%d*/;
+    int defaultMAC_len = strlen(defaultMAC);
+    u_int size = advanced_html_size +
+                 (keepAlive == 1 ? sizeof("checked") - 1 : 0) +
+                 (ledDisabled == 0 ? sizeof("checked") - 1 : 0) +
+                 (natDisabled == 0 ? sizeof("checked") - 1 : 0) +
+                 strlen(currentDNS) +
+                 strlen(currentMAC) +
+                 3 * (sizeof("checked") - 1) +
+                 strlen(customDNSIP) +
+                 2 * defaultMAC_len +
+                 strlen(customMac) +
+                 strlen(netmask) +
+                 (hostName != NULL ? strlen(hostName) : 0) +
+                 2 * (sizeof("selected") - 1) +
+                 strlen(customMask) +
+                 4 /* 4 * Octet - 4 *%d*/;
     ESP_LOGI(TAG, "Allocating additional %d bytes for advanced page.", size);
     char *advanced_page = malloc(size);
 
