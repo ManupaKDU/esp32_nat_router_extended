@@ -262,11 +262,11 @@ void test_crypto_memcmp() {
 
     // Test 2: Difference at the beginning
     const char *str3 = "Secretpassword";
-    assert(crypto_memcmp(str1, str3, strlen(str1)) == 1);
+    assert(crypto_memcmp(str1, str3, strlen(str1)) != 0);
 
     // Test 3: Difference at the end
     const char *str4 = "secretpasswore";
-    assert(crypto_memcmp(str1, str4, strlen(str1)) == 1);
+    assert(crypto_memcmp(str1, str4, strlen(str1)) != 0);
 
     // Test 4: Zero length comparison
     assert(crypto_memcmp(str1, str4, 0) == 0);
@@ -276,7 +276,24 @@ void test_crypto_memcmp() {
     const unsigned char bin2[] = {0x00, 0x01, 0x00, 0x02};
     const unsigned char bin3[] = {0x00, 0x01, 0x00, 0x03};
     assert(crypto_memcmp(bin1, bin2, sizeof(bin1)) == 0);
-    assert(crypto_memcmp(bin1, bin3, sizeof(bin1)) == 1);
+    assert(crypto_memcmp(bin1, bin3, sizeof(bin1)) != 0);
+
+    // Test 6: Difference in the middle
+    const char *str5 = "secretPassword";
+    assert(crypto_memcmp(str1, str5, strlen(str1)) != 0);
+
+    // Test 7: Single bit flip
+    const unsigned char bit1[] = {0xAA};
+    const unsigned char bit2[] = {0xAB};
+    assert(crypto_memcmp(bit1, bit2, sizeof(bit1)) != 0);
+
+    // Test 8: All bits inverted
+    const unsigned char inv1[] = {0xFF, 0x00, 0xAA, 0x55};
+    const unsigned char inv2[] = {0x00, 0xFF, 0x55, 0xAA};
+    assert(crypto_memcmp(inv1, inv2, sizeof(inv1)) != 0);
+
+    // Test 9: Zero length comparison with NULL pointers
+    assert(crypto_memcmp(NULL, NULL, 0) == 0);
 
     printf("All test_crypto_memcmp passed!\n");
 }
