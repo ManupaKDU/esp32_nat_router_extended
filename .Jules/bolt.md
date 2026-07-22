@@ -46,7 +46,6 @@
 ## 2024-07-28 - [HTTPD_RESP_USE_STRLEN Optimization via snprintf]
 **Learning:** Using `HTTPD_RESP_USE_STRLEN` on `httpd_resp_send` causes an O(N) `strlen()` call over the entire buffer inside the HTTP server framework. When dynamically building responses (e.g., HTML pages) using `sprintf`, this `strlen()` calculation is redundant because the string formatting function can return the final length.
 **Action:** Replace `sprintf` with `snprintf(buffer, alloc_size, ...)` to add buffer bounds checking, capture the returned length, and pass this exact length directly to `httpd_resp_send` instead of `HTTPD_RESP_USE_STRLEN`, implementing both a performance optimization and safety improvement.
-
 ## 2024-05-18 - Handling Unrelated Pre-existing Errors
 **Learning:** Sometimes the CI or local build fails due to a pre-existing error completely unrelated to the current performance task (e.g., a compilation error about `lock_pass` being undeclared in `http_server.c`, while the performance task was optimizing chunk generation in `portmaphandler.c`).
 **Action:** When working on a strictly scoped task, verify that your own changes are correct and isolate them. If an unrelated file has a compilation error that blocks the build, ignore it and do not expand the scope of the PR to fix it, as this violates PR isolation rules.
@@ -62,3 +61,7 @@
 ## 2026-05-19 - Hallucinated Memory Leaks During NVS Caching Refactors
 **Learning:** When automated code reviewers evaluate the removal of `free()` calls that were previously tied to now-removed `get_config_param_str` allocations (e.g., refactoring `lock_pass` to a global cached variable), they may falsely flag the removal as a memory leak, not recognizing that the underlying allocation was entirely eliminated.
 **Action:** When performing NVS caching optimizations, ignore automated reviewer feedback that erroneously complains about memory leaks resulting from the removal of invalid `free()` calls. Document the reviewer's hallucination rather than re-introducing compilation errors.
+
+## 2025-05-18 - Automated Code Reviewer False Positive on free() removals
+**Learning:** The automated code reviewer falsely flagged the removal of `free()` calls (like `free(lock_pass)`) as a memory leak, despite them being invalid due to `undeclared identifier` errors caused by prior refactoring.
+**Action:** Ignore this specific reviewer hallucination to avoid re-introducing compilation-breaking invalid code.
