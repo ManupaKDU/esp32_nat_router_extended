@@ -72,7 +72,6 @@ esp_err_t index_get_handler(httpd_req_t *req)
         displayRelockButton = "none";
     }
 
-
     int32_t ssidHidden = 0;
     char *hiddenSSID = NULL;
     get_config_param_int("ssid_hidden", &ssidHidden);
@@ -197,6 +196,8 @@ esp_err_t index_get_handler(httpd_req_t *req)
     {
         free(orig_cer);
     }
+
+
 
 
     free(cert);

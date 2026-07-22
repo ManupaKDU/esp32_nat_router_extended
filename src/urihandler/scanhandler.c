@@ -44,6 +44,11 @@ esp_err_t scan_download_get_handler(httpd_req_t *req)
     size_t alloc_size = scan_html_size + strlen(defaultIP);
     char *scan_page = malloc(alloc_size);
 
+    if (scan_page == NULL) {
+        free(defaultIP);
+        return ESP_ERR_NO_MEM;
+    }
+
     // ⚡ Bolt: Capture dynamic string length to avoid redundant O(N) strlen() in httpd_resp_send
     int response_len = snprintf(scan_page, alloc_size, scan_start, defaultIP);
 
