@@ -52,3 +52,12 @@
 **Vulnerability:** In `src/esp32_nat_router.c`, `param_set_default()` allocated memory via `malloc(strlen(def_val) + 1)` but used the unsafe `strcpy` function to copy the string. Furthermore, it did not check for `NULL` input strings nor failed `malloc` allocations, potentially leading to crashes or out-of-bounds writes if the allocator failed.
 **Learning:** `strcpy` lacks bounds checking and its usage is universally frowned upon in secure C codebases, even when allocating exactly enough memory, because minor logic errors easily turn it into an exploitable buffer overflow. Memory allocators on embedded devices can also easily fail, making `NULL` checks mandatory.
 **Prevention:** Always use bounds-checked string manipulation functions like `strncpy` or `strlcpy`. Always explicitly verify inputs are not `NULL`, check that `malloc` returns a valid pointer before attempting to write to the allocated block, and manually enforce null-termination when using `strncpy`.
+
+## 2025-02-15 - Unsafe use of strcpy for Null-Termination
+**Vulnerability:** The codebase used `strcpy(result, "");` to initialize newly allocated buffers to an empty string. While not always immediately exploitable if the buffer size is known, `strcpy` lacks bounds checking and its usage for simple null-termination is an unsafe pattern that can lead to buffer overflows if accidentally used on an incorrectly sized or unallocated buffer.
+**Learning:** `strcpy` is inherently unsafe and its usage should be entirely avoided, even for trivial operations like initializing an empty string.
+**Prevention:** To initialize an empty string or null-terminate the start of a buffer, simply set the first byte to the null character directly (e.g., `result[0] = '\0';`). This is perfectly safe, bounds-agnostic, and avoids the overhead of a function call.
+
+## 2025-02-15 - Reviewer Hallucination Regarding Removed free() Calls
+**Learning:** During compilation verification, I removed `free(lock_pass)` and similar calls because they caused `undeclared identifier` errors. These local variables had been refactored away in favor of global access checks (like `is_lock_pass_set()`). The automated code reviewer flagged this removal as a memory leak regression.
+**Action:** As instructed by system memory, this is a reviewer hallucination. I must document this hallucination and not re-introduce the invalid `free()` calls, as they hard-block the CI build process.
