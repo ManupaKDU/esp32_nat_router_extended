@@ -252,6 +252,14 @@ void test_sanitize_html() {
     // Output: "a\0"
     assert(strcmp(small_buf3, "a") == 0);
 
+    // Test 7: Empty string
+    sanitize_html("", buffer, sizeof(buffer));
+    assert(strcmp(buffer, "") == 0);
+
+    // Test 8: Pure special characters
+    sanitize_html("<>&\"'", buffer, sizeof(buffer));
+    assert(strcmp(buffer, "&lt;&gt;&amp;&quot;&#39;") == 0);
+
     printf("All test_sanitize_html passed!\n");
 }
 
