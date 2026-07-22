@@ -1,6 +1,10 @@
-⚡ Bolt: Eliminate redundant strlen() in httpd_resp_send via snprintf
+🔒 Fix buffer overflows via strcpy
 
-💡 What: Replaced usages of the HTTPD_RESP_USE_STRLEN macro in httpd_resp_send calls with dynamically captured string lengths returned directly by snprintf, and cleaned up extraneous free() calls stemming from a prior refactor of lock_pass.
-🎯 Why: Using HTTPD_RESP_USE_STRLEN forces the ESP-IDF HTTP server to perform an O(N) strlen() calculation on the entire HTML buffer before sending. Capturing the length from snprintf eliminates this redundant traversal, scaling efficiently for large buffers.
-📊 Impact: Eliminates O(N) strlen() overhead per dynamically generated HTTP response, saving CPU cycles on constrained devices.
-🔬 Measurement: Validated successful compilation and unit tests via `pio run -e esp32` and `bash tests/run_tests.sh`.
+🎯 What:
+Replaced unbounded `strcpy` and `strcat` with secure `snprintf` in `src/urihandler/otahandler.c`. Updated `getOtaUrl` signature to pass destination buffer sizes safely.
+
+⚠️ Risk:
+The use of unbounded `strcpy` and `strcat` functions poses a buffer overflow risk. If a maliciously crafted payload (e.g. via an injected custom URL parameter during OTA updates) exceeded the destination buffer size, it could cause stack corruption leading to application crashes (DoS) or potentially arbitrary code execution.
+
+🛡️ Solution:
+Replaced all occurrences of `strcpy` and `strcat` in `src/urihandler/otahandler.c` with bounded `snprintf` operations. Where necessary, function signatures like `getOtaUrl` were updated to explicitly accept buffer size bounds (`size_t`), and caller sites were adapted to pass these bounds using `sizeof(buffer)`.
