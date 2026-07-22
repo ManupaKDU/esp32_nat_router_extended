@@ -147,7 +147,7 @@ const char *get_default_url()
     return DEFAULT_URL;
 }
 
-void getOtaUrl(char *url, char *label)
+void getOtaUrl(char *url, size_t url_size, char *label, size_t label_size)
 {
     char *customUrl = NULL;
     // Assuming the function get_config_param_str is defined elsewhere
@@ -155,8 +155,8 @@ void getOtaUrl(char *url, char *label)
     if (customUrl != NULL && strlen(customUrl) > 0)
     {
         ESP_LOGI(TAG, "Custom Url found '%s'\n", customUrl);
-        strcpy(label, "Custom build");
-        strcpy(url, customUrl);
+        snprintf(label, label_size, "Custom build");
+        snprintf(url, url_size, "%s", customUrl);
     }
     if (customUrl != NULL)
     {
@@ -167,17 +167,14 @@ void getOtaUrl(char *url, char *label)
         const char *usedUrl = get_default_url();
         if (strcmp(usedUrl, DEFAULT_URL_CANARY) == 0)
         {
-            strcpy(label, "Canary build");
+            snprintf(label, label_size, "Canary build");
         }
         else
         {
-            strcpy(label, "Default build");
+            snprintf(label, label_size, "Default build");
         }
 
-        strcpy(url, usedUrl);
-        strcat(url, chip_type);
-        strcat(url, "/");
-        strcat(url, "firmware.bin");
+        snprintf(url, url_size, "%s%s/firmware.bin", usedUrl, chip_type);
     }
 }
 
@@ -189,7 +186,7 @@ void ota_task(void *pvParameter)
     char url[200];
     char label[20];
 
-    getOtaUrl(url, label);
+    getOtaUrl(url, sizeof(url), label, sizeof(label));
 
     esp_http_client_config_t config = {
         .url = url,
@@ -318,7 +315,7 @@ esp_err_t otalog_get_handler(httpd_req_t *req)
     char url[200];
     char label[20];
 
-    getOtaUrl(url, label);
+    getOtaUrl(url, sizeof(url), label, sizeof(label));
 
     size_t alloc_size = otalog_html_size + strlen(otalog) + strlen(otaLogRedirect) + strlen(resultLog) + strlen(progressLabel) + 50 + strlen(label) + 1;
     char *otalog_page = malloc(alloc_size);
@@ -379,7 +376,7 @@ esp_err_t ota_download_get_handler(httpd_req_t *req)
     ESP_LOGD(TAG, "Chip Type: %s\n", chip_type);
     char customUrl[200];
     char label[20];
-    getOtaUrl(customUrl, label);
+    getOtaUrl(customUrl, sizeof(customUrl), label, sizeof(label));
     const char *project_version = get_project_version();
     size_t alloc_size = ota_html_size + strlen(project_version) + strlen(customUrl) + strlen(latest_version) + strlen(chip_type) + strlen(label) + strlen(changelog) + 1;
     char *ota_page = malloc(alloc_size);
