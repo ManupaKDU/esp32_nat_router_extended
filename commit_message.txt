@@ -1,6 +1,6 @@
-⚡ Bolt: Optimize index_get_handler by avoiding implicit strlen()
+⚡ Bolt: Use snprintf length to optimize scan page response
 
-In src/urihandler/indexhandler.c, capture the return value of sprintf
-when building the config_page buffer. Pass this length directly to
-httpd_resp_send instead of using HTTPD_RESP_USE_STRLEN, which saves
-an expensive implicit strlen() call on the ~18KB HTML response buffer.
+💡 What: Capture `snprintf` return value in `scan_download_get_handler` to pass pre-calculated length to `httpd_resp_send`.
+🎯 Why: Replaces `HTTPD_RESP_USE_STRLEN` which causes an O(N) `strlen()` call over the entire dynamically generated response buffer, wasting CPU cycles.
+📊 Impact: Eliminates a redundant O(N) buffer iteration, reducing request latency and CPU overhead for the scan page.
+🔬 Measurement: Profile CPU cycles during HTTP response generation for the scan endpoint; confirm the response size matches the pre-optimization size.
