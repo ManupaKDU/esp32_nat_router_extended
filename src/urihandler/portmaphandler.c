@@ -24,8 +24,11 @@ esp_err_t portmap_get_handler(httpd_req_t *req)
 
     // send first part
     extern const unsigned char portmap_start[] asm("_binary_portmap_start_html_start");
+    extern const unsigned char portmap_start_end[] asm("_binary_portmap_start_html_end");
+    const size_t portmap_start_size = (portmap_start_end - portmap_start) - 1;
     ESP_LOGI(TAG, "Sending portmap start part");
-    ESP_ERROR_CHECK(httpd_resp_send_chunk(req, (const char *)portmap_start, HTTPD_RESP_USE_STRLEN));
+    // ⚡ Bolt: Eliminate HTTPD_RESP_USE_STRLEN O(N) overhead by passing calculated size
+    ESP_ERROR_CHECK(httpd_resp_send_chunk(req, (const char *)portmap_start, portmap_start_size));
 
     // send entries
     bool entriesSent = false;
