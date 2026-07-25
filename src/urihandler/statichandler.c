@@ -5,6 +5,9 @@ static const char *TAG_HANDLER = "LockHandler";
 void closeHeader(httpd_req_t *req)
 {
     httpd_resp_set_hdr(req, "Connection", "close");
+    httpd_resp_set_hdr(req, "X-Frame-Options", "SAMEORIGIN");
+    httpd_resp_set_hdr(req, "X-Content-Type-Options", "nosniff");
+    httpd_resp_set_hdr(req, "Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;");
 }
 
 // ⚡ Bolt: Eliminate O(N) strlen() overhead by passing pre-calculated size
