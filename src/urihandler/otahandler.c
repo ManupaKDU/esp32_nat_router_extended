@@ -236,8 +236,7 @@ void updateVersion()
 {
     const char *usedUrl = get_default_url();
     char url[strlen(usedUrl) + 50];
-    strcpy(url, usedUrl);
-    strcat(url, "version");
+    snprintf(url, sizeof(url), "%sversion", usedUrl);
     esp_http_client_config_t config = {
         .url = url,
         .event_handler = version_event_handler,
@@ -366,7 +365,7 @@ esp_err_t ota_download_get_handler(httpd_req_t *req)
 
     if (strlen(latest_version) == 0)
     {
-        strcpy(latest_version, NOT_DETERMINED);
+        snprintf(latest_version, sizeof(latest_version), "%s", NOT_DETERMINED);
         changelog[0] = '\0';
         changelog_len = 0;
         appendToChangelog(NOT_DETERMINED);
