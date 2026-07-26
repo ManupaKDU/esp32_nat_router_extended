@@ -23,7 +23,7 @@
                                         <label for="hostname">Hostname</label>
                                         <input class="form-control mt-2" id="hostname" maxlength="250" name="hostname"
                                                 placeholder="Hostname, will be regenerated if empty" type="text"
-                                                value="%s" />
+                                                value="%s" autocorrect="off" autocapitalize="none" spellcheck="false" />
                                 </div>
                                 <div class="col-3" style="padding-right: 0;">
                                         <label for="octet">Third octet</label>
@@ -133,7 +133,7 @@
                                                 id=custom value=custom %s> <label class=form-check-label for=custom>
                                                 Custom </label> <input class="form-control mt-2" id=dnsip maxlength=15
                                                 name=dnsip placeholder="IPv4 address in format 123.123.123.123"
-                                                type=text value=%s aria-label="Custom DNS IP" pattern="^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$" title="Please enter a valid IPv4 address (e.g., 123.123.123.123)" required> </div>
+                                                type=text value=%s aria-label="Custom DNS IP" pattern="^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$" title="Please enter a valid IPv4 address (e.g., 123.123.123.123)" autocorrect="off" autocapitalize="none" spellcheck="false" required> </div>
                                 <div class="alert alert-warning mt-2" role=alert>This overrides the DNS server of the
                                         uplink network. Changing this results in more privacy (Cloudflare) or the
                                         ability to block advertisements(AdGuard).
@@ -158,7 +158,7 @@
                                                 for=custommac> Custom </label> <input class="form-control mt-2" id=mac
                                                 maxlength=17 name=macaddress
                                                 placeholder="MAC address in format AB:BC:DE:F1:23:45" type=text
-                                                value=%s aria-label="Custom MAC address" pattern="^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$" title="Please enter a valid MAC address (e.g., AB:BC:DE:F1:23:45)" required> </div>
+                                                value=%s aria-label="Custom MAC address" pattern="^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$" title="Please enter a valid MAC address (e.g., AB:BC:DE:F1:23:45)" autocorrect="off" autocapitalize="none" spellcheck="false" required> </div>
                                 <div class="alert alert-warning mt-2" role=alert>This overrides the MAC address of the
                                         device. Changing
                                         this can be used for networks with MAC limitations. For example, when the
