@@ -44,7 +44,7 @@ static void register_set_ap_ip(void);
 static void register_show(void);
 static void register_portmap(void);
 
-static esp_err_t get_config_param_str_from_nvs(nvs_handle_t nvs, char *name, char **param)
+esp_err_t get_config_param_str_from_nvs(nvs_handle_t nvs, char *name, char **param)
 {
     size_t len;
     esp_err_t err;
@@ -135,6 +135,16 @@ esp_err_t get_config_param_blob2(char *name, uint8_t *blob, size_t blob_len)
     return ESP_OK;
 }
 
+esp_err_t get_config_param_int_from_nvs(nvs_handle_t nvs, char *name, int32_t *param)
+{
+    esp_err_t err;
+    if ((err = nvs_get_i32(nvs, name, param)) == ESP_OK)
+    {
+        ESP_LOGD(TAG, "%s %ld", name, *param);
+    }
+    return err;
+}
+
 esp_err_t get_config_param_int(char *name, int32_t *param)
 {
     nvs_handle_t nvs;
@@ -142,21 +152,10 @@ esp_err_t get_config_param_int(char *name, int32_t *param)
     esp_err_t err = nvs_open(PARAM_NAMESPACE, NVS_READONLY, &nvs);
     if (err == ESP_OK)
     {
-        if ((err = nvs_get_i32(nvs, name, param)) == ESP_OK)
-        {
-            ESP_LOGD(TAG, "%s %ld", name, *param);
-        }
-        else
-        {
-            return err;
-        }
+        err = get_config_param_int_from_nvs(nvs, name, param);
         nvs_close(nvs);
     }
-    else
-    {
-        return err;
-    }
-    return ESP_OK;
+    return err;
 }
 
 esp_err_t erase_key(char *name)
