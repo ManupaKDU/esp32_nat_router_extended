@@ -27,12 +27,12 @@
             </div>
             <div class="form-group row mt-4"> <label class="col-3" for="ap_ssid">SSID</label>
                 <div class="col-9"> <input class="form-control" id="ap_ssid" maxlength="32" name="ap_ssid"
-                        placeholder="SSID of the new network" type="text" value="%s" /> </div>
+                        placeholder="SSID of the new network" type="text" value="%s" autocorrect="off" autocapitalize="none" spellcheck="false" /> </div>
             </div>
             <div class="form-group row mt-2"> <label class="col-3" for="ap_password">Password</label>
                 <div class="col-9">
                     <div class="input-group"> <input class="form-control" id="ap_password" maxlength="64"
-                            name="ap_password" placeholder="Password of the new network" type="password" value="%s" />
+                            name="ap_password" placeholder="Password of the new network" type="password" value="%s" autocomplete="new-password" />
                         <span class="input-group-text password" role="button" tabindex="0" style="cursor: pointer;" title="show password" aria-label="Show or hide password"><svg aria-hidden="true"
                                 xmlns=http://www.w3.org/2000/svg width="16" height="16" fill="currentColor"
                                 class="bi bi-eye" viewBox="0 0 16 16" aria-hidden="true">
@@ -67,7 +67,7 @@
             </div>
             <div class="form-group row mt-4"> <label class="col-3" for="ssid">SSID</label>
                 <div class="col-9"> <input class="form-control" id="ssid" maxlength="32" name="ssid"
-                        placeholder="SSID of the existing network" type="text" value="%s" /> </div>
+                        placeholder="SSID of the existing network" type="text" value="%s" autocorrect="off" autocapitalize="none" spellcheck="false" /> </div>
             </div>
             <span style="display: %s;" id="wpa2-container">
                 <div class="form-group row mt-2"> <label class="col-3" for="sta_identity">Identity</label>
@@ -89,7 +89,7 @@
             <div class="form-group row mt-2"> <label class="col-3" for="password">Password</label>
                 <div class="col-9">
                     <div class="input-group"> <input class="form-control" id="password" maxlength="64" name="password"
-                            placeholder="Password of the existing network" type="password" value="%s" /> <span
+                            placeholder="Password of the existing network" type="password" value="%s" autocomplete="current-password" /> <span
                             class="input-group-text password" role="button" tabindex="0" style="cursor: pointer;" title="show password" aria-label="Show or hide password"><svg aria-hidden="true"
                                 xmlns=http://www.w3.org/2000/svg width="16" height="16" fill="currentColor"
                                 class="bi bi-eye" viewBox="0 0 16 16" aria-hidden="true">
