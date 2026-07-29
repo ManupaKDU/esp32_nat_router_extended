@@ -199,8 +199,6 @@ esp_err_t index_get_handler(httpd_req_t *req)
         free(orig_cer);
     }
 
-    free(cert);
-
     return ret;
 }
 
