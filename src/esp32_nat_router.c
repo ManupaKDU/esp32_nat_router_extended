@@ -828,67 +828,92 @@ void app_main(void)
 
     register_router();
     fillMac();
-    get_config_param_str("ssid", &ssid);
-    if (ssid == NULL)
+    char *scan_result = NULL;
+    int32_t result_shown = 0;
+
+    nvs_handle_t nvs;
+    if (nvs_open(PARAM_NAMESPACE, NVS_READONLY, &nvs) == ESP_OK)
     {
+        get_config_param_str_from_nvs(nvs, "ssid", &ssid);
+        if (ssid == NULL)
+        {
+            ssid = param_set_default("");
+        }
+        get_config_param_str_from_nvs(nvs, "passwd", &passwd);
+        if (passwd == NULL)
+        {
+            passwd = param_set_default("");
+        }
+        get_config_param_str_from_nvs(nvs, "static_ip", &static_ip);
+        if (static_ip == NULL)
+        {
+            static_ip = param_set_default("");
+        }
+        get_config_param_str_from_nvs(nvs, "subnet_mask", &subnet_mask);
+        if (subnet_mask == NULL)
+        {
+            subnet_mask = param_set_default("");
+        }
+        get_config_param_str_from_nvs(nvs, "gateway_addr", &gateway_addr);
+        if (gateway_addr == NULL)
+        {
+            gateway_addr = param_set_default("");
+        }
+        get_config_param_str_from_nvs(nvs, "ap_ssid", &ap_ssid);
+        if (ap_ssid == NULL)
+        {
+            ap_ssid = param_set_default("ESP32_NAT_Router");
+        }
+        get_config_param_str_from_nvs(nvs, "ap_passwd", &ap_passwd);
+        if (ap_passwd == NULL)
+        {
+            ap_passwd = param_set_default("");
+        }
+        get_config_param_str_from_nvs(nvs, "ap_ip", &ap_ip);
+        if (ap_ip == NULL)
+        {
+            char *defaultIP = getDefaultIPByNetmask();
+            ap_ip = param_set_default(defaultIP);
+            free(defaultIP);
+        }
+
+        get_config_param_str_from_nvs(nvs, "sta_user", &sta_user);
+        get_config_param_str_from_nvs(nvs, "sta_identity", &sta_identity);
+
+        char *temp_lock_pass = NULL;
+        get_config_param_str_from_nvs(nvs, "lock_pass", &temp_lock_pass);
+        if (temp_lock_pass == NULL)
+        {
+            temp_lock_pass = param_set_default("");
+        }
+        update_lock_pass(temp_lock_pass);
+        if(temp_lock_pass != NULL) {
+            free(temp_lock_pass);
+        }
+
+        get_config_param_str_from_nvs(nvs, "scan_result", &scan_result);
+        get_config_param_int_from_nvs(nvs, "result_shown", &result_shown);
+
+        nvs_close(nvs);
+    }
+    else
+    {
+        // Fallback or defaults if NVS open fails (though initialization should have caught it)
         ssid = param_set_default("");
-    }
-    get_config_param_str("passwd", &passwd);
-    if (passwd == NULL)
-    {
         passwd = param_set_default("");
-    }
-    get_config_param_str("static_ip", &static_ip);
-    if (static_ip == NULL)
-    {
         static_ip = param_set_default("");
-    }
-    get_config_param_str("subnet_mask", &subnet_mask);
-    if (subnet_mask == NULL)
-    {
         subnet_mask = param_set_default("");
-    }
-    get_config_param_str("gateway_addr", &gateway_addr);
-    if (gateway_addr == NULL)
-    {
         gateway_addr = param_set_default("");
-    }
-    get_config_param_str("ap_ssid", &ap_ssid);
-    if (ap_ssid == NULL)
-    {
         ap_ssid = param_set_default("ESP32_NAT_Router");
-    }
-    get_config_param_str("ap_passwd", &ap_passwd);
-    if (ap_passwd == NULL)
-    {
         ap_passwd = param_set_default("");
-    }
-    get_config_param_str("ap_ip", &ap_ip);
-    if (ap_ip == NULL)
-    {
         char *defaultIP = getDefaultIPByNetmask();
         ap_ip = param_set_default(defaultIP);
         free(defaultIP);
-    }
 
-    get_config_param_str("sta_user", &sta_user);
-    get_config_param_str("sta_identity", &sta_identity);
-
-    char *temp_lock_pass = NULL;
-    get_config_param_str("lock_pass", &temp_lock_pass);
-    if (temp_lock_pass == NULL)
-    {
-        temp_lock_pass = param_set_default("");
-    }
-    update_lock_pass(temp_lock_pass);
-    if(temp_lock_pass != NULL) {
+        char *temp_lock_pass = param_set_default("");
+        update_lock_pass(temp_lock_pass);
         free(temp_lock_pass);
     }
-
-    char *scan_result = NULL;
-    get_config_param_str("scan_result", &scan_result);
-    int32_t result_shown = 0;
-    get_config_param_int("result_shown", &result_shown);
 
     if (scan_result != NULL && result_shown >= 3)
     {
