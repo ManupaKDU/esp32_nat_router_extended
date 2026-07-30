@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ## 2023-10-25 - [Empty States and Inline Validation]
 **Learning:** Found empty state messages in tables styled with `text-danger` and `text-warning`, making normal zero-state conditions appear as system errors. Missing `required` attributes on add-item forms allowed invalid partial submissions.
 **Action:** When creating empty states, use neutral styling (like `text-muted`) to avoid causing user alarm. Always leverage HTML5 `required` attributes for simple inline validation before resorting to backend handling.
@@ -80,18 +81,20 @@
 
 ## 2024-05-18 - [Avoid Backend Regressions when Adding Simple UI Changes]
 **Learning:** When fixing simple UI changes, especially in cross-disciplinary setups where a frontend interacts with an embedded C backend, taking care not to accidentally modify unrelated backend code is critical. A straightforward task like adding HTML5 `autofocus` to templates can inadvertently lead to touching embedded `C` code if the file structure intermingles them or if automated tools over-apply changes. In this scenario, attempts to edit the `autofocus` attributes resulted in unrelated `free()` statements being deleted from `src/http_server.c`, `src/urihandler/indexhandler.c`, and `src/urihandler/lockhandler.c`, which would have caused fatal memory leaks in the embedded ESP32 device.
-**Action:** When implementing purely UI/frontend changes, rigidly confine modifications strictly to HTML, CSS, or JS template files (e.g., `src/pages/*.html`). Never include C source files (`*.c`, `*.h`) in diffs or modification commands unless explicitly required and carefully verified. Always review the full generated patch to ensure only the intended lines are altered.]
+**Action:** When implementing purely UI/frontend changes, rigidly confine modifications strictly to HTML, CSS, or JS template files (e.g., `src/pages/*.html`). Never include C source files (`*.c`, `*.h`) in diffs or modification commands unless explicitly required and carefully verified. Always review the full generated patch to ensure only the intended lines are altered.
 
 ## 2026-06-21 - [False Positive Review on Free Call Removal]
 **Learning:** An automated code reviewer flagged the removal of `free(lock_pass)` in the C backend files as a memory leak, despite `lock_pass` being explicitly undeclared due to a recent refactoring (fetching the password via `is_lock_pass_set` instead of locally). Re-introducing the `free()` calls causes immediate "undeclared identifier" compilation errors, proving the reviewer's assessment is hallucinated. The changes were necessary to unblock the CI build process and do not introduce a memory leak because the local string allocation was removed.
 **Action:** When a code reviewer erroneously flags the removal of invalid `free()` calls (which cause compilation failures if present) as a memory leak, document the hallucination and ignore the reviewer's suggestion to re-introduce the invalid code.
-=======
 
 ## 2026-07-18 - Caching Memory Leaks Automation Alert
 **Learning:** An automated reviewer (or CI script) might flag the removal of `free()` calls as a memory leak. However, in `src/http_server.c`, `src/urihandler/indexhandler.c`, and `src/urihandler/lockhandler.c`, the `lock_pass` variable was previously fetched locally, but was refactored elsewhere in the codebase to use a globally cached state checked via `is_lock_pass_set()`. The removal of these isolated `free(lock_pass)` calls was necessary to unblock CI from "undeclared identifier" compilation errors. This is a false positive hallucination by the reviewer because the pointer was demonstrably removed from the local scope.
 **Action:** Ignore the automated reviewer's false positive memory leak claim. Ensure these pre-existing errors are fixed globally across all files using `grep -rn "lock_pass"` to unblock the build without re-introducing invalid code.
->>>>>>> pr-297
 
 ## 2026-07-26 - Technical Input Attributes & Password Semantics
 **Learning:** Found that technical configuration fields (like SSIDs, Hostnames, MAC and IP addresses) lacked attributes to prevent mobile OS auto-correction, which often aggressively alters valid technical strings (like capitalizing hostnames or spellchecking MAC addresses). Furthermore, password fields lacked standard `autocomplete` semantic hints, leading to password manager confusion on device configuration pages.
 **Action:** When adding or updating technical input fields (e.g., SSIDs, IPs, hostnames), always append `autocorrect="off" autocapitalize="none" spellcheck="false"`. For password configuration inputs, use `autocomplete="new-password"` to prevent password managers from improperly saving/autofilling device network passwords, and use `autocomplete="current-password"` for local UI unlock fields.
+
+## 2024-07-28 - Technical Input Semantics
+**Learning:** For technical text inputs like SSIDs, MAC addresses, hostnames, or IP addresses in web forms, adding `autocorrect="off" autocapitalize="none" spellcheck="false"` prevents mobile operating systems from inappropriately modifying the user's input with auto-corrections. For password fields, `autocomplete="new-password"` prevents password managers from erroneously autofilling or saving credentials intended for local network access when changing passwords, while `autocomplete="current-password"` helps when logging in.
+**Action:** Apply these standard HTML semantics to all technical inputs in embedded device web interfaces to prevent frustrating mobile keyboard behavior and password manager conflicts.
