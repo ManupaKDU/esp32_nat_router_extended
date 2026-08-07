@@ -87,9 +87,10 @@ esp_err_t portmap_get_handler(httpd_req_t *req)
     extern const char portmap_end[] asm("_binary_portmap_end_html_end");
     const size_t portmap_html_size = (portmap_end - portmap_end_start);
     char *defaultIP = getDefaultIPByNetmask();
-    char ip_prefix[strlen(defaultIP) + 1];
-    strncpy(ip_prefix, defaultIP, strlen(defaultIP) - 1); // Without the last part
-    ip_prefix[strlen(defaultIP) - 1] = '\0';
+    char ip_prefix[16] = {0};
+    if (strlen(defaultIP) > 0) {
+        snprintf(ip_prefix, sizeof(ip_prefix), "%.*s", (int)(strlen(defaultIP) - 1), defaultIP);
+    }
     char *portmap_page = malloc(portmap_html_size + strlen(ip_prefix) + 1);
     if (portmap_page != NULL) {
         int len = snprintf(portmap_page, portmap_html_size + strlen(ip_prefix) + 1, portmap_end_start, ip_prefix);
@@ -134,10 +135,14 @@ void addPortmapEntry(char *urlContent)
 
     readUrlParameterIntoBuffer(urlContent, "ip", param, contentLength);
     char *defaultIP = getDefaultIPByNetmask();
-    char resultIP[strlen(defaultIP) + strlen(param) + 2];
-    strncpy(resultIP, defaultIP, strlen(defaultIP) - 1);
-    resultIP[strlen(defaultIP) - 1] = '\0';
-    strcat(resultIP, param);
+    char resultIP[80] = {0}; // Sized to match max possible defaultIP + param
+    if (strlen(defaultIP) > 0) {
+        int default_len = strlen(defaultIP) - 1;
+        if (default_len > 15) default_len = 15; // Cap default_len to avoid format truncation warning
+        snprintf(resultIP, sizeof(resultIP), "%.*s%s", default_len, defaultIP, param);
+    } else {
+        snprintf(resultIP, sizeof(resultIP), "%s", param);
+    }
     free(defaultIP);
     uint32_t int_ip = ipaddr_addr(resultIP);
     if (int_ip == IPADDR_NONE)
