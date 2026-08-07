@@ -47,13 +47,17 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
     char currentMAC[18];
     char defaultMAC[18];
 
+    // ⚡ Bolt: Batch NVS fetches to eliminate repeated nvs_open/nvs_close overhead
+    nvs_handle_t param_nvs;
+    esp_err_t nvs_status = nvs_open(PARAM_NAMESPACE, NVS_READONLY, &param_nvs);
+
     char *hostName = NULL;
     int32_t octet = 4;
-    get_config_param_str("hostname", &hostName);
-    get_config_param_int("octet", &octet);
+    if (nvs_status == ESP_OK) get_config_param_str_from_nvs(param_nvs, "hostname", &hostName);
+    if (nvs_status == ESP_OK) get_config_param_int_from_nvs(param_nvs, "octet", &octet);
 
     int32_t txPower = 0;
-    get_config_param_int("txpower", &txPower);
+    if (nvs_status == ESP_OK) get_config_param_int_from_nvs(param_nvs, "txpower", &txPower);
     if (txPower < 8 || txPower > 84)
     {
         txPower = 80; // default
@@ -79,7 +83,7 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
     }
 
     int32_t bandwith = 0;
-    get_config_param_int("lower_bandwith", &bandwith);
+    if (nvs_status == ESP_OK) get_config_param_int_from_nvs(param_nvs, "lower_bandwith", &bandwith);
     char *bwLow, *bwHigh = NULL;
     if (bandwith == 1)
     {
@@ -92,17 +96,17 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
         bwHigh = "selected";
     }
 
-    get_config_param_int("keep_alive", &keepAlive);
+    if (nvs_status == ESP_OK) get_config_param_int_from_nvs(param_nvs, "keep_alive", &keepAlive);
     if (keepAlive == 1)
     {
         aliveCB = "checked";
     }
-    get_config_param_int("led_disabled", &ledDisabled);
+    if (nvs_status == ESP_OK) get_config_param_int_from_nvs(param_nvs, "led_disabled", &ledDisabled);
     if (ledDisabled == 0)
     {
         ledCB = "checked";
     }
-    get_config_param_int("nat_disabled", &natDisabled);
+    if (nvs_status == ESP_OK) get_config_param_int_from_nvs(param_nvs, "nat_disabled", &natDisabled);
     if (natDisabled == 0)
     {
         natCB = "checked";
@@ -118,7 +122,7 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
     }
 
     char *customDNS = NULL;
-    get_config_param_str("custom_dns", &customDNS);
+    if (nvs_status == ESP_OK) get_config_param_str_from_nvs(param_nvs, "custom_dns", &customDNS);
 
     if (customDNS == NULL)
     {
@@ -147,7 +151,7 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
     snprintf(currentMAC, sizeof(currentMAC), "%02x:%02x:%02x:%02x:%02x:%02x", base_mac_addr[0], base_mac_addr[1], base_mac_addr[2], base_mac_addr[3], base_mac_addr[4], base_mac_addr[5]);
     snprintf(defaultMAC, sizeof(defaultMAC), "%02x:%02x:%02x:%02x:%02x:%02x", default_mac_addr[0], default_mac_addr[1], default_mac_addr[2], default_mac_addr[3], default_mac_addr[4], default_mac_addr[5]);
 
-    get_config_param_str("custom_mac", &macSetting);
+    if (nvs_status == ESP_OK) get_config_param_str_from_nvs(param_nvs, "custom_mac", &macSetting);
 
     if (strcmp(macSetting, "random") == 0)
     {
@@ -165,7 +169,13 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
     }
 
     char *netmask_alloc = NULL;
-    get_config_param_str("netmask", &netmask_alloc);
+    if (nvs_status == ESP_OK) get_config_param_str_from_nvs(param_nvs, "netmask", &netmask_alloc);
+
+    if (nvs_status == ESP_OK)
+    {
+        nvs_close(param_nvs);
+    }
+
     char *netmask = netmask_alloc != NULL ? netmask_alloc : DEFAULT_NETMASK_CLASS_C;
 
     if (strcmp(netmask, DEFAULT_NETMASK_CLASS_A) == 0)
