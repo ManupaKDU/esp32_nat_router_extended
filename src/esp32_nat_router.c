@@ -110,6 +110,9 @@ bool check_lock_pass(const char *unlockParam) {
 void update_lock_pass(const char *new_pass) {
     pthread_mutex_lock(&lock_pass_mutex);
     if (lock_pass != NULL) {
+        // 🛡️ Sentinel: Free the previously allocated lock_pass before overwriting to prevent heap memory leak (DoS)
+        free(lock_pass);
+        lock_pass = NULL;
     }
 
     if (new_pass != NULL) {
