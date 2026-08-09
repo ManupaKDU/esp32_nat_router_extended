@@ -86,19 +86,19 @@ esp_err_t portmap_get_handler(httpd_req_t *req)
     extern const char portmap_end_start[] asm("_binary_portmap_end_html_start");
     extern const char portmap_end[] asm("_binary_portmap_end_html_end");
     const size_t portmap_html_size = (portmap_end - portmap_end_start);
-    ip4_addr_t addr;
-    addr.addr = my_ap_ip;
-    char ip_prefix[16];
-    int len_ip = snprintf(ip_prefix, sizeof(ip_prefix), IPSTR, IP2STR(&addr));
-    while (len_ip > 0 && ip_prefix[len_ip - 1] != '.') { len_ip--; ip_prefix[len_ip] = '\0'; }
-    char *portmap_page = malloc(portmap_html_size + len_ip + 1);
+    char *defaultIP = getDefaultIPByNetmask();
+    char ip_prefix[strlen(defaultIP) + 1];
+    snprintf(ip_prefix, sizeof(ip_prefix), "%.*s", (int)(strlen(defaultIP) - 1), defaultIP); // Without the last part
+    char *portmap_page = malloc(portmap_html_size + strlen(ip_prefix) + 1);
     if (portmap_page != NULL) {
-        int len = snprintf(portmap_page, portmap_html_size + len_ip + 1, portmap_end_start, ip_prefix);
+        int len = snprintf(portmap_page, portmap_html_size + strlen(ip_prefix) + 1, portmap_end_start, ip_prefix);
         ESP_LOGI(TAG, "Sending portmap end part");
         // ⚡ Bolt: Eliminate HTTPD_RESP_USE_STRLEN O(N) overhead by passing snprintf length
-        ESP_ERROR_CHECK(httpd_resp_send_chunk(req, portmap_page, (len > 0 && len < portmap_html_size + len_ip + 1) ? len : HTTPD_RESP_USE_STRLEN));
+        ESP_ERROR_CHECK(httpd_resp_send_chunk(req, portmap_page, (len > 0 && len < portmap_html_size + strlen(ip_prefix) + 1) ? len : HTTPD_RESP_USE_STRLEN));
         free(portmap_page);
     }
+
+    free(defaultIP);
 
     // Finalize
     closeHeader(req);

@@ -35,22 +35,24 @@ esp_err_t scan_download_get_handler(httpd_req_t *req)
 
     httpd_req_to_sockfd(req);
 
-    char *defaultIP = getDefaultIPByNetmask();
+    ip4_addr_t addr;
+    addr.addr = my_ap_ip;
+    char currentIP[16];
+    snprintf(currentIP, sizeof(currentIP), IPSTR, IP2STR(&addr));
 
     extern const char scan_start[] asm("_binary_scan_html_start");
     extern const char scan_end[] asm("_binary_scan_html_end");
     const size_t scan_html_size = (scan_end - scan_start);
 
-    size_t alloc_size = scan_html_size + strlen(defaultIP);
+    size_t alloc_size = scan_html_size + strlen(currentIP);
     char *scan_page = malloc(alloc_size);
 
     if (scan_page == NULL) {
-        free(defaultIP);
         return ESP_ERR_NO_MEM;
     }
 
     // ⚡ Bolt: Capture dynamic string length to avoid redundant O(N) strlen() in httpd_resp_send
-    int response_len = snprintf(scan_page, alloc_size, scan_start, defaultIP);
+    int response_len = snprintf(scan_page, alloc_size, scan_start, currentIP);
 
     closeHeader(req);
 
@@ -59,6 +61,5 @@ esp_err_t scan_download_get_handler(httpd_req_t *req)
     esp_err_t ret = httpd_resp_send(req, scan_page, (response_len > 0 && response_len < alloc_size) ? response_len : HTTPD_RESP_USE_STRLEN);
     fillNodes();
     free(scan_page);
-    free(defaultIP);
     return ret;
 }
