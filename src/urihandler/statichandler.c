@@ -53,14 +53,16 @@ esp_err_t favicon_get_handler(httpd_req_t *req)
 esp_err_t redirectToRoot(httpd_req_t *req)
 {
     httpd_resp_set_status(req, "302 Temporary Redirect");
-    char *currentIP = getDefaultIPByNetmask();
+    ip4_addr_t addr;
+    addr.addr = my_ap_ip;
+    char currentIP[16]; // ⚡ Bolt: Use stack buffer and global IP variable instead of expensive NVS reads and malloc
+    snprintf(currentIP, sizeof(currentIP), IPSTR, IP2STR(&addr));
     char str[(sizeof("http://") - 1) + strlen(currentIP) + 1];
     snprintf(str, sizeof(str), "http://%s", currentIP);
     httpd_resp_set_hdr(req, "Location", str);
     httpd_resp_set_hdr(req, "Connection", "Close");
     // ⚡ Bolt: Use 0 length instead of HTTPD_RESP_USE_STRLEN for empty string to avoid strlen() call
     httpd_resp_send(req, "", 0);
-    free(currentIP);
 
     return ESP_OK;
 }
