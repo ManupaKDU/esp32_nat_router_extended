@@ -157,9 +157,9 @@ char *getRedirectUrl(httpd_req_t *req)
     char *str = malloc(str_size);
     if (strcmp(sanitized_host, DEFAULT_AP_IP_CLASS_A) == 0 || strcmp(sanitized_host, DEFAULT_AP_IP_CLASS_B) == 0 || strcmp(sanitized_host, DEFAULT_AP_IP_CLASS_C) == 0)
     {
-        char *defaultIP = getDefaultIPByNetmask();
-        snprintf(str, str_size, "http://%s", defaultIP);
-        free(defaultIP);
+        ip4_addr_t addr;
+        addr.addr = my_ap_ip;
+        snprintf(str, str_size, "http://" IPSTR, IP2STR(&addr));
     }
     else
     {

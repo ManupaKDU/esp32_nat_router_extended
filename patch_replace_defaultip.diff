@@ -1,0 +1,113 @@
+--- src/urihandler/statichandler.c
++++ src/urihandler/statichandler.c
+@@ -53,13 +53,13 @@
+ esp_err_t redirectToRoot(httpd_req_t *req)
+ {
+     httpd_resp_set_status(req, "302 Temporary Redirect");
+-    char *currentIP = getDefaultIPByNetmask();
+-    char str[(sizeof("http://") - 1) + strlen(currentIP) + 1];
+-    snprintf(str, sizeof(str), "http://%s", currentIP);
++    ip4_addr_t addr;
++    addr.addr = my_ap_ip;
++    char str[32];
++    snprintf(str, sizeof(str), "http://" IPSTR, IP2STR(&addr));
+     httpd_resp_set_hdr(req, "Location", str);
+     httpd_resp_set_hdr(req, "Connection", "Close");
+     // ⚡ Bolt: Use 0 length instead of HTTPD_RESP_USE_STRLEN for empty string to avoid strlen() call
+     httpd_resp_send(req, "", 0);
+-    free(currentIP);
+
+     return ESP_OK;
+ }
+--- src/urihandler/portmaphandler.c
++++ src/urihandler/portmaphandler.c
+@@ -86,18 +86,18 @@
+     extern const char portmap_end_start[] asm("_binary_portmap_end_html_start");
+     extern const char portmap_end[] asm("_binary_portmap_end_html_end");
+     const size_t portmap_html_size = (portmap_end - portmap_end_start);
+-    char *defaultIP = getDefaultIPByNetmask();
+-    char ip_prefix[strlen(defaultIP) + 1];
+-    snprintf(ip_prefix, sizeof(ip_prefix), "%.*s", (int)(strlen(defaultIP) - 1), defaultIP); // Without the last part
+-    char *portmap_page = malloc(portmap_html_size + strlen(ip_prefix) + 1);
++    ip4_addr_t addr;
++    addr.addr = my_ap_ip;
++    char ip_prefix[16];
++    int len_ip = snprintf(ip_prefix, sizeof(ip_prefix), IPSTR, IP2STR(&addr));
++    while (len_ip > 0 && ip_prefix[len_ip - 1] != '.') { len_ip--; ip_prefix[len_ip] = '\0'; }
++    char *portmap_page = malloc(portmap_html_size + len_ip + 1);
+     if (portmap_page != NULL) {
+-        int len = snprintf(portmap_page, portmap_html_size + strlen(ip_prefix) + 1, portmap_end_start, ip_prefix);
++        int len = snprintf(portmap_page, portmap_html_size + len_ip + 1, portmap_end_start, ip_prefix);
+         ESP_LOGI(TAG, "Sending portmap end part");
+         // ⚡ Bolt: Eliminate HTTPD_RESP_USE_STRLEN O(N) overhead by passing snprintf length
+-        ESP_ERROR_CHECK(httpd_resp_send_chunk(req, portmap_page, (len > 0 && len < portmap_html_size + strlen(ip_prefix) + 1) ? len : HTTPD_RESP_USE_STRLEN));
++        ESP_ERROR_CHECK(httpd_resp_send_chunk(req, portmap_page, (len > 0 && len < portmap_html_size + len_ip + 1) ? len : HTTPD_RESP_USE_STRLEN));
+         free(portmap_page);
+     }
+
+-    free(defaultIP);
+-
+     // Finalize
+     closeHeader(req);
+@@ -132,11 +132,12 @@
+     }
+
+     readUrlParameterIntoBuffer(urlContent, "ip", param, contentLength);
+-    char *defaultIP = getDefaultIPByNetmask();
+-    char resultIP[strlen(defaultIP) + strlen(param) + 2];
+-    snprintf(resultIP, sizeof(resultIP), "%.*s%s", (int)(strlen(defaultIP) - 1), defaultIP, param);
+-    free(defaultIP);
++    ip4_addr_t addr;
++    addr.addr = my_ap_ip;
++    char resultIP[32];
++    int len_ip = snprintf(resultIP, sizeof(resultIP), IPSTR, IP2STR(&addr));
++    while (len_ip > 0 && resultIP[len_ip - 1] != '.') { len_ip--; resultIP[len_ip] = '\0'; }
++    snprintf(resultIP + len_ip, sizeof(resultIP) - len_ip, "%s", param);
+     uint32_t int_ip = ipaddr_addr(resultIP);
+     if (int_ip == IPADDR_NONE)
+     {
+--- src/urihandler/scanhandler.c
++++ src/urihandler/scanhandler.c
+@@ -35,18 +35,18 @@
+
+     httpd_req_to_sockfd(req);
+
+-    char *defaultIP = getDefaultIPByNetmask();
++    ip4_addr_t addr;
++    addr.addr = my_ap_ip;
++    char currentIP[16];
++    snprintf(currentIP, sizeof(currentIP), IPSTR, IP2STR(&addr));
+
+     extern const char scan_start[] asm("_binary_scan_html_start");
+     extern const char scan_end[] asm("_binary_scan_html_end");
+     const size_t scan_html_size = (scan_end - scan_start);
+
+-    size_t alloc_size = scan_html_size + strlen(defaultIP);
++    size_t alloc_size = scan_html_size + strlen(currentIP);
+     char *scan_page = malloc(alloc_size);
+
+     if (scan_page == NULL) {
+-        free(defaultIP);
+         return ESP_ERR_NO_MEM;
+     }
+
+     // ⚡ Bolt: Capture dynamic string length to avoid redundant O(N) strlen() in httpd_resp_send
+-    int response_len = snprintf(scan_page, alloc_size, scan_start, defaultIP);
++    int response_len = snprintf(scan_page, alloc_size, scan_start, currentIP);
+
+     closeHeader(req);
+--- src/urihandler/applyhandler.c
++++ src/urihandler/applyhandler.c
+@@ -157,9 +157,10 @@
+     char *str = malloc(str_size);
+     if (strcmp(sanitized_host, DEFAULT_AP_IP_CLASS_A) == 0 || strcmp(sanitized_host, DEFAULT_AP_IP_CLASS_B) == 0 || strcmp(sanitized_host, DEFAULT_AP_IP_CLASS_C) == 0)
+     {
+-        char *defaultIP = getDefaultIPByNetmask();
+-        snprintf(str, str_size, "http://%s", defaultIP);
+-        free(defaultIP);
++        ip4_addr_t addr;
++        addr.addr = my_ap_ip;
++        snprintf(str, str_size, "http://" IPSTR, IP2STR(&addr));
+     }
+     else
+     {

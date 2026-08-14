@@ -1,0 +1,18 @@
+--- src/esp32_nat_router.c
++++ src/esp32_nat_router.c
+@@ -696,12 +696,11 @@
+         ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_AP, &ap_config));
+     }
+     esp_ip_addr_t dnsserver;
+-    char *defaultIP = getDefaultIPByNetmask();
+-    dnsserver.u_addr.ip4.addr = esp_ip4addr_aton(defaultIP);
++
++    ip4_addr_t addr;
++    addr.addr = my_ap_ip;
++    dnsserver.u_addr.ip4.addr = my_ap_ip; // ⚡ Bolt: directly use my_ap_ip
+
+     setDnsServer(wifiAP, &dnsserver);
+
+-    free(defaultIP);
+-
+     xEventGroupWaitBits(wifi_event_group, CONNECTED_BIT,
