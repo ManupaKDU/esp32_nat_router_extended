@@ -43,14 +43,15 @@ esp_err_t unlock_handler(httpd_req_t *req)
     if (fill_post_buffer(req, buf, content_len) == ESP_OK)
     {
 
-        char *unlockParam = malloc(req->content_len + 1);
+        size_t param_len = 600;
+        char *unlockParam = malloc(param_len);
         if (unlockParam == NULL)
         {
             ESP_LOGE(TAG, "Memory allocation failed");
             free(buf);
             return ESP_FAIL;
         }
-        readUrlParameterIntoBuffer(buf, "unlock", unlockParam, req->content_len);
+        readUrlParameterIntoBuffer(buf, "unlock", unlockParam, param_len);
 
         if (strlen(unlockParam) > 0)
         {
@@ -133,14 +134,15 @@ esp_err_t lock_handler(httpd_req_t *req)
         }
         buf[req->content_len] = '\0';
 
-        char *passParam = malloc(req->content_len + 1);
+        size_t param_len = 600;
+        char *passParam = malloc(param_len);
         if (passParam == NULL)
         {
             ESP_LOGE(TAG, "Memory allocation failed");
             free(buf);
             return ESP_FAIL;
         }
-        char *pass2Param = malloc(req->content_len + 1);
+        char *pass2Param = malloc(param_len);
         if (pass2Param == NULL)
         {
             ESP_LOGE(TAG, "Memory allocation failed");
@@ -149,14 +151,14 @@ esp_err_t lock_handler(httpd_req_t *req)
             return ESP_FAIL;
         }
 
-        readUrlParameterIntoBuffer(buf, "lockpass", passParam, req->content_len);
-        readUrlParameterIntoBuffer(buf, "lockpass2", pass2Param, req->content_len);
+        readUrlParameterIntoBuffer(buf, "lockpass", passParam, param_len);
+        readUrlParameterIntoBuffer(buf, "lockpass2", pass2Param, param_len);
         size_t passLen = strlen(passParam);
         size_t pass2Len = strlen(pass2Param);
         if (passLen == pass2Len && crypto_memcmp(passParam, pass2Param, passLen) == 0)
         {
-            readUrlParameterIntoBuffer(buf, "lockpass", passParam, req->content_len);
-            readUrlParameterIntoBuffer(buf, "lockpass2", pass2Param, req->content_len);
+            readUrlParameterIntoBuffer(buf, "lockpass", passParam, param_len);
+            readUrlParameterIntoBuffer(buf, "lockpass2", pass2Param, param_len);
             passLen = strlen(passParam);
             pass2Len = strlen(pass2Param);
             ESP_LOGI(TAG, "Found pass2 parameter => ***REDACTED***");

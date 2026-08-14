@@ -229,7 +229,8 @@ esp_err_t index_post_handler(httpd_req_t *req)
 
     if (fill_post_buffer(req, buf, content_len) == ESP_OK)
     {
-        char *ssidParam = malloc(req->content_len + 1);
+        size_t param_len = 600;
+        char *ssidParam = malloc(param_len);
         if (ssidParam == NULL)
         {
             ESP_LOGE(TAG, "Memory allocation failed");
@@ -237,7 +238,7 @@ esp_err_t index_post_handler(httpd_req_t *req)
             return ESP_FAIL;
         }
 
-        readUrlParameterIntoBuffer(buf, "ssid", ssidParam, req->content_len);
+        readUrlParameterIntoBuffer(buf, "ssid", ssidParam, param_len);
 
         if (strlen(ssidParam) > 0)
         {
