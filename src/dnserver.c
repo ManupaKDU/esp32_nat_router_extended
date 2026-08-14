@@ -22,6 +22,9 @@
 
 #define DNS_PORT (53)
 #define DNS_MAX_LEN (256)
+#define DNS_MAX_NAME_LEN (128)
+#define DNS_RX_BUF_LEN (128)
+#define DNS_ADDR_STR_LEN (128)
 
 #define OPCODE_MASK (0x7800)
 #define QR_FLAG (1 << 7)
@@ -147,7 +150,7 @@ static int parse_dns_request(char *req, size_t req_len, char *dns_reply, size_t 
     // Pointer to current answer and question
     char *cur_ans_ptr = dns_reply + req_len;
     char *cur_qd_ptr = dns_reply + sizeof(dns_header_t);
-    char name[128];
+    char name[DNS_MAX_NAME_LEN];
 
     // Respond to all questions with the ESP32's IP address
     for (int i = 0; i < qd_count; i++)
@@ -204,8 +207,8 @@ static int parse_dns_request(char *req, size_t req_len, char *dns_reply, size_t 
 */
 void dns_server_task(void *pvParameters)
 {
-    char rx_buffer[128];
-    char addr_str[128];
+    char rx_buffer[DNS_RX_BUF_LEN];
+    char addr_str[DNS_ADDR_STR_LEN];
     int addr_family;
     int ip_protocol;
 
