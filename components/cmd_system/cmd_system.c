@@ -74,7 +74,7 @@ static int get_version(int argc, char **argv)
 {
 
     char chip_type[30];
-    determineChipType(chip_type);
+    determineChipType(chip_type, sizeof(chip_type));
     esp_chip_info_t info;
     esp_chip_info(&info);
     uint32_t size_flash_chip;
@@ -384,7 +384,7 @@ static void register_light_sleep(void)
         .argtable = &light_sleep_args};
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
 }
-void determineChipType(char chip_type[30])
+void determineChipType(char* chip_type, size_t buf_size)
 {
     esp_chip_info_t chip_info;
     esp_chip_info(&chip_info);
@@ -392,23 +392,23 @@ void determineChipType(char chip_type[30])
     switch (chip_info.model)
     {
     case CHIP_ESP32:
-        sprintf(chip_type, "%s", "ESP32");
+        snprintf(chip_type, buf_size, "%s", "ESP32");
         break;
     case CHIP_ESP32S2:
-        sprintf(chip_type, "%s", "ESP32-S2");
+        snprintf(chip_type, buf_size, "%s", "ESP32-S2");
         break;
     case CHIP_ESP32S3:
-        sprintf(chip_type, "%s", "ESP32-S3");
+        snprintf(chip_type, buf_size, "%s", "ESP32-S3");
         break;
     case CHIP_ESP32C3:
-        sprintf(chip_type, "%s", "ESP32-C3");
+        snprintf(chip_type, buf_size, "%s", "ESP32-C3");
         break;
     case CHIP_ESP32C6:
-        sprintf(chip_type, "%s", "ESP32-C6");
+        snprintf(chip_type, buf_size, "%s", "ESP32-C6");
         break;
     default:
         int chip_model = chip_info.model;
-        sprintf(chip_type, "%s (%d)", "Unknown/Unsupported", chip_model);
+        snprintf(chip_type, buf_size, "%s (%d)", "Unknown/Unsupported", chip_model);
         break;
     }
 }
