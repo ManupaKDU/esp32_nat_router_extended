@@ -149,7 +149,7 @@ char *getRedirectUrl(httpd_req_t *req)
         host[0] = '\0';
     }
 
-    char sanitized_host[32 * 6];
+    char sanitized_host[(sizeof(host) * 6) + 1];
     sanitize_html(host, sanitized_host, sizeof(sanitized_host));
 
     ESP_LOGI(TAG, "Host of request is '%s'", sanitized_host);
