@@ -37,14 +37,25 @@ esp_err_t index_get_handler(httpd_req_t *req)
     char *displayResult = "none";
 
     char *scanButtonWidth = "12";
+    int32_t result_shown = 0;
+    int32_t ssidHidden = 0;
+    char *sta_identity = NULL;
+    char *sta_user = NULL;
+    char *cert = NULL;
+    size_t len = 0;
 
     // ⚡ Bolt: Batch NVS fetches to eliminate repeated nvs_open/nvs_close overhead
     nvs_handle_t param_nvs;
     esp_err_t nvs_status = nvs_open(PARAM_NAMESPACE, NVS_READONLY, &param_nvs);
-
-    if (nvs_status == ESP_OK) get_config_param_str_from_nvs(param_nvs, "scan_result", &result_param);
-    int32_t result_shown = 0;
-    if (nvs_status == ESP_OK) get_config_param_int_from_nvs(param_nvs, "result_shown", &result_shown);
+    if (nvs_status == ESP_OK) {
+        get_config_param_str_from_nvs(param_nvs, "scan_result", &result_param);
+        get_config_param_int_from_nvs(param_nvs, "result_shown", &result_shown);
+        get_config_param_int_from_nvs(param_nvs, "ssid_hidden", &ssidHidden);
+        get_config_param_str_from_nvs(param_nvs, "sta_identity", &sta_identity);
+        get_config_param_str_from_nvs(param_nvs, "sta_user", &sta_user);
+        get_config_param_blob_from_nvs(param_nvs, "cer", &cert, &len);
+        nvs_close(param_nvs);
+    }
     if (result_param != NULL && result_shown < 3)
     {
         if (result_shown == 0)
@@ -79,9 +90,7 @@ esp_err_t index_get_handler(httpd_req_t *req)
         displayRelockButton = "none";
     }
 
-    int32_t ssidHidden = 0;
     char *hiddenSSID = NULL;
-    if (nvs_status == ESP_OK) get_config_param_int_from_nvs(param_nvs, "ssid_hidden", &ssidHidden);
     if (ssidHidden == 1)
     {
         hiddenSSID = "checked";
@@ -119,19 +128,10 @@ esp_err_t index_get_handler(httpd_req_t *req)
     /* WPA2  */
     char *wpa2CB = NULL;
     char *wpa2Input = NULL;
-    char *sta_identity = NULL;
-    char *sta_user = NULL;
-    size_t len = 0;
-
-    char *cert = NULL;
-    if (nvs_status == ESP_OK) get_config_param_str_from_nvs(param_nvs, "sta_identity", &sta_identity);
-    if (nvs_status == ESP_OK) get_config_param_str_from_nvs(param_nvs, "sta_user", &sta_user);
-    if (nvs_status == ESP_OK) nvs_close(param_nvs);
 
     char *orig_sta_identity = sta_identity;
     char *orig_sta_user = sta_user;
 
-    get_config_param_blob("cer", &cert, &len);
     char *orig_cert = cert;
     char *cer = NULL;
     if (len > 0)
