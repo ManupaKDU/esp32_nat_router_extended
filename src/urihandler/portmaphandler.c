@@ -124,12 +124,13 @@ void addPortmapEntry(char *urlContent)
     }
     readUrlParameterIntoBuffer(urlContent, "eport", param, contentLength);
     char *endptr;
-    uint16_t ext_port = (uint16_t)strtoul(param, &endptr, 10);
-    if (ext_port < 1 || *endptr != '\0')
+    unsigned long ext_port_val = strtoul(param, &endptr, 10);
+    if (ext_port_val < 1 || ext_port_val > 65535 || *endptr != '\0')
     {
         ESP_LOGW(TAG, "External port out of range");
         return;
     }
+    uint16_t ext_port = (uint16_t)ext_port_val;
 
     readUrlParameterIntoBuffer(urlContent, "ip", param, contentLength);
     char *defaultIP = getDefaultIPByNetmask();
@@ -143,13 +144,14 @@ void addPortmapEntry(char *urlContent)
         return;
     }
     readUrlParameterIntoBuffer(urlContent, "iport", param, contentLength);
-    uint16_t int_port = (uint16_t)strtoul(param, &endptr, 10);
+    unsigned long int_port_val = strtoul(param, &endptr, 10);
 
-    if (int_port < 1 || *endptr != '\0')
+    if (int_port_val < 1 || int_port_val > 65535 || *endptr != '\0')
     {
         ESP_LOGW(TAG, "Internal port out of range");
         return;
     }
+    uint16_t int_port = (uint16_t)int_port_val;
 
     add_portmap(tcp_udp, ext_port, int_ip, int_port);
 }
@@ -163,6 +165,8 @@ void delPortmapEntry(char *urlContent)
     const char delimiter[] = "_";
 
     char *token = strtok(param, delimiter);
+    if (token == NULL) return;
+
     uint8_t tcp_udp;
     if (strcmp(token, "TCP") == 0)
     {
@@ -174,14 +178,20 @@ void delPortmapEntry(char *urlContent)
     }
 
     token = strtok(NULL, delimiter);
+    if (token == NULL) return;
+
     char *endptr;
-    uint16_t ext_port = (uint16_t)strtoul(token, &endptr, 10);
-    if (ext_port < 1 || *endptr != '\0')
+    unsigned long ext_port_val = strtoul(token, &endptr, 10);
+    if (ext_port_val < 1 || ext_port_val > 65535 || *endptr != '\0')
     {
         ESP_LOGW(TAG, "External port out of range");
         return;
     }
+    uint16_t ext_port = (uint16_t)ext_port_val;
+
     token = strtok(NULL, delimiter);
+    if (token == NULL) return;
+
     uint32_t int_ip = ipaddr_addr(token);
     if (int_ip == IPADDR_NONE)
     {
@@ -190,13 +200,16 @@ void delPortmapEntry(char *urlContent)
     }
 
     token = strtok(NULL, delimiter);
-    uint16_t int_port = (uint16_t)strtoul(token, &endptr, 10);
+    if (token == NULL) return;
 
-    if (int_port < 1 || *endptr != '\0')
+    unsigned long int_port_val = strtoul(token, &endptr, 10);
+
+    if (int_port_val < 1 || int_port_val > 65535 || *endptr != '\0')
     {
         ESP_LOGW(TAG, "Internal port out of range");
         return;
     }
+    uint16_t int_port = (uint16_t)int_port_val;
 
     del_portmap(tcp_udp, ext_port, int_ip, int_port);
 }
