@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 ## 2023-10-25 - [Empty States and Inline Validation]
 **Learning:** Found empty state messages in tables styled with `text-danger` and `text-warning`, making normal zero-state conditions appear as system errors. Missing `required` attributes on add-item forms allowed invalid partial submissions.
 **Action:** When creating empty states, use neutral styling (like `text-muted`) to avoid causing user alarm. Always leverage HTML5 `required` attributes for simple inline validation before resorting to backend handling.
@@ -101,3 +100,7 @@
 ## 2025-02-28 - Removed `role="alert"` from static form helper texts
 **Learning:** Found an accessibility issue pattern specific to this app's components: static form helper texts (which describe input constraints like "The hostname is a user-friendly label...") were inappropriately using `role="alert"`. This anti-pattern causes screen readers to spam the user with all helper texts immediately on page load, severely degrading accessibility.
 **Action:** Remove `role="alert"` from static helper text and instead link them semantically to their corresponding inputs using `id` and `aria-describedby` attributes to provide contextual guidance only when the input receives focus.
+
+## 2024-08-12 - Accessibility Alert Anti-Pattern
+**Learning:** Using `role="alert"` (or Bootstrap alert classes that include it by default in some frameworks) for static form helper text causes screen readers to spam the user with the description immediately on page load, rather than when the input receives focus.
+**Action:** Remove `role="alert"` from static form descriptions and properly associate them with their respective inputs using `aria-describedby="<id>"`.
