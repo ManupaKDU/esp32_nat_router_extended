@@ -7,3 +7,5 @@ commands.txt
 ws.code-workspace
 tests/test_helper
 tests/test_cmd_nvs
+tests/test_lockhandler
+tests/lockhandler_stripped.c
