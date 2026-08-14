@@ -207,6 +207,17 @@ void test_is_valid_subnet_mask() {
     // Test 4: Edge cases
     assert(is_valid_subnet_mask(NULL) == false);
     assert(is_valid_subnet_mask((char *)"") == true);
+    assert(is_valid_subnet_mask((char *)"    ") == false); // Spaces only
+    assert(is_valid_subnet_mask((char *)"255.255.255") == false); // Missing octet
+    assert(is_valid_subnet_mask((char *)"255.255.255.0 ") == false); // Trailing space
+    assert(is_valid_subnet_mask((char *)" 255.255.255.0") == false); // Leading space
+
+    // Test 5: Tricky non-contiguous masks
+    assert(is_valid_subnet_mask((char *)"255.255.255.127") == false); // 01111111 in last octet
+    assert(is_valid_subnet_mask((char *)"255.255.255.191") == false); // 10111111 in last octet
+    assert(is_valid_subnet_mask((char *)"255.255.255.253") == false); // 11111101 in last octet
+    assert(is_valid_subnet_mask((char *)"255.255.255.254") == true);  // 11111110 is actually valid (/31)
+    assert(is_valid_subnet_mask((char *)"255.127.255.0") == false);   // non-contiguous in middle
 
     printf("All test_is_valid_subnet_mask passed!\n");
 }
