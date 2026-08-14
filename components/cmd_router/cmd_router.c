@@ -180,7 +180,7 @@ esp_err_t erase_key(char *name)
 char *getDefaultIPByNetmask()
 {
 
-    char *result = (char *)malloc(15);
+    char *result = (char *)malloc(16);
     char *netmask = getNetmask();
 
     int32_t octet = 4;
@@ -189,7 +189,7 @@ char *getDefaultIPByNetmask()
     char *netmask_to_compare = "255.255.255.";
     if (strncmp(netmask, netmask_to_compare, strlen(netmask_to_compare)) == 0)
     {
-        sprintf(result, DEFAULT_AP_IP_CLASS_C, octet);
+        snprintf(result, 16, DEFAULT_AP_IP_CLASS_C, octet);
         return result;
     }
 
@@ -197,12 +197,12 @@ char *getDefaultIPByNetmask()
     if (strncmp(netmask, netmask_to_compare, strlen(netmask_to_compare)) == 0)
     {
 
-        sprintf(result, DEFAULT_AP_IP_CLASS_B, octet);
+        snprintf(result, 16, DEFAULT_AP_IP_CLASS_B, octet);
         return result;
     }
     else
     {
-        sprintf(result, DEFAULT_AP_IP_CLASS_A, octet);
+        snprintf(result, 16, DEFAULT_AP_IP_CLASS_A, octet);
         return result;
     }
 }
