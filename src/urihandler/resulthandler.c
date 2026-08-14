@@ -8,7 +8,7 @@
 
 static const char *TAG = "ResultHandler";
 
-const char *ROW_TEMPLATE = "<tr><td class='text-%s'>%s</td><td class='text-%s'>%s</td><td><form action='/' method='POST'><input type='hidden' name='ssid' value='%s'><input type='submit' value='Use' name='use' class='btn btn-primary' aria-label='Use %s'/></form></td></tr>";
+const char *ROW_TEMPLATE = "<tr><th scope='row' class='text-%s'>%s</th><td class='text-%s'>%s</td><td><form action='/' method='POST'><input type='hidden' name='ssid' value='%s'><input type='submit' value='Use' name='use' class='btn btn-primary' aria-label='Use %s'/></form></td></tr>";
 
 char *findTextColorForSSID(int8_t rssi)
 {
