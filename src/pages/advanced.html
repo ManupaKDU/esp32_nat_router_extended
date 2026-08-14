@@ -23,14 +23,14 @@
                                         <label for="hostname">Hostname</label>
                                         <input class="form-control mt-2" id="hostname" maxlength="250" name="hostname"
                                                 placeholder="Hostname, will be regenerated if empty" type="text"
-                                                value="%s" autocorrect="off" autocapitalize="none" spellcheck="false" />
+                                                value="%s" autocorrect="off" autocapitalize="none" spellcheck="false" aria-describedby="hostname_help" />
                                 </div>
                                 <div class="col-3" style="padding-right: 0;">
                                         <label for="octet">Third octet</label>
                                         <input class="form-control mt-2" type="number" id="octet"
                                                 name="octet" placeholder="4" value="%d" min="0" max="255" />
                                 </div>
-                                <div class="alert alert-light mt-2" role=alert>The hostname is a user-friendly label
+                                <div id="hostname_help" class="alert alert-light mt-2">The hostname is a user-friendly label
                                         assigned to the router to make it easier to identify and access on a network.
                                         <br />
                                         The third octet instructs the router which IP address to use. Valid values range
@@ -43,7 +43,7 @@
                                 <div class="col-6" style="padding-left: 0;">
                                         <label for="txpower">Tx power/ WiFi range</label>
                                         <select class="form-select mt-2" aria-label="Select the transmission power"
-                                                title="Select the transmission power" name="txpower" id="txpower">
+                                                title="Select the transmission power" name="txpower" id="txpower" aria-describedby="txpower_help">
                                                 <option value="8" %s>Low</option>
                                                 <option value="52" %s>Medium</option>
                                                 <option value="80" %s>High</option>
@@ -58,7 +58,7 @@
                                         </select>
                                 </div>
 
-                                <div class="alert alert-light mt-2" role=alert>
+                                <div id="txpower_help" class="alert alert-light mt-2">
                                         The transmission power determines how strong the AP (Access Point) network is.
                                         Higher values mean greater range.
                                         <br />
@@ -72,10 +72,10 @@
                         </div>
                         <div class="form-group row mt-2">
                                 <div class="form-check form-switch"> <input class=form-check-input type=checkbox
-                                                id=ledenabled name=ledenabled %s> <label class=form-check-label
+                                                id=ledenabled name=ledenabled %s aria-describedby="ledenabled_help"> <label class=form-check-label
                                                 for=ledenabled>LED enabled</label>
                                 </div>
-                                <div class="alert alert-light mt-2" role=alert> This enables or disables the on board
+                                <div id="ledenabled_help" class="alert alert-light mt-2"> This enables or disables the on board
                                         LED, if available.
                                         Uncheck this option for less power consumption and less disturbing blinking. Of
                                         course, you will not
@@ -83,11 +83,11 @@
                         </div>
                         <div class="form-group row mt-2">
                                 <div class="form-check form-switch"> <input class=form-check-input type=checkbox
-                                                id=keepalive name=keepalive %s> <label class=form-check-label
+                                                id=keepalive name=keepalive %s aria-describedby="keepalive_help"> <label class=form-check-label
                                                 for=keepalive>Keep connection
                                                 alive</label>
                                 </div>
-                                <div class="alert alert-light mt-2" role=alert> Check this option for networks with a
+                                <div id="keepalive_help" class="alert alert-light mt-2"> Check this option for networks with a
                                         forced disconnect
                                         after some inactivity. This will call <a
                                                 href=https:www.startpage.com>startpage.com</a> every 5
@@ -95,10 +95,10 @@
                         </div>
                         <div class="form-group row mt-2">
                                 <div class="form-check form-switch"> <input class=form-check-input type=checkbox
-                                                id=natenabled name=natenabled %s> <label class=form-check-label
+                                                id=natenabled name=natenabled %s aria-describedby="natenabled_help"> <label class=form-check-label
                                                 for=natenabled>NAT enabled</label>
                                 </div>
-                                <div class="alert alert-warning mt-2" role=alert> This enables or disables NAT(Network
+                                <div id="natenabled_help" class="alert alert-warning mt-2"> This enables or disables NAT(Network
                                         Address Translation). If disabled, the ESP32 will not perform automatic
                                         translation of IP addresses and ports for connected devices when they establish
                                         a connection to the internet. These routes need to be configured separately, for
@@ -106,11 +106,11 @@
                         </div>
                         <div class="form-group row mt-2 ">
                                 <div class="form-check form-switch"> <input class=form-check-input type=checkbox
-                                                id=wsenabled name=wsenabled checked> <label class=form-check-label
+                                                id=wsenabled name=wsenabled checked aria-describedby="wsenabled_help"> <label class=form-check-label
                                                 for=wsenabled>Webserver
                                                 enabled</label>
                                 </div>
-                                <div class="alert alert-danger mt-2" role=alert> This enables or disables the webserver.
+                                <div id="wsenabled_help" class="alert alert-danger mt-2"> This enables or disables the webserver.
                                         Disabling it increases security but also means that the device can no longer be
                                         configured through the web browser.</div>
                         </div>
@@ -118,23 +118,23 @@
                         <h2>DNS override</h2> <span class=text-info>Your current DNS is: %s</span>
                         <div class="form-group row mt-2">
                                 <div class=form-check> <input class=form-check-input type=radio name=dns id=default
-                                                value %s> <label class=form-check-label for=default> Default from uplink
+                                                value %s aria-describedby="dns_help"> <label class=form-check-label for=default> Default from uplink
                                                 WiFi-network</label> </div>
                                 <div class="form-check mt-2"> <input class=form-check-input type=radio name=dns
-                                                id=cloudflare value=1.1.1.1 %s> <label class=form-check-label
+                                                id=cloudflare value=1.1.1.1 %s aria-describedby="dns_help"> <label class=form-check-label
                                                 for=cloudflare> 1.1.1.1 (Cloudflare)
                                         </label>
                                 </div>
                                 <div class="form-check mt-2"> <input class=form-check-input type=radio name=dns
-                                                id=adguard value=94.140.14.14 %s> <label class=form-check-label
+                                                id=adguard value=94.140.14.14 %s aria-describedby="dns_help"> <label class=form-check-label
                                                 for=adguard> 94.140.14.14 (AdGuard)
                                         </label> </div>
                                 <div class="form-check mt-2"> <input class=form-check-input type=radio name=dns
-                                                id=custom value=custom %s> <label class=form-check-label for=custom>
+                                                id=custom value=custom %s aria-describedby="dns_help"> <label class=form-check-label for=custom>
                                                 Custom </label> <input class="form-control mt-2" id=dnsip maxlength=15
                                                 name=dnsip placeholder="IPv4 address in format 123.123.123.123"
                                                 type=text value=%s aria-label="Custom DNS IP" pattern="^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$" title="Please enter a valid IPv4 address (e.g., 123.123.123.123)" autocorrect="off" autocapitalize="none" spellcheck="false" required> </div>
-                                <div class="alert alert-warning mt-2" role=alert>This overrides the DNS server of the
+                                <div id="dns_help" class="alert alert-warning mt-2">This overrides the DNS server of the
                                         uplink network. Changing this results in more privacy (Cloudflare) or the
                                         ability to block advertisements(AdGuard).
                                         Use this with caution if you have to register/login to the uplink network. This
@@ -146,20 +146,20 @@
                                         style="text-transform: uppercase;">%s</span></span>
                         <div class="form-group row mt-2">
                                 <div class=form-check> <input class=form-check-input type=radio id=defaultmac
-                                                name=custommac value=default %s> <label class=form-check-label
+                                                name=custommac value=default %s aria-describedby="mac_help"> <label class=form-check-label
                                                 for=defaultmac> Default <span
                                                         style="text-transform: uppercase;">(%s)</span> </label> </div>
                                 <div class="form-check mt-2"> <input class=form-check-input type=radio id=randomMac
-                                                name=custommac value=random %s> <label class=form-check-label
+                                                name=custommac value=random %s aria-describedby="mac_help"> <label class=form-check-label
                                                 for=randomMac>Random<span style="text-transform: uppercase;">
                                                         (%sXX)</span>.</label> </div>
                                 <div class="form-check mt-2"> <input class=form-check-input type=radio id=custommac
-                                                name=custommac value=custom %s> <label class=form-check-label
+                                                name=custommac value=custom %s aria-describedby="mac_help"> <label class=form-check-label
                                                 for=custommac> Custom </label> <input class="form-control mt-2" id=mac
                                                 maxlength=17 name=macaddress
                                                 placeholder="MAC address in format AB:BC:DE:F1:23:45" type=text
                                                 value=%s aria-label="Custom MAC address" pattern="^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$" title="Please enter a valid MAC address (e.g., AB:BC:DE:F1:23:45)" autocorrect="off" autocapitalize="none" spellcheck="false" required> </div>
-                                <div class="alert alert-warning mt-2" role=alert>This overrides the MAC address of the
+                                <div id="mac_help" class="alert alert-warning mt-2">This overrides the MAC address of the
                                         device. Changing
                                         this can be used for networks with MAC limitations. For example, when the
                                         network allows only a limited number of devices per access for specific MACs.
@@ -174,26 +174,26 @@
                                         style="text-transform: uppercase;">%s</span></span>
                         <div class="form-group row mt-2">
                                 <div class=form-check> <input class=form-check-input type=radio id=classc name=netmask
-                                                value=classc %s>
+                                                value=classc %s aria-describedby="netmask_help">
                                         <label class=form-check-label for=classc> Class C (255.255.255.0). ESP 32 NAT
                                                 Router address is
                                                 192.168.%d.1.</label>
                                 </div>
                                 <div class="form-check mt-2"> <input class=form-check-input type=radio id=classb
-                                                name=netmask value=classb %s> <label class=form-check-label for=classb>
+                                                name=netmask value=classb %s aria-describedby="netmask_help"> <label class=form-check-label for=classb>
                                                 Class B (255.255.0.0). ESP 32 NAT
                                                 Router address is 172.16.%d.1.</label> </div>
                                 <div class="form-check mt-2"> <input class=form-check-input type=radio id=classa
-                                                name=netmask value=classa %s> <label class=form-check-label for=classa>
+                                                name=netmask value=classa %s aria-describedby="netmask_help"> <label class=form-check-label for=classa>
                                                 Class A (255.0.0.0). ESP 32 NAT
                                                 Router address is 10.0.%d.1.</label> </div>
                                 <div class="form-check mt-2"> <input class=form-check-input type=radio id=custommask
-                                                name=netmask value=custom %s> <label class=form-check-label
+                                                name=netmask value=custom %s aria-describedby="netmask_help"> <label class=form-check-label
                                                 for=custommask> Custom </label> <input class="form-control mt-2" id=mask
                                                 maxlength=15 name=mask
                                                 placeholder="IPv4 address in format 255.255.255.255" type=text value=%s aria-label="Custom Netmask" pattern="^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$" title="Please enter a valid IPv4 netmask (e.g., 255.255.255.0)" autocorrect="off" autocapitalize="none" spellcheck="false" required>
                                 </div>
-                                <div class="alert alert-warning mt-2" role=alert>This overrides the netmask of the
+                                <div id="netmask_help" class="alert alert-warning mt-2">This overrides the netmask of the
                                         device and can be
                                         used if upstream network uses a non class C mask. The setting can be used for
                                         communication with
