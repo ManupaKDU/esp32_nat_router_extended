@@ -12,6 +12,8 @@
 
 static const char *TAG = "ClientsHandler";
 
+#define RESULT_BUF_SIZE 1000
+
 const char *CLIENT_TEMPLATE = "<tr><th scope='row'>%i</th><td>%s</td><td style='text-transform: uppercase;'>%s</td></tr>";
 
 esp_err_t clients_download_get_handler(httpd_req_t *req)
@@ -21,7 +23,7 @@ esp_err_t clients_download_get_handler(httpd_req_t *req)
         return redirectToLock(req);
     }
 
-    char result[1000];
+    char result[RESULT_BUF_SIZE];
     int offset = 0;
     result[0] = '\0';
 
