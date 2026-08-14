@@ -77,6 +77,20 @@ esp_err_t get_config_param_str(char *name, char **param)
     return err;
 }
 
+esp_err_t get_config_param_blob_from_nvs(nvs_handle_t nvs, char *name, char **param, size_t *blob_len)
+{
+    size_t len;
+    esp_err_t err;
+    if ((err = nvs_get_blob(nvs, name, NULL, &len)) == ESP_OK)
+    {
+        *param = (char *)malloc(len);
+        *blob_len = len;
+
+        err = nvs_get_blob(nvs, name, *param, &len);
+    }
+    return err;
+}
+
 esp_err_t get_config_param_blob(char *name, char **param, size_t *blob_len)
 {
     nvs_handle_t nvs;
@@ -84,16 +98,10 @@ esp_err_t get_config_param_blob(char *name, char **param, size_t *blob_len)
     esp_err_t err = nvs_open(PARAM_NAMESPACE, NVS_READONLY, &nvs);
     if (err == ESP_OK)
     {
-        size_t len;
-        if ((err = nvs_get_blob(nvs, name, NULL, &len)) == ESP_OK)
+        err = get_config_param_blob_from_nvs(nvs, name, param, blob_len);
+        if (err != ESP_OK && err != ESP_ERR_NVS_NOT_FOUND)
         {
-            *param = (char *)malloc(len);
-            *blob_len = len;
-
-            err = nvs_get_blob(nvs, name, *param, &len);
-        }
-        else
-        {
+            nvs_close(nvs);
             return err;
         }
         nvs_close(nvs);

@@ -62,6 +62,7 @@ extern "C"
    esp_err_t get_config_param_int(char *name, int32_t *param);
    esp_err_t get_config_param_str(char *name, char **param);
    esp_err_t get_config_param_blob(char *name, char **param, size_t *blob_len);
+   esp_err_t get_config_param_blob_from_nvs(nvs_handle_t nvs, char *name, char **param, size_t *blob_len);
    esp_err_t get_config_param_blob2(char *name, uint8_t *blob, size_t blob_len);
    esp_err_t erase_key(char *name);
 

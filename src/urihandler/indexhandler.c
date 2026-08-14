@@ -119,12 +119,20 @@ esp_err_t index_get_handler(httpd_req_t *req)
     size_t len = 0;
 
     char *cert = NULL;
-    get_config_param_str("sta_identity", &sta_identity);
-    get_config_param_str("sta_user", &sta_user);
+
+    // ⚡ Bolt: Batch NVS fetches to eliminate repeated nvs_open/nvs_close overhead
+    nvs_handle_t param_nvs;
+    esp_err_t nvs_status = nvs_open(PARAM_NAMESPACE, NVS_READONLY, &param_nvs);
+
+    if (nvs_status == ESP_OK) get_config_param_str_from_nvs(param_nvs, "sta_identity", &sta_identity);
+    if (nvs_status == ESP_OK) get_config_param_str_from_nvs(param_nvs, "sta_user", &sta_user);
     char *orig_sta_identity = sta_identity;
     char *orig_sta_user = sta_user;
 
-    get_config_param_blob("cer", &cert, &len);
+    if (nvs_status == ESP_OK) get_config_param_blob_from_nvs(param_nvs, "cer", &cert, &len);
+    if (nvs_status == ESP_OK) {
+        nvs_close(param_nvs);
+    }
     char *orig_cert = cert;
     char *cer = NULL;
     if (len > 0)
