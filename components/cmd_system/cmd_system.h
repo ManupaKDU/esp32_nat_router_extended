@@ -21,7 +21,7 @@ extern "C"
 
    // Register system functions
    void register_system(void);
-   void determineChipType(char chip_type[30]);
+   void determineChipType(char* chip_type, size_t buf_size);
    const char *get_project_version();
    const char *get_project_build_date();
 

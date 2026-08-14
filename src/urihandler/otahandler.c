@@ -371,7 +371,7 @@ esp_err_t ota_download_get_handler(httpd_req_t *req)
         appendToChangelog(NOT_DETERMINED);
     }
 
-    determineChipType(chip_type);
+    determineChipType(chip_type, sizeof(chip_type));
     ESP_LOGD(TAG, "Chip Type: %s\n", chip_type);
     char customUrl[200];
     char label[20];
