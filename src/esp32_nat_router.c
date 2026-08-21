@@ -937,7 +937,17 @@ void app_main(void)
 
     pthread_t t1;
     int32_t led_disabled = 0;
-    get_config_param_int("led_disabled", &led_disabled);
+    int32_t nat_disabled = 0;
+    int32_t lock = 0;
+
+    nvs_handle_t param_nvs;
+    if (nvs_open(PARAM_NAMESPACE, NVS_READONLY, &param_nvs) == ESP_OK) {
+        get_config_param_int_from_nvs(param_nvs, "led_disabled", &led_disabled);
+        get_config_param_int_from_nvs(param_nvs, "nat_disabled", &nat_disabled);
+        get_config_param_int_from_nvs(param_nvs, "lock", &lock);
+        nvs_close(param_nvs);
+    }
+
     if (led_disabled == 0)
     {
         ESP_LOGI(TAG, "On board LED is enabled");
@@ -947,8 +957,7 @@ void app_main(void)
     {
         ESP_LOGI(TAG, "On board LED is disabled");
     }
-    int32_t nat_disabled = 0;
-    get_config_param_int("nat_disabled", &nat_disabled);
+
     if (nat_disabled == 0)
     {
         ip_napt_enable(my_ap_ip, 1);
@@ -959,8 +968,6 @@ void app_main(void)
         ESP_LOGI(TAG, "NAT is disabled");
     }
 
-    int32_t lock = 0;
-    get_config_param_int("lock", &lock);
     if (lock == 0)
     {
         ESP_LOGI(TAG, "Starting config web server");
