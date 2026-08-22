@@ -64,6 +64,9 @@ esp_err_t index_get_handler(httpd_req_t *req)
             httpd_resp_set_status(req, "302 Found");
             httpd_resp_set_hdr(req, "Location", "/result");
             free(result_param);
+            if (sta_identity != NULL) free(sta_identity);
+            if (sta_user != NULL) free(sta_user);
+            if (cert != NULL) free(cert);
             return httpd_resp_send(req, NULL, 0);
         }
 
