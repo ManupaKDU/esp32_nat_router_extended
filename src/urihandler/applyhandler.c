@@ -268,9 +268,9 @@ void applyAdvancedConfig(char *buf)
                 }
                 else
                 {
-                    esp_ip4_addr_t *addr = malloc(16);
-                    addr->addr = ipasInt;
-                    esp_ip4addr_ntoa(addr, customDnsParam, 16);
+                    esp_ip4_addr_t addr;
+                    addr.addr = ipasInt;
+                    esp_ip4addr_ntoa(&addr, customDnsParam, 16);
                     ESP_LOGI(TAG, "DNS set to: %s", customDnsParam);
                     ESP_ERROR_CHECK(nvs_set_str(nvs, "custom_dns", customDnsParam));
                 }
