@@ -203,7 +203,7 @@
                         <div class="form-group row col-4 offset-4 mt-4"> <input class="btn btn-primary" type=submit
                                         value="Apply"> </div> <input type=hidden value=x name=x>
                 </form>
-                <form action=reset method=GET>
+                <form action=reset method=GET onsubmit="return confirm('Are you sure you want to erase the flash? This will reset the device to factory defaults.');">
                         <div class="form-group row col-4 offset-4 mt-5"> <input class="btn btn-warning" type=submit
                                         value="Erase flash"> </div>
                 </form>
