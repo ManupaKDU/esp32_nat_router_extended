@@ -414,25 +414,13 @@ esp_err_t ota_post_handler(httpd_req_t *req)
         httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Out of memory");
         return ESP_FAIL;
     }
-    int ret, remaining = req->content_len;
-
-    while (remaining > 0)
+    // 🛡️ Sentinel: Centralized HTTP request reading mitigates Slowloris DoS timeouts, but explicit null-termination is retained to prevent buffer over-reads in subsequent string operations.
+    if (fill_post_buffer(req, buf, req->content_len) != ESP_OK)
     {
-        /* Read the data for the request */
-        if ((ret = httpd_req_recv(req, buf + (req->content_len - remaining), MIN(remaining, req->content_len))) <= 0)
-        {
-            if (ret == HTTPD_SOCK_ERR_TIMEOUT)
-            {
-                continue;
-            }
-            ESP_LOGE(TAG, "Timeout occured");
-            free(buf);
-            return ESP_FAIL;
-        }
-
-        remaining -= ret;
+        free(buf);
+        return ESP_FAIL;
     }
-    buf[req->content_len] = '\0';
+    buf[req->content_len] = '\0'; // Sentinel: Ensure null termination for safety
 
     updateVersion();
     free(buf);
