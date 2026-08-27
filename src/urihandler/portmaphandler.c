@@ -133,10 +133,16 @@ void addPortmapEntry(char *urlContent)
     uint16_t ext_port = (uint16_t)ext_port_val;
 
     readUrlParameterIntoBuffer(urlContent, "ip", param, contentLength);
-    char *defaultIP = getDefaultIPByNetmask();
-    char resultIP[strlen(defaultIP) + strlen(param) + 2];
-    snprintf(resultIP, sizeof(resultIP), "%.*s%s", (int)(strlen(defaultIP) - 1), defaultIP, param);
-    free(defaultIP);
+
+    // ⚡ Bolt: Eliminate expensive NVS reads and malloc overhead by formatting the cached my_ap_ip directly
+    ip4_addr_t addr;
+    addr.addr = my_ap_ip;
+    char prefix[16];
+    int len = snprintf(prefix, sizeof(prefix), IPSTR, IP2STR(&addr));
+    while (len > 0 && prefix[len - 1] != '.') { len--; prefix[len] = '\0'; }
+    char resultIP[80]; // Replace VLA with fixed stack buffer safely sized for prefix (16) + param (64)
+    snprintf(resultIP, sizeof(resultIP), "%s%s", prefix, param);
+
     uint32_t int_ip = ipaddr_addr(resultIP);
     if (int_ip == IPADDR_NONE)
     {

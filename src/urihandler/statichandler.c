@@ -53,10 +53,13 @@ esp_err_t favicon_get_handler(httpd_req_t *req)
 esp_err_t redirectToRoot(httpd_req_t *req)
 {
     httpd_resp_set_status(req, "302 Temporary Redirect");
+
+    // ⚡ Bolt: Use fixed stack buffer instead of VLA to format cached AP IP, eliminating NVS read latency and malloc overhead
     ip4_addr_t addr;
     addr.addr = my_ap_ip;
     char str[32];
     snprintf(str, sizeof(str), "http://" IPSTR, IP2STR(&addr));
+
     httpd_resp_set_hdr(req, "Location", str);
     httpd_resp_set_hdr(req, "Connection", "Close");
     // ⚡ Bolt: Use 0 length instead of HTTPD_RESP_USE_STRLEN for empty string to avoid strlen() call
