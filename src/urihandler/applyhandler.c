@@ -268,6 +268,7 @@ void applyAdvancedConfig(char *buf)
                 }
                 else
                 {
+                    // 🛡️ Sentinel: Allocate esp_ip4_addr_t on stack to prevent heap memory leak (DoS)
                     esp_ip4_addr_t addr;
                     addr.addr = ipasInt;
                     esp_ip4addr_ntoa(&addr, customDnsParam, 16);
