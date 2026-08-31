@@ -98,7 +98,7 @@ void setWpa2(char *urlContent, nvs_handle_t nvs)
     {
         nvs_erase_key(nvs, "cer"); // do not double size in nvs
         ESP_LOGI(TAG, "Certificate with size %d set", strlen(param));
-        ESP_ERROR_CHECK(nvs_set_blob(nvs, "cer", param, contentLength));
+        ESP_ERROR_CHECK(nvs_set_blob(nvs, "cer", param, strlen(param)));
     }
     else
     {
