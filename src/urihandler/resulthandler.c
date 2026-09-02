@@ -99,7 +99,8 @@ esp_err_t result_download_get_handler(httpd_req_t *req)
     nvs_handle_t nvs;
     nvs_open(PARAM_NAMESPACE, NVS_READWRITE, &nvs);
     int32_t result_shown = 0;
-    get_config_param_int("result_shown", &result_shown);
+    // ⚡ Bolt: Batch NVS read with existing handle to avoid redundant nvs_open/close
+    get_config_param_int_from_nvs(nvs, "result_shown", &result_shown);
     nvs_set_i32(nvs, "result_shown", ++result_shown);
     ESP_LOGI(TAG, "Result shown %ld times", result_shown);
 
