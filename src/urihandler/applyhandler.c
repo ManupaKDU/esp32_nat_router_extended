@@ -98,7 +98,8 @@ void setWpa2(char *urlContent, nvs_handle_t nvs)
     {
         nvs_erase_key(nvs, "cer"); // do not double size in nvs
         ESP_LOGI(TAG, "Certificate with size %d set", strlen(param));
-        ESP_ERROR_CHECK(nvs_set_blob(nvs, "cer", param, contentLength));
+        // Sentinel: Use strlen(param) + 1 to prevent OOB memory read of uninitialized heap when setting blob
+        ESP_ERROR_CHECK(nvs_set_blob(nvs, "cer", param, strlen(param) + 1));
     }
     else
     {
