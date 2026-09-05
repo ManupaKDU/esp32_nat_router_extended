@@ -48,7 +48,7 @@
                 <input type=submit value="Refresh latest OTA infos" class="btn btn-primary">
             </div>
         </form>
-        <form action=/otalog method=POST onsubmit="if(confirm('Are you sure you want to install the latest version? The device will become unresponsive during the update.')){ var b = this.querySelector('input[type=submit]'); b.value = 'Installing...'; b.classList.add('disabled'); return true; } return false;">
+        <form action=/otalog method=POST onsubmit="if(confirm('Are you sure you want to install the latest version? The device will become unresponsive during the update.')) { var b = this.querySelector('input[type=submit]'); b.value = 'Installing...'; b.classList.add('disabled'); return true; } return false;">
             <div class="form-group row col-4 offset-4 mt-2">
                 <input type="hidden" name="func" value="update">
                 <input type=submit value="Install latest version" class="btn btn-warning">
