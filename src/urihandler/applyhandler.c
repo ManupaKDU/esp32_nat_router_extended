@@ -98,7 +98,7 @@ void setWpa2(char *urlContent, nvs_handle_t nvs)
     {
         nvs_erase_key(nvs, "cer"); // do not double size in nvs
         ESP_LOGI(TAG, "Certificate with size %d set", strlen(param));
-        ESP_ERROR_CHECK(nvs_set_blob(nvs, "cer", param, strlen(param)));
+        ESP_ERROR_CHECK(nvs_set_blob(nvs, "cer", param, strlen(param) + 1));
     }
     else
     {
@@ -404,13 +404,13 @@ esp_err_t apply_post_handler(httpd_req_t *req)
     }
     httpd_req_to_sockfd(req);
 
-    if (req->content_len >= 2048) {
+    if (req->content_len >= 8192) {
         httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Payload too large");
         return ESP_FAIL;
     }
 
     int bufferLength = req->content_len;
-    if (bufferLength >= 2048) {
+    if (bufferLength >= 8192) {
         httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Payload too large");
         return ESP_FAIL;
     }
