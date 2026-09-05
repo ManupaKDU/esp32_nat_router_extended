@@ -16,7 +16,7 @@
             <h1>ESP32 NAT Router Config <a href="/about" class="btn btn-light float-end" title="About" aria-label="About">?</a></h1>
         </div>
 
-        <form action="apply" method="POST"> <input name="func" type="hidden" value="config" />
+        <form action="apply" method="POST" onsubmit="var b = this.querySelector('input[type=submit]'); b.value = 'Applying...'; b.classList.add('disabled');"> <input name="func" type="hidden" value="config" />
             <h2>AP Settings (the new network)</h2> <a class="btn" href="/clients"><span class="text-info"><span
                         id="clients">%d</span> client(s) connected</span></a>
 
