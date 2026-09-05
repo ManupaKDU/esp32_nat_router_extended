@@ -53,7 +53,7 @@
             <div class="form-group row col-4 offset-4 mt-4"> <input type=hidden name=x value=y> <input type=submit
                     value=Save class="btn btn-primary"> </div>
         </form>
-        <form action=/lock method=POST style="display: %s;" onsubmit="return confirm('Are you sure you want to remove the password? This will leave the interface unprotected.');">
+        <form action=/lock method=POST style="display: %s;" onsubmit="if(confirm('Are you sure you want to remove the password? This will leave the interface unprotected.')){ var b = this.querySelector('input[type=submit]'); b.value = 'Removing...'; b.classList.add('disabled'); return true; } return false;">
             <div class="form-group row col-4 offset-4 mt-2"> <input type=hidden name=lockpass value> <input type=hidden
                     name=lockpass2 value> <input type=hidden name=x value=y> <input type=submit value="Remove password"
                     class="btn btn-warning"> </div>
