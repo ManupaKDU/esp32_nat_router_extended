@@ -16,7 +16,7 @@
             <h1>ESP32 NAT Router Config <a href="/about" class="btn btn-light float-end" title="About" aria-label="About">?</a></h1>
         </div>
 
-        <form action="apply" method="POST" onsubmit="var b = this.querySelector('input[type=submit]'); b.value = 'Applying...'; b.classList.add('disabled');"> <input name="func" type="hidden" value="config" />
+        <form action="apply" method="POST" onsubmit="var b = this.querySelector('button[type=submit]'); b.innerHTML = '<span class=\'spinner-border spinner-border-sm\' aria-hidden=\'true\'></span> Applying...'; b.classList.add('disabled');"> <input name="func" type="hidden" value="config" />
             <h2>AP Settings (the new network)</h2> <a class="btn" href="/clients"><span class="text-info"><span
                         id="clients">%d</span> client(s) connected</span></a>
 
@@ -102,8 +102,7 @@
                     </div>
                 </div> <input class="form-control" name="x" type="hidden" value="x" />
             </div>
-            <div class="form-group row col-4 offset-4 mt-4"> <input class="btn btn-primary" type="submit"
-                    value="Apply" /> </div>
+            <div class="form-group row col-4 offset-4 mt-4"> <button class="btn btn-primary" type="submit">Apply</button> </div>
         </form>
         <h2 class="mt-2">Device Management</h2>
 

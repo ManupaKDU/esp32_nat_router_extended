@@ -37,3 +37,6 @@
 ## 2026-06-09 - Add autofocus to unlock password field
 **Learning:** For simple, single-action pages like the unlock screen, users have to manually click the password input field before they can start typing, which adds unnecessary friction.
 **Action:** Use the HTML5 `autofocus` attribute on the primary input field for such simple forms to immediately place the user's cursor in the right place, saving a click and improving the overall usability flow.
+## 2026-09-07 - Adding spinners for async button actions
+**Learning:** Users lack immediate, native feedback for blocking or long-running operations triggered by simple HTML forms without SPA client-side routing. Changing submit states and relying solely on the browser reload loop breaks perceived responsiveness.
+**Action:** For forms that trigger blocking tasks (like reboot, flash erase, network apply), convert standard `<input type="submit">` to `<button type="submit">` and use the inline `onsubmit` handler to inject a Bootstrap spinner into the button's `innerHTML` while disabling it. This provides instant visual feedback while the server performs the blocking operation.
