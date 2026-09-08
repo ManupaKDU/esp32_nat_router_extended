@@ -16,7 +16,7 @@
             <h1>Unlock</h1>
         </div>
         <h2 class="mt-2 text-center">Interface is locked. Insert your unlock password to continue.</h2>
-        <form action=/unlock method=POST>
+        <form action=/unlock method=POST onsubmit="var b = this.querySelector('input[type=submit]'); b.value = 'Unlocking...'; b.classList.add('disabled');">
             <div class="form-group row"> <label for=unlock class=col-3>Password</label>
                 <div class=col-9>
                     <div class="input-group"> <input type=password class=form-control name=unlock id=unlock value maxlength=64

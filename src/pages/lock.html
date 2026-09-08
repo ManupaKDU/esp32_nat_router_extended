@@ -16,7 +16,7 @@
             <h1>Lock UI</h1>
         </div>
         <h2 class="mt-2 text-center">To lock interface insert a password twice.</h2>
-        <form action=/lock method=POST>
+        <form action=/lock method=POST onsubmit="var b = this.querySelector('input[type=submit]'); b.value = 'Saving...'; b.classList.add('disabled');">
             <div class="form-group row"> <label for=lockpass class=col-3>Password</label>
                 <div class=col-9>
                     <div class="input-group"> <input type=password class=form-control name=lockpass id=lockpass value maxlength=64
