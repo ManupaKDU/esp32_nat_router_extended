@@ -1,7 +1,6 @@
 </tbody>
 </table>
-<h3>Add new portmap</h3>
-<form action="portmap" method="POST" class="text-center" onsubmit="var b = this.querySelector('button[title=\'Add\']'); b.innerHTML = '<span class=\'spinner-border spinner-border-sm\' aria-hidden=\'true\'></span> Adding...'; b.classList.add('disabled');">
+<form action="portmap" method="POST" class="text-center" onsubmit="var b = this.querySelector('button[title=\'Add\']'); b.classList.add('disabled'); b.setAttribute('aria-disabled', 'true');">
     <input name="func" type="hidden" value="add" />
     <div class="form-group row mt-2">
         <div class="col-2">
