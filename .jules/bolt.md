@@ -58,3 +58,6 @@
 ## 2024-06-25 - [Reviewer Hallucination: PARAM_NAMESPACE Compilation Error]
 **Learning:** The code reviewer hallucinated a compilation error regarding `PARAM_NAMESPACE` being undeclared in `src/esp32_nat_router.c`. The reviewer claimed the macro was privately defined in `cmd_router.c` and wasn't available in `app_main`. I explicitly moved `#define PARAM_NAMESPACE "esp32_nat"` and `#include "nvs.h"` into `router_globals.h` which `esp32_nat_router.c` includes. I also verified the build via `pio run -e esp32` which compiled successfully without any undeclared identifier errors.
 **Action:** Always verify reviewer claims of compilation errors. If the build already explicitly passes, document the hallucination and ignore the reviewer's false positive.
+## 2024-05-14 - Redundant Parameter Parsing Overhead
+**Learning:** Found an anti-pattern in HTTP handlers where URL parameters were parsed (`readUrlParameterIntoBuffer`), measured (`strlen`), and securely compared (`crypto_memcmp`), and then immediately re-parsed and re-measured inside the success conditional block. This creates completely unnecessary O(N) overhead for every parameter.
+**Action:** When inspecting authentication or configuration endpoints, look for duplicated parsing blocks inside nested conditionals and eliminate them to halve the processing overhead on the hot path.

@@ -139,48 +139,33 @@ esp_err_t lock_handler(httpd_req_t *req)
             return ESP_FAIL;
         }
 
+        // ⚡ Bolt: Eliminate redundant O(N) URL parameter parsing and crypto_memcmp calls
         readUrlParameterIntoBuffer(buf, "lockpass", passParam, param_len);
         readUrlParameterIntoBuffer(buf, "lockpass2", pass2Param, param_len);
         size_t passLen = strlen(passParam);
         size_t pass2Len = strlen(pass2Param);
         if (passLen == pass2Len && crypto_memcmp(passParam, pass2Param, passLen) == 0)
         {
-            readUrlParameterIntoBuffer(buf, "lockpass", passParam, param_len);
-            readUrlParameterIntoBuffer(buf, "lockpass2", pass2Param, param_len);
-            passLen = strlen(passParam);
-            pass2Len = strlen(pass2Param);
-            ESP_LOGI(TAG, "Found pass2 parameter => ***REDACTED***");
-            if (passLen == pass2Len && crypto_memcmp(passParam, pass2Param, passLen) == 0)
+            ESP_LOGI(TAG, "Passes are equal. Password will be changed.");
+            if (passLen == 0)
             {
-                ESP_LOGI(TAG, "Passes are equal. Password will be changed.");
-                if (passLen == 0)
-                {
-                    ESP_LOGI(TAG, "Pass will be removed");
-                }
-                nvs_handle_t nvs;
-                nvs_open(PARAM_NAMESPACE, NVS_READWRITE, &nvs);
-                nvs_set_str(nvs, "lock_pass", passParam);
-                nvs_commit(nvs);
-                nvs_close(nvs);
-                update_lock_pass(passParam);
-                httpd_resp_set_status(req, "302 Found");
-                if (passLen > 0)
-                {
-                    httpd_resp_set_hdr(req, "Location", "/lock");
-                    lockUI();
-                }
-                else
-                {
-                    httpd_resp_set_hdr(req, "Location", "/");
-                }
-                free(passParam);
-                free(pass2Param);
-                free(buf);
-                return httpd_resp_send(req, NULL, 0);
+                ESP_LOGI(TAG, "Pass will be removed");
+            }
+            nvs_handle_t nvs;
+            nvs_open(PARAM_NAMESPACE, NVS_READWRITE, &nvs);
+            nvs_set_str(nvs, "lock_pass", passParam);
+            nvs_commit(nvs);
+            nvs_close(nvs);
+            update_lock_pass(passParam);
+            httpd_resp_set_status(req, "302 Found");
+            if (passLen > 0)
+            {
+                httpd_resp_set_hdr(req, "Location", "/lock");
+                lockUI();
             }
             else
             {
-                ESP_LOGI(TAG, "Passes are not equal.");
+                httpd_resp_set_hdr(req, "Location", "/");
             }
             free(passParam);
             free(pass2Param);
@@ -189,7 +174,7 @@ esp_err_t lock_handler(httpd_req_t *req)
         }
         else
         {
-            ESP_LOGE(TAG, "Memory allocation failed for pass parameters");
+            ESP_LOGI(TAG, "Passes are not equal.");
         }
         free(passParam);
         free(pass2Param);
