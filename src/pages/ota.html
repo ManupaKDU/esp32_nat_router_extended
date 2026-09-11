@@ -42,16 +42,16 @@
             </tbody>
         </table>
 
-        <form action=/ota method=POST onsubmit="var b = this.querySelector('input[type=submit]'); b.value = 'Refreshing...'; b.classList.add('disabled');">
+        <form action=/ota method=POST onsubmit="var b = this.querySelector('button[type=submit]'); b.innerHTML = '<span class=\'spinner-border spinner-border-sm\' aria-hidden=\'true\'></span> Refreshing...'; b.classList.add('disabled');">
             <div class="form-group row col-4 offset-4 mt-2">
                 <input type="hidden" name="func" value="versioncheck">
-                <input type=submit value="Refresh latest OTA infos" class="btn btn-primary">
+                <button type="submit" class="btn btn-primary">Refresh latest OTA infos</button>
             </div>
         </form>
-        <form action=/otalog method=POST onsubmit="if(confirm('Are you sure you want to install the latest version? The device will become unresponsive during the update.')){ var b = this.querySelector('input[type=submit]'); b.value = 'Installing...'; b.classList.add('disabled'); return true; } return false;">
+        <form action=/otalog method=POST onsubmit="if(confirm('Are you sure you want to install the latest version? The device will become unresponsive during the update.')){ var b = this.querySelector('button[type=submit]'); b.innerHTML = '<span class=\'spinner-border spinner-border-sm\' aria-hidden=\'true\'></span> Installing...'; b.classList.add('disabled'); return true; } return false;">
             <div class="form-group row col-4 offset-4 mt-2">
                 <input type="hidden" name="func" value="update">
-                <input type=submit value="Install latest version" class="btn btn-warning">
+                <button type="submit" class="btn btn-warning">Install latest version</button>
             </div>
         </form>
         <div class="form-group row col-4 offset-4 mt-5"> <a href=/ class="btn btn-light">Back</a> </div>
