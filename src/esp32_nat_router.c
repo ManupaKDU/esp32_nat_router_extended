@@ -33,6 +33,8 @@
 #include "driver/gpio.h"
 #include "lwip/dns.h"
 #include "esp_mac.h"
+#include "bridge.h"
+#include "esp_netif_net_stack.h"
 #include <esp_netif.h>
 
 #if !IP_NAPT
@@ -76,6 +78,59 @@ esp_netif_t *wifiSTA;
 httpd_handle_t start_webserver(void);
 
 static const char *TAG = "ESP32NRE";
+
+static int32_t bridge_enabled = 0;
+
+static int fdb_cmd(int argc, char **argv)
+{
+    bridge_show_fdb();
+    return 0;
+}
+
+static struct {
+    struct arg_int *enable;
+    struct arg_end *end;
+} set_bridge_args;
+
+static int set_bridge_cmd(int argc, char **argv)
+{
+    int nerrors = arg_parse(argc, argv, (void **)&set_bridge_args);
+    if (nerrors != 0) {
+        arg_print_errors(stderr, set_bridge_args.end, argv[0]);
+        return ESP_FAIL;
+    }
+    int val = set_bridge_args.enable->ival[0];
+    nvs_handle_t nvs;
+    if (nvs_open(PARAM_NAMESPACE, NVS_READWRITE, &nvs) == ESP_OK) {
+        nvs_set_i32(nvs, "bridge_enabled", val ? 1 : 0);
+        nvs_commit(nvs);
+        nvs_close(nvs);
+        ESP_LOGI(TAG, "Bridge mode %s. Restart router to apply.", val ? "ENABLED" : "DISABLED");
+    }
+    return ESP_OK;
+}
+
+static void register_fdb_command(void)
+{
+    const esp_console_cmd_t fdb_cmd_desc = {
+        .command = "fdb",
+        .help = "Show Layer 2 bridge forwarding database (IP -> Client MAC)",
+        .hint = NULL,
+        .func = &fdb_cmd,
+    };
+    esp_console_cmd_register(&fdb_cmd_desc);
+
+    set_bridge_args.enable = arg_int1(NULL, NULL, "<0|1>", "0 = NAT router, 1 = L2 Bridge");
+    set_bridge_args.end = arg_end(1);
+    const esp_console_cmd_t bridge_cmd_desc = {
+        .command = "set_bridge",
+        .help = "Enable or disable Layer 2 bridge repeater mode (0 = NAT, 1 = Bridge)",
+        .hint = NULL,
+        .func = &set_bridge_cmd,
+        .argtable = &set_bridge_args,
+    };
+    esp_console_cmd_register(&bridge_cmd_desc);
+}
 
 char *ssid = NULL;
 char *passwd = NULL;
@@ -504,6 +559,10 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
     else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED)
     {
         ESP_LOGI(TAG, "disconnected - retry to connect to the STA");
+        if (bridge_enabled == 1)
+        {
+            bridge_deinit();
+        }
         ap_connect = false;
         esp_wifi_connect();
         ESP_LOGI(TAG, "retry to connect to the STA");
@@ -516,14 +575,26 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
         stop_dns_server();
         ap_connect = true;
         my_ip = event->ip_info.ip.addr;
-        delete_portmap_tab();
-        apply_portmap_tab();
-        esp_netif_dns_info_t dns;
-        if (esp_netif_get_dns_info(wifiSTA, ESP_NETIF_DNS_MAIN, &dns) == ESP_OK)
+        if (bridge_enabled == 1)
         {
-            esp_ip_addr_t newDns;
-            fillDNS(&newDns, &dns.ip);
-            setDnsServer(wifiAP, &newDns); // Set the correct DNS server for the AP clients
+            struct netif *sta_nif = (struct netif *)esp_netif_get_netif_impl(wifiSTA);
+            struct netif *ap_nif = (struct netif *)esp_netif_get_netif_impl(wifiAP);
+            if (sta_nif && ap_nif)
+            {
+                bridge_init(sta_nif, ap_nif);
+            }
+        }
+        else
+        {
+            delete_portmap_tab();
+            apply_portmap_tab();
+            esp_netif_dns_info_t dns;
+            if (esp_netif_get_dns_info(wifiSTA, ESP_NETIF_DNS_MAIN, &dns) == ESP_OK)
+            {
+                esp_ip_addr_t newDns;
+                fillDNS(&newDns, &dns.ip);
+                setDnsServer(wifiAP, &newDns); // Set the correct DNS server for the AP clients
+            }
         }
         xEventGroupSetBits(wifi_event_group, WIFI_CONNECTED_BIT);
     }
@@ -613,7 +684,14 @@ void wifi_init(const char *ssid, const char *passwd, const char *static_ip, cons
 
     esp_netif_dhcps_stop(wifiAP); // stop before setting ip WifiAP
     esp_netif_set_ip_info(wifiAP, &ipInfo_ap);
-    esp_netif_dhcps_start(wifiAP);
+    if (bridge_enabled == 0)
+    {
+        esp_netif_dhcps_start(wifiAP);
+    }
+    else
+    {
+        ESP_LOGI(TAG, "Bridge mode: SoftAP DHCP server disabled (clients obtain IP from upstream router)");
+    }
 
     esp_event_handler_instance_t instance_any_id;
     esp_event_handler_instance_t instance_got_ip;
@@ -830,6 +908,7 @@ void app_main(void)
     register_system();
 
     register_router();
+    register_fdb_command();
     fillMac();
     char *scan_result = NULL;
     int32_t result_shown = 0;
@@ -896,6 +975,7 @@ void app_main(void)
 
         get_config_param_str_from_nvs(nvs, "scan_result", &scan_result);
         get_config_param_int_from_nvs(nvs, "result_shown", &result_shown);
+        get_config_param_int_from_nvs(nvs, "bridge_enabled", &bridge_enabled);
 
         nvs_close(nvs);
     }
@@ -950,6 +1030,7 @@ void app_main(void)
         get_config_param_int_from_nvs(param_nvs, "led_disabled", &led_disabled);
         get_config_param_int_from_nvs(param_nvs, "nat_disabled", &nat_disabled);
         get_config_param_int_from_nvs(param_nvs, "lock", &lock);
+        get_config_param_int_from_nvs(param_nvs, "bridge_enabled", &bridge_enabled);
         nvs_close(param_nvs);
     }
 
@@ -963,7 +1044,11 @@ void app_main(void)
         ESP_LOGI(TAG, "On board LED is disabled");
     }
 
-    if (nat_disabled == 0)
+    if (bridge_enabled == 1)
+    {
+        ESP_LOGI(TAG, "Operating in Layer 2 Bridge mode (NAPT disabled)");
+    }
+    else if (nat_disabled == 0)
     {
         ip_napt_enable(my_ap_ip, 1);
         ESP_LOGI(TAG, "NAT is enabled");

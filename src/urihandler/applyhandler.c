@@ -215,6 +215,18 @@ void applyAdvancedConfig(char *buf)
         ESP_ERROR_CHECK(nvs_set_i32(nvs, "nat_disabled", 1));
     }
 
+    readUrlParameterIntoBuffer(buf, "bridgeenabled", param, sizeof(param) - 1);
+    if (strlen(param) > 0)
+    {
+        ESP_LOGI(TAG, "Layer 2 Bridge will be enabled");
+        ESP_ERROR_CHECK(nvs_set_i32(nvs, "bridge_enabled", 1));
+    }
+    else
+    {
+        ESP_LOGI(TAG, "Layer 2 Bridge will be disabled");
+        ESP_ERROR_CHECK(nvs_set_i32(nvs, "bridge_enabled", 0));
+    }
+
     readUrlParameterIntoBuffer(buf, "wsenabled", param, sizeof(param) - 1);
     if (strlen(param) == 0)
     {
