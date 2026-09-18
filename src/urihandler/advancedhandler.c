@@ -37,7 +37,7 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
     char *rndMacCB = "";
     char *customMacCB = "";
     char *customMac = "";
-    char *macSetting = "";
+    char *macSetting = NULL;
     char *classACB = "";
     char *classBCB = "";
     char *classCCB = "";
@@ -153,7 +153,7 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
 
     if (nvs_status == ESP_OK) get_config_param_str_from_nvs(param_nvs, "custom_mac", &macSetting);
 
-    if (strcmp(macSetting, "random") == 0)
+    if (macSetting != NULL && strcmp(macSetting, "random") == 0)
     {
         rndMacCB = "checked";
     }
@@ -215,6 +215,16 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
                  4 /* 4 * Octet - 4 *%d*/;
     ESP_LOGI(TAG, "Allocating additional %d bytes for advanced page.", size);
     char *advanced_page = malloc(size);
+    if (advanced_page == NULL)
+    {
+        ESP_LOGE(TAG, "Memory allocation failed for advanced page");
+        free(allocatedDNS);
+        free(hostName);
+        free(customDNS);
+        free(macSetting);
+        free(netmask_alloc);
+        return ESP_FAIL;
+    }
 
     char subMac[18]; // ⚡ Bolt: Use stack buffer to avoid malloc overhead for small string
     strncpy(subMac, defaultMAC, sizeof(subMac) - 1);

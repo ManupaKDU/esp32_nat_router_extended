@@ -411,6 +411,7 @@ void set3rdOctet()
     ESP_ERROR_CHECK(nvs_open(PARAM_NAMESPACE, NVS_READWRITE, &nvs));
     ESP_ERROR_CHECK(nvs_set_i32(nvs, "octet", 4));
     ESP_ERROR_CHECK(nvs_commit(nvs));
+    nvs_close(nvs);
 }
 
 void setHostName()
@@ -429,6 +430,7 @@ void setHostName()
         ESP_ERROR_CHECK(nvs_open(PARAM_NAMESPACE, NVS_READWRITE, &nvs));
         ESP_ERROR_CHECK(nvs_set_str(nvs, "hostname", hostName));
         ESP_ERROR_CHECK(nvs_commit(nvs));
+        nvs_close(nvs);
     }
     ESP_LOGI(TAG, "Setting hostname to: %s", hostName);
     esp_netif_t *sta_netif = esp_netif_get_handle_from_ifkey("WIFI_STA_DEF");
@@ -440,6 +442,7 @@ void setHostName()
         ESP_ERROR_CHECK(nvs_open(PARAM_NAMESPACE, NVS_READWRITE, &nvs));
         ESP_ERROR_CHECK(nvs_erase_key(nvs, "hostname"));
         ESP_ERROR_CHECK(nvs_commit(nvs));
+        nvs_close(nvs);
         esp_restart();
     }
     free(hostName);
@@ -477,7 +480,7 @@ void setDnsServer(esp_netif_t *network, esp_ip_addr_t *dnsIP)
     if ((strlen(static_ip) == 0) && (strlen(subnet_mask) == 0) && (strlen(gateway_addr) == 0))
     {
         esp_netif_dns_info_t dns_info = {0};
-        memset(&dns_info, 8, sizeof(dns_info));
+        memset(&dns_info, 0, sizeof(dns_info));
         dns_info.ip = *dnsIP;
         dns_info.ip.type = IPADDR_TYPE_V4;
 
@@ -926,6 +929,8 @@ void app_main(void)
         nvs_handle_t nvs;
         ESP_ERROR_CHECK(nvs_open(PARAM_NAMESPACE, NVS_READWRITE, &nvs));
         nvs_set_i32(nvs, "result_shown", ++result_shown);
+        nvs_commit(nvs);
+        nvs_close(nvs);
         ESP_LOGI(TAG, "result_shown increased to %ld after reboot", result_shown);
     }
     free(scan_result);

@@ -72,14 +72,19 @@ esp_err_t clients_download_get_handler(httpd_req_t *req)
     const size_t clients_html_size = (clients_end - clients_start);
 
     // ⚡ Bolt: Reused offset instead of calling strlen(result) again
-    int size = clients_html_size + offset;
-    char *clients_page = malloc(size - 2);
+    int size = clients_html_size - 2 + offset + 1;
+    char *clients_page = malloc(size);
+    if (clients_page == NULL)
+    {
+        ESP_LOGE(TAG, "Memory allocation failed for clients page");
+        return ESP_FAIL;
+    }
     // ⚡ Bolt: Capture dynamic string length to avoid redundant O(N) strlen() in httpd_resp_send
-    int response_len = snprintf(clients_page, size - 2, clients_start, result);
+    int response_len = snprintf(clients_page, size, clients_start, result);
 
     closeHeader(req);
 
-    esp_err_t ret = httpd_resp_send(req, clients_page, (response_len > 0 && response_len < size - 2) ? response_len : HTTPD_RESP_USE_STRLEN);
+    esp_err_t ret = httpd_resp_send(req, clients_page, (response_len > 0 && response_len < size) ? response_len : HTTPD_RESP_USE_STRLEN);
     free(clients_page);
     ESP_LOGI(TAG, "Requesting clients page");
     return ret;

@@ -31,8 +31,9 @@
 #define QD_TYPE_A (0x0001)
 #define ANS_TTL_SEC (300)
 
-static const char *TAG = "DNSServer";
-TaskHandle_t task = NULL;
+static const char *TAG = "DNS Server";
+static TaskHandle_t task = NULL;
+static int s_dns_sock = -1;
 
 // DNS Header Packet
 typedef struct __attribute__((__packed__))
@@ -76,7 +77,15 @@ static char *parse_dns_name(char *raw_name, char *parsed_name, size_t parsed_nam
 
     do
     {
-        int sub_name_len = *label;
+        uint8_t sub_name_len = (uint8_t)*label;
+        if (sub_name_len == 0)
+        {
+            break;
+        }
+        if (sub_name_len > 63)
+        {
+            return NULL;
+        }
         // (len + 1) since we are adding  a '.'
         name_len += (sub_name_len + 1);
         if (name_len > parsed_name_max_len)
@@ -84,12 +93,17 @@ static char *parse_dns_name(char *raw_name, char *parsed_name, size_t parsed_nam
             return NULL;
         }
 
-        // Copy the sub name that follows the the label
+        // Copy the sub name that follows the label
         memcpy(name_itr, label + 1, sub_name_len);
         name_itr[sub_name_len] = '.';
         name_itr += (sub_name_len + 1);
         label += sub_name_len + 1;
     } while (*label != 0);
+
+    if (name_len <= 0)
+    {
+        return NULL;
+    }
 
     // Terminate the final string, replacing the last '.'
     parsed_name[name_len - 1] = '\0';
@@ -229,6 +243,7 @@ void dns_server_task(void *pvParameters)
             ESP_LOGE(TAG, "Unable to create socket: errno %d", errno);
             break;
         }
+        s_dns_sock = sock;
         ESP_LOGI(TAG, "Socket created");
 
         int err = bind(sock, (struct sockaddr *)&dest_addr, sizeof(dest_addr));
@@ -318,6 +333,11 @@ void start_dns_server()
 
 void stop_dns_server()
 {
+    if (s_dns_sock >= 0)
+    {
+        close(s_dns_sock);
+        s_dns_sock = -1;
+    }
     if (task != NULL)
     {
         vTaskDelete(task);
