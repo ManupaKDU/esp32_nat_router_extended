@@ -572,17 +572,6 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
         stop_dns_server();
         ap_connect = true;
         my_ip = event->ip_info.ip.addr;
-        delete_portmap_tab();
-        apply_portmap_tab();
-        esp_netif_dns_info_t dns;
-        if (esp_netif_get_dns_info(wifiSTA, ESP_NETIF_DNS_MAIN, &dns) == ESP_OK)
-        {
-            esp_ip_addr_t newDns;
-            fillDNS(&newDns, &dns.ip);
-            setDnsServer(wifiAP, &newDns); // Set the correct DNS server for the AP clients
-        }
-        xEventGroupSetBits(wifi_event_group, WIFI_CONNECTED_BIT);
-
         if (bridge_enabled == 1)
         {
             struct netif *sta_nif = (struct netif *)esp_netif_get_netif_impl(wifiSTA);
@@ -592,6 +581,19 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
                 bridge_init(sta_nif, ap_nif);
             }
         }
+        else
+        {
+            delete_portmap_tab();
+            apply_portmap_tab();
+            esp_netif_dns_info_t dns;
+            if (esp_netif_get_dns_info(wifiSTA, ESP_NETIF_DNS_MAIN, &dns) == ESP_OK)
+            {
+                esp_ip_addr_t newDns;
+                fillDNS(&newDns, &dns.ip);
+                setDnsServer(wifiAP, &newDns); // Set the correct DNS server for the AP clients
+            }
+        }
+        xEventGroupSetBits(wifi_event_group, WIFI_CONNECTED_BIT);
     }
     else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_AP_STACONNECTED)
     {

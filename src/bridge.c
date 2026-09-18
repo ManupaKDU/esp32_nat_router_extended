@@ -27,7 +27,7 @@ static netif_output_fn      s_orig_output_sta = NULL;
 static netif_output_fn      s_orig_output_ap = NULL;
 static netif_linkoutput_fn  s_orig_lo_sta = NULL;
 static netif_linkoutput_fn  s_orig_lo_ap = NULL;
-static bool                 s_bridge_enabled = false;
+static volatile bool        s_bridge_enabled = false;
 
 static portMUX_TYPE         s_bridge_mux = portMUX_INITIALIZER_UNLOCKED;
 
@@ -156,18 +156,19 @@ static void fdb_insert(uint32_t ip, const uint8_t *mac)
     portEXIT_CRITICAL(&s_bridge_mux);
 }
 
-static const uint8_t *fdb_lookup(uint32_t ip)
+static bool fdb_lookup(uint32_t ip, uint8_t out_mac[6])
 {
     uint32_t now = now_secs();
     portENTER_CRITICAL(&s_bridge_mux);
     for (int i = 0; i < FDB_SIZE; i++) {
         if (s_fdb[i].ip == ip && s_fdb[i].expires_s > now) {
+            memcpy(out_mac, s_fdb[i].mac, 6);
             portEXIT_CRITICAL(&s_bridge_mux);
-            return s_fdb[i].mac;
+            return true;
         }
     }
     portEXIT_CRITICAL(&s_bridge_mux);
-    return NULL;
+    return false;
 }
 
 /* -------------------------------------------------------------------------
@@ -213,18 +214,19 @@ static void xid_map_insert(uint32_t xid, const uint8_t *chaddr)
     portEXIT_CRITICAL(&s_bridge_mux);
 }
 
-static const uint8_t *xid_map_lookup(uint32_t xid)
+static bool xid_map_lookup(uint32_t xid, uint8_t out_chaddr[6])
 {
     uint32_t now = now_secs();
     portENTER_CRITICAL(&s_bridge_mux);
     for (int i = 0; i < XID_MAP_SIZE; i++) {
         if (s_xid_map[i].xid == xid && s_xid_map[i].expires_s > now) {
+            memcpy(out_chaddr, s_xid_map[i].chaddr, 6);
             portEXIT_CRITICAL(&s_bridge_mux);
-            return s_xid_map[i].chaddr;
+            return true;
         }
     }
     portEXIT_CRITICAL(&s_bridge_mux);
-    return NULL;
+    return false;
 }
 
 /* -------------------------------------------------------------------------
@@ -232,7 +234,7 @@ static const uint8_t *xid_map_lookup(uint32_t xid)
  * ------------------------------------------------------------------------- */
 static inline void *pkt_at(struct pbuf *p, uint16_t off, uint16_t need)
 {
-    if (p->tot_len < (uint16_t)(off + need)) return NULL;
+    if (p->len < (uint16_t)(off + need)) return NULL;
     return (uint8_t *)p->payload + off;
 }
 
@@ -240,9 +242,14 @@ static void update_ip_chksum(ip_hdr_t *ip)
 {
     ip->chksum = 0;
     uint32_t sum = 0;
-    uint16_t *p = (uint16_t *)ip;
-    int len = (ip->vhl & 0x0f) * 2;
-    for (int i = 0; i < len; i++) sum += p[i];
+    uint8_t ihl = (ip->vhl & 0x0f);
+    if (ihl < 5) ihl = 5;
+    const uint8_t *raw = (const uint8_t *)ip;
+    for (int i = 0; i < ihl * 2; i++) {
+        uint16_t word;
+        memcpy(&word, &raw[i * 2], sizeof(word));
+        sum += word;
+    }
     while (sum >> 16) sum = (sum & 0xffff) + (sum >> 16);
     ip->chksum = ~((uint16_t)sum);
 }
@@ -291,10 +298,10 @@ static void send_proxy_arp_reply(struct netif *tx_nif, netif_linkoutput_fn lo, c
 /* -------------------------------------------------------------------------
  * DHCP Snooping
  * ------------------------------------------------------------------------- */
-static void snoop_dhcp_request(struct pbuf *p, uint16_t eth_ip_udp_hdr_len)
+static bool snoop_dhcp_request(struct pbuf *p, uint16_t eth_ip_udp_hdr_len)
 {
     dhcp_msg_t *dhcp = (dhcp_msg_t *)pkt_at(p, eth_ip_udp_hdr_len, sizeof(dhcp_msg_t));
-    if (!dhcp || dhcp->op != DHCP_OP_REQUEST || dhcp->hlen != 6 || dhcp->magic != htonl(DHCP_MAGIC_COOKIE)) return;
+    if (!dhcp || dhcp->op != DHCP_OP_REQUEST || dhcp->hlen != 6 || dhcp->magic != htonl(DHCP_MAGIC_COOKIE)) return false;
 
     uint8_t client_mac[6];
     memcpy(client_mac, dhcp->chaddr, 6);
@@ -306,13 +313,14 @@ static void snoop_dhcp_request(struct pbuf *p, uint16_t eth_ip_udp_hdr_len)
     uint8_t *opt = dhcp_find_option(dhcp->options, opts_len, 53, &optlen);
     if (opt && optlen >= 1) msg_type = opt[0];
 
+    bool opt61_added = false;
     if (msg_type == DHCP_MSG_DISCOVER || msg_type == DHCP_MSG_REQUEST) {
         xid_map_insert(dhcp->xid, client_mac);
         uint8_t opt61len = 0;
         uint8_t *opt61 = dhcp_find_option(dhcp->options, opts_len, 61, &opt61len);
         if (!opt61 && opts_len + 9 <= 308) {
             uint8_t *end = dhcp_find_option(dhcp->options, opts_len, 255, NULL);
-            if (end) {
+            if (end && (end + 10 <= (uint8_t *)dhcp->options + opts_len + 16)) {
                 end[0] = 61; end[1] = 7; end[2] = 1;
                 memcpy(&end[3], client_mac, 6);
                 end[9] = 255;
@@ -324,11 +332,13 @@ static void snoop_dhcp_request(struct pbuf *p, uint16_t eth_ip_udp_hdr_len)
                 p->tot_len += 9;
                 ip_hdr_t *ip = (ip_hdr_t *)pkt_at(p, sizeof(eth_hdr_t), sizeof(ip_hdr_t));
                 if (ip) update_ip_chksum(ip);
+                opt61_added = true;
             }
         }
         udp_hdr_t *udp = (udp_hdr_t *)pkt_at(p, eth_ip_udp_hdr_len - (uint16_t)sizeof(udp_hdr_t), sizeof(udp_hdr_t));
         if (udp) udp->chksum = 0;
     }
+    return opt61_added;
 }
 
 static bool snoop_dhcp_reply(struct pbuf *p, uint16_t eth_ip_udp_hdr_len, uint8_t chaddr_out[6])
@@ -336,8 +346,8 @@ static bool snoop_dhcp_reply(struct pbuf *p, uint16_t eth_ip_udp_hdr_len, uint8_
     dhcp_msg_t *dhcp = (dhcp_msg_t *)pkt_at(p, eth_ip_udp_hdr_len, sizeof(dhcp_msg_t));
     if (!dhcp || dhcp->op != DHCP_OP_REPLY || dhcp->hlen != 6 || dhcp->magic != htonl(DHCP_MAGIC_COOKIE)) return false;
 
-    const uint8_t *orig_mac = xid_map_lookup(dhcp->xid);
-    if (orig_mac) {
+    uint8_t orig_mac[6];
+    if (xid_map_lookup(dhcp->xid, orig_mac)) {
         memcpy(chaddr_out, orig_mac, 6);
         memcpy(dhcp->chaddr, orig_mac, 6);
         udp_hdr_t *udp = (udp_hdr_t *)pkt_at(p, eth_ip_udp_hdr_len - (uint16_t)sizeof(udp_hdr_t), sizeof(udp_hdr_t));
@@ -362,8 +372,10 @@ static bool snoop_dhcp_reply(struct pbuf *p, uint16_t eth_ip_udp_hdr_len, uint8_
  * ------------------------------------------------------------------------- */
 static err_t bridge_output_sta(struct netif *netif, struct pbuf *p, const ip4_addr_t *ipaddr)
 {
-    const uint8_t *client_mac = fdb_lookup(ipaddr->addr);
-    if (client_mac && pbuf_header(p, sizeof(eth_hdr_t)) == 0) {
+    if (!s_bridge_enabled) return s_orig_output_sta(netif, p, ipaddr);
+
+    uint8_t client_mac[6];
+    if (fdb_lookup(ipaddr->addr, client_mac) && pbuf_header(p, sizeof(eth_hdr_t)) == 0) {
         eth_hdr_t *eth = (eth_hdr_t *)p->payload;
         memcpy(eth->dst, client_mac, 6);
         memcpy(eth->src, s_ap_nif->hwaddr, 6);
@@ -393,8 +405,10 @@ static err_t bridge_output_sta(struct netif *netif, struct pbuf *p, const ip4_ad
 
 static err_t bridge_output_ap(struct netif *netif, struct pbuf *p, const ip4_addr_t *ipaddr)
 {
-    const uint8_t *client_mac = fdb_lookup(ipaddr->addr);
-    if (client_mac && pbuf_header(p, sizeof(eth_hdr_t)) == 0) {
+    if (!s_bridge_enabled) return s_orig_output_sta(s_sta_nif, p, ipaddr);
+
+    uint8_t client_mac[6];
+    if (fdb_lookup(ipaddr->addr, client_mac) && pbuf_header(p, sizeof(eth_hdr_t)) == 0) {
         eth_hdr_t *eth = (eth_hdr_t *)p->payload;
         memcpy(eth->dst, client_mac, 6);
         memcpy(eth->src, s_ap_nif->hwaddr, 6);
@@ -409,6 +423,7 @@ static err_t bridge_output_ap(struct netif *netif, struct pbuf *p, const ip4_add
 static err_t bridge_input_ap(struct pbuf *p, struct netif *inp)
 {
     if (!s_bridge_enabled) return s_orig_input_ap(p, inp);
+    if (p->len < sizeof(eth_hdr_t)) return s_orig_input_ap(p, inp);
 
     eth_hdr_t *eth_p = (eth_hdr_t *)p->payload;
     bool is_bcast = (eth_p->dst[0] & 0x01) != 0;
@@ -433,6 +448,7 @@ static err_t bridge_input_ap(struct pbuf *p, struct netif *inp)
 
     eth_hdr_t *eth = (eth_hdr_t *)q->payload;
     bool handled = false;
+    bool opt61_added = false;
     memcpy(eth->src, s_sta_nif->hwaddr, 6);
 
     uint32_t sta_ip = netif_ip4_addr(s_sta_nif)->addr;
@@ -446,6 +462,7 @@ static err_t bridge_input_ap(struct pbuf *p, struct netif *inp)
                 handled = true;
             } else {
                 memcpy(arp->sha, s_sta_nif->hwaddr, 6);
+                pbuf_realloc(q, p->tot_len);
                 s_orig_lo_sta(s_sta_nif, q);
                 handled = true;
             }
@@ -458,13 +475,15 @@ static err_t bridge_input_ap(struct pbuf *p, struct netif *inp)
                 uint16_t udp_off = sizeof(eth_hdr_t) + (ip->vhl & 0x0f) * 4;
                 udp_hdr_t *udp = (udp_hdr_t *)pkt_at(q, udp_off, sizeof(udp_hdr_t));
                 if (udp && ntohs(udp->dst_port) == 67) {
-                    snoop_dhcp_request(q, udp_off + sizeof(udp_hdr_t));
+                    opt61_added = snoop_dhcp_request(q, udp_off + sizeof(udp_hdr_t));
                 }
             }
+            pbuf_realloc(q, opt61_added ? p->tot_len + 9 : p->tot_len);
             s_orig_lo_sta(s_sta_nif, q);
             handled = true;
         }
     } else {
+        pbuf_realloc(q, p->tot_len);
         s_orig_lo_sta(s_sta_nif, q);
         handled = true;
     }
@@ -481,13 +500,14 @@ static err_t bridge_input_ap(struct pbuf *p, struct netif *inp)
 static err_t bridge_input_sta(struct pbuf *p, struct netif *inp)
 {
     if (!s_bridge_enabled) return s_orig_input_sta(p, inp);
+    if (p->len < sizeof(eth_hdr_t)) return s_orig_input_sta(p, inp);
 
     eth_hdr_t *eth_p = (eth_hdr_t *)p->payload;
-    if (memcmp(eth_p->src, s_ap_nif->hwaddr, 6) == 0) {
+    if (memcmp(eth_p->src, s_sta_nif->hwaddr, 6) == 0 || memcmp(eth_p->src, s_ap_nif->hwaddr, 6) == 0) {
         return s_orig_input_sta(p, inp);
     }
 
-    struct pbuf *q = pbuf_alloc(PBUF_RAW, p->tot_len + 16, PBUF_RAM);
+    struct pbuf *q = pbuf_alloc(PBUF_RAW, p->tot_len, PBUF_RAM);
     if (!q) return s_orig_input_sta(p, inp);
     pbuf_copy(q, p);
 
@@ -512,16 +532,18 @@ static err_t bridge_input_sta(struct pbuf *p, struct netif *inp)
                     have_dhcp = snoop_dhcp_reply(q, udp_off + sizeof(udp_hdr_t), ch);
                 }
             }
-            const uint8_t *mac = NULL;
+            uint8_t mac_buf[6];
+            bool have_mac = false;
             if (have_dhcp) {
-                mac = ch;
+                memcpy(mac_buf, ch, 6);
+                have_mac = true;
             } else if (!is_bcast) {
                 if (sta_ip != 0 && ip->dst != sta_ip) {
-                    mac = fdb_lookup(ip->dst);
+                    have_mac = fdb_lookup(ip->dst, mac_buf);
                 }
             }
-            if (is_bcast || mac) {
-                if (mac) memcpy(eth->dst, mac, 6);
+            if (is_bcast || have_mac) {
+                if (have_mac) memcpy(eth->dst, mac_buf, 6);
                 s_orig_lo_ap(s_ap_nif, q);
                 handled = true;
             }
@@ -529,7 +551,8 @@ static err_t bridge_input_sta(struct pbuf *p, struct netif *inp)
     } else if (eth_type == ETHTYPE_ARP) {
         arp_hdr_t *arp = (arp_hdr_t *)pkt_at(q, sizeof(eth_hdr_t), sizeof(arp_hdr_t));
         if (arp) {
-            if (ntohs(arp->op) == 1 && fdb_lookup(arp->tpa)) {
+            uint8_t proxy_mac[6];
+            if (ntohs(arp->op) == 1 && fdb_lookup(arp->tpa, proxy_mac)) {
                 send_proxy_arp_reply(s_sta_nif, s_orig_lo_sta, arp, arp->tpa);
                 handled = true;
                 pbuf_free(q);
@@ -537,16 +560,17 @@ static err_t bridge_input_sta(struct pbuf *p, struct netif *inp)
                 return ERR_OK;
             }
             memcpy(arp->sha, s_ap_nif->hwaddr, 6);
-            const uint8_t *mac = NULL;
+            uint8_t target_mac[6];
+            bool have_target_mac = false;
             if (!is_bcast) {
                 if (sta_ip != 0 && arp->tpa != sta_ip) {
-                    mac = fdb_lookup(arp->tpa);
+                    have_target_mac = fdb_lookup(arp->tpa, target_mac);
                 }
             }
-            if (is_bcast || mac) {
-                if (mac) {
-                    memcpy(eth->dst, mac, 6);
-                    memcpy(arp->tha, mac, 6);
+            if (is_bcast || have_target_mac) {
+                if (have_target_mac) {
+                    memcpy(eth->dst, target_mac, 6);
+                    memcpy(arp->tha, target_mac, 6);
                 }
                 s_orig_lo_ap(s_ap_nif, q);
                 handled = true;
@@ -567,62 +591,52 @@ static err_t bridge_input_sta(struct pbuf *p, struct netif *inp)
  * ------------------------------------------------------------------------- */
 void bridge_init(struct netif *sta_netif, struct netif *ap_netif)
 {
-    if (s_bridge_enabled) {
-        ESP_LOGW(TAG, "Bridge already initialized");
-        return;
-    }
-
+    if (s_bridge_enabled) return;
     s_sta_nif = sta_netif;
-    s_ap_nif = ap_netif;
+    s_ap_nif  = ap_netif;
 
-    s_orig_input_sta = sta_netif->input;
-    sta_netif->input = bridge_input_sta;
+    portENTER_CRITICAL(&s_bridge_mux);
+    memset(s_fdb, 0, sizeof(s_fdb));
+    memset(s_xid_map, 0, sizeof(s_xid_map));
+    portEXIT_CRITICAL(&s_bridge_mux);
 
-    s_orig_input_ap = ap_netif->input;
-    ap_netif->input = bridge_input_ap;
-
+    s_orig_input_sta  = sta_netif->input;
+    s_orig_input_ap   = ap_netif->input;
+    s_orig_lo_sta     = sta_netif->linkoutput;
+    s_orig_lo_ap      = ap_netif->linkoutput;
     s_orig_output_sta = sta_netif->output;
+    s_orig_output_ap  = ap_netif->output;
+
+    sta_netif->input  = bridge_input_sta;
+    ap_netif->input   = bridge_input_ap;
     sta_netif->output = bridge_output_sta;
-
-    s_orig_output_ap = ap_netif->output;
-    ap_netif->output = bridge_output_ap;
-
-    s_orig_lo_sta = sta_netif->linkoutput;
-    s_orig_lo_ap = ap_netif->linkoutput;
+    ap_netif->output  = bridge_output_ap;
 
     netif_set_default(sta_netif);
 
-    memset(s_fdb, 0, sizeof(s_fdb));
-    memset(s_xid_map, 0, sizeof(s_xid_map));
-
-    // Align AP channel with STA channel
-    uint8_t primary_chan = 1;
-    wifi_second_chan_t second_chan = WIFI_SECOND_CHAN_NONE;
-    if (esp_wifi_get_channel(&primary_chan, &second_chan) == ESP_OK) {
-        wifi_config_t ap_cfg;
-        if (esp_wifi_get_config(WIFI_IF_AP, &ap_cfg) == ESP_OK) {
-            if (ap_cfg.ap.channel != primary_chan) {
-                ap_cfg.ap.channel = primary_chan;
-                esp_wifi_set_config(WIFI_IF_AP, &ap_cfg);
-                ESP_LOGI(TAG, "Locked AP channel to STA channel: %d", primary_chan);
-            }
-        }
-    }
-
     s_bridge_enabled = true;
-    ESP_LOGI(TAG, "Layer-2 bridge initialized successfully");
+    ESP_LOGI(TAG, "Layer-2 transparent bridge initialized (STA <-> SoftAP)");
 }
 
 void bridge_deinit(void)
 {
     if (!s_bridge_enabled) return;
-
-    if (s_sta_nif && s_orig_input_sta) s_sta_nif->input = s_orig_input_sta;
-    if (s_ap_nif  && s_orig_input_ap)  s_ap_nif->input  = s_orig_input_ap;
-    if (s_sta_nif && s_orig_output_sta) s_sta_nif->output = s_orig_output_sta;
-    if (s_ap_nif  && s_orig_output_ap)  s_ap_nif->output  = s_orig_output_ap;
-
     s_bridge_enabled = false;
+
+    if (s_sta_nif && s_orig_input_sta) {
+        s_sta_nif->input  = s_orig_input_sta;
+        s_sta_nif->output = s_orig_output_sta;
+    }
+    if (s_ap_nif && s_orig_input_ap) {
+        s_ap_nif->input  = s_orig_input_ap;
+        s_ap_nif->output = s_orig_output_ap;
+    }
+
+    portENTER_CRITICAL(&s_bridge_mux);
+    memset(s_fdb, 0, sizeof(s_fdb));
+    memset(s_xid_map, 0, sizeof(s_xid_map));
+    portEXIT_CRITICAL(&s_bridge_mux);
+
     ESP_LOGI(TAG, "Layer-2 bridge deinitialized");
 }
 
@@ -635,21 +649,27 @@ void bridge_show_fdb(void)
 {
     uint32_t now = now_secs();
     ESP_LOGI(TAG, "Bridge FDB (IP -> Client MAC):");
+
+    fdb_entry_t snapshot[FDB_SIZE];
     int count = 0;
+
     portENTER_CRITICAL(&s_bridge_mux);
     for (int i = 0; i < FDB_SIZE; i++) {
         if (s_fdb[i].ip != 0 && s_fdb[i].expires_s > now) {
-            esp_ip4_addr_t addr;
-            addr.addr = s_fdb[i].ip;
-            ESP_LOGI(TAG, "  " IPSTR " -> %02x:%02x:%02x:%02x:%02x:%02x (expires in %d s)",
-                     IP2STR(&addr),
-                     s_fdb[i].mac[0], s_fdb[i].mac[1], s_fdb[i].mac[2],
-                     s_fdb[i].mac[3], s_fdb[i].mac[4], s_fdb[i].mac[5],
-                     (int)(s_fdb[i].expires_s - now));
-            count++;
+            snapshot[count++] = s_fdb[i];
         }
     }
     portEXIT_CRITICAL(&s_bridge_mux);
+
+    for (int i = 0; i < count; i++) {
+        esp_ip4_addr_t addr;
+        addr.addr = snapshot[i].ip;
+        ESP_LOGI(TAG, "  " IPSTR " -> %02x:%02x:%02x:%02x:%02x:%02x (expires in %d s)",
+                 IP2STR(&addr),
+                 snapshot[i].mac[0], snapshot[i].mac[1], snapshot[i].mac[2],
+                 snapshot[i].mac[3], snapshot[i].mac[4], snapshot[i].mac[5],
+                 (int)(snapshot[i].expires_s - now));
+    }
     if (count == 0) {
         ESP_LOGI(TAG, "  (empty)");
     }
