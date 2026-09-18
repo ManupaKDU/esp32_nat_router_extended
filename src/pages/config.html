@@ -158,9 +158,9 @@
                         $('#wifi_off').css('display', 'inline-block');
                     }
 
-                }, dataType: "json", complete: setTimeout(function () {
-                    poll();
-                }, 3000), timeout: 3000
+                }, dataType: "json", complete: function () {
+                    setTimeout(poll, 3000);
+                }, timeout: 3000
             })
         })();</script>
     <script>
@@ -178,3 +178,7 @@
                 }
             });
         });
+    </script>
+</body>
+
+</html>
