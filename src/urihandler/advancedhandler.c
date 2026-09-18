@@ -220,7 +220,8 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
                  (hostName != NULL ? strlen(hostName) : 0) +
                  2 * (sizeof("selected") - 1) +
                  strlen(customMask) +
-                 4 /* 4 * Octet - 4 *%d*/;
+                 4 /* 4 * Octet - 4 *%d*/ +
+                 256;
     ESP_LOGI(TAG, "Allocating additional %d bytes for advanced page.", size);
     char *advanced_page = malloc(size);
     if (advanced_page == NULL)
@@ -252,7 +253,10 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
     free(allocatedDNS);
     free(hostName);
     free(customDNS);
-    free(macSetting);
+    if (macSetting != NULL)
+    {
+        free(macSetting);
+    }
     free(netmask_alloc);
 
     return ret;

@@ -176,7 +176,7 @@ esp_err_t index_get_handler(httpd_req_t *req)
         cer = "";
     }
 
-    size = size + strlen(wpa2CB) + strlen(wpa2Input) + strlen(sta_identity) + strlen(sta_user) + strlen(cer) + strlen(displayResult) + strlen(scanButtonWidth) + strlen(displayLockButton) + strlen(displayRelockButton) + strlen(ariaExpanded);
+    size = size + strlen(wpa2CB) + strlen(wpa2Input) + strlen(sta_identity) + strlen(sta_user) + strlen(cer) + strlen(displayResult) + strlen(scanButtonWidth) + strlen(displayLockButton) + strlen(displayRelockButton) + strlen(ariaExpanded) + 256;
     ESP_LOGI(TAG, "Allocating additional %d bytes for config page.", config_html_size + size);
 
     char *config_page = malloc(config_html_size + size);
