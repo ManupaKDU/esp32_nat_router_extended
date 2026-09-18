@@ -1,32 +1,33 @@
 </tbody>
 </table>
+</div>
 <form action="portmap" method="POST" class="text-center" onsubmit="var b = this.querySelector('button[title=\'Add\']'); b.classList.add('disabled'); b.setAttribute('aria-disabled', 'true');">
     <input name="func" type="hidden" value="add" />
-    <div class="form-group row mt-2">
-        <div class="col-2">
-            <select class="form-select mt-2" aria-label="Select the protocol" title="Select the protocol"
+    <div class="form-group row mt-2 g-2 align-items-center">
+        <div class="col-md-2 col-12">
+            <select class="form-select" aria-label="Select the protocol" title="Select the protocol"
                 name="protocol" id="protocol">
                 <option value="tcp" selected>TCP</option>
                 <option value="udp">UDP</option>
             </select>
         </div>
-        <div class="col-2">
-            <input class="form-control mt-2" id="eport" name="eport" placeholder="External port"
+        <div class="col-md-2 col-12">
+            <input class="form-control" id="eport" name="eport" placeholder="External port"
                 aria-label="External port" type="number" min="1" max="65535" required autofocus />
         </div>
-        <div class="col-4">
-            <div class="input-group mt-2">
+        <div class="col-md-4 col-12">
+            <div class="input-group">
                 <span class="input-group-text" id="basic-addon1">%s</span>
                 <input type="number" class="form-control" name="ip" placeholder="IP" aria-label="Internal IP" min="2" max="254" required>
             </div>
         </div>
-        <div class="col-2">
-            <input class="form-control mt-2" id="iport" name="iport" placeholder="Internal port"
+        <div class="col-md-2 col-12">
+            <input class="form-control" id="iport" name="iport" placeholder="Internal port"
                 aria-label="Internal port" type="number" min="1" max="65535" required />
         </div>
-        <div class="col-2">
+        <div class="col-md-2 col-12">
             <div>
-                <button title='Add' name='add' class='btn btn-light mt-2' aria-label="Add portmap entry">
+                <button title='Add' name='add' class='btn btn-light w-100' aria-label="Add portmap entry">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                         class="bi bi-plus-circle-fill" viewBox="0 0 16 16" aria-hidden="true">
                         <path
