@@ -110,9 +110,8 @@ esp_err_t portmap_get_handler(httpd_req_t *req)
 
 void addPortmapEntry(char *urlContent)
 {
-    size_t contentLength = 64;
-    char param[contentLength];
-    readUrlParameterIntoBuffer(urlContent, "protocol", param, contentLength);
+    char param[64];
+    readUrlParameterIntoBuffer(urlContent, "protocol", param, sizeof(param) - 1);
     uint8_t tcp_udp;
     if (strcmp(param, "tcp") == 0)
     {
@@ -122,7 +121,7 @@ void addPortmapEntry(char *urlContent)
     {
         tcp_udp = PROTO_UDP;
     }
-    readUrlParameterIntoBuffer(urlContent, "eport", param, contentLength);
+    readUrlParameterIntoBuffer(urlContent, "eport", param, sizeof(param) - 1);
     char *endptr;
     unsigned long ext_port_val = strtoul(param, &endptr, 10);
     if (ext_port_val < 1 || ext_port_val > 65535 || *endptr != '\0')
@@ -132,7 +131,7 @@ void addPortmapEntry(char *urlContent)
     }
     uint16_t ext_port = (uint16_t)ext_port_val;
 
-    readUrlParameterIntoBuffer(urlContent, "ip", param, contentLength);
+    readUrlParameterIntoBuffer(urlContent, "ip", param, sizeof(param) - 1);
 
     // ⚡ Bolt: Eliminate expensive NVS reads and malloc overhead by formatting the cached my_ap_ip directly
     ip4_addr_t addr;
@@ -149,7 +148,7 @@ void addPortmapEntry(char *urlContent)
         ESP_LOGW(TAG, "Invalid IP");
         return;
     }
-    readUrlParameterIntoBuffer(urlContent, "iport", param, contentLength);
+    readUrlParameterIntoBuffer(urlContent, "iport", param, sizeof(param) - 1);
     unsigned long int_port_val = strtoul(param, &endptr, 10);
 
     if (int_port_val < 1 || int_port_val > 65535 || *endptr != '\0')
@@ -164,9 +163,8 @@ void addPortmapEntry(char *urlContent)
 
 void delPortmapEntry(char *urlContent)
 {
-    size_t contentLength = 64;
-    char param[contentLength];
-    readUrlParameterIntoBuffer(urlContent, "entry", param, contentLength);
+    char param[64];
+    readUrlParameterIntoBuffer(urlContent, "entry", param, sizeof(param) - 1);
 
     const char delimiter[] = "_";
 

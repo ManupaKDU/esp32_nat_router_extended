@@ -176,9 +176,9 @@ void applyAdvancedConfig(char *buf)
     nvs_handle_t nvs;
     nvs_open(PARAM_NAMESPACE, NVS_READWRITE, &nvs);
 
-    size_t contentLength = 250;
-    char param[contentLength];
-    readUrlParameterIntoBuffer(buf, "keepalive", param, contentLength);
+    const size_t contentLength = 250;
+    char param[256];
+    readUrlParameterIntoBuffer(buf, "keepalive", param, sizeof(param) - 1);
 
     if (strlen(param) > 0)
     {
@@ -191,7 +191,7 @@ void applyAdvancedConfig(char *buf)
         ESP_ERROR_CHECK(nvs_set_i32(nvs, "keep_alive", 0));
     }
 
-    readUrlParameterIntoBuffer(buf, "ledenabled", param, contentLength);
+    readUrlParameterIntoBuffer(buf, "ledenabled", param, sizeof(param) - 1);
     if (strlen(param) > 0)
     {
         ESP_LOGI(TAG, "ON Board LED will be enabled");
@@ -203,7 +203,7 @@ void applyAdvancedConfig(char *buf)
         ESP_ERROR_CHECK(nvs_set_i32(nvs, "led_disabled", 1));
     }
 
-    readUrlParameterIntoBuffer(buf, "natenabled", param, contentLength);
+    readUrlParameterIntoBuffer(buf, "natenabled", param, sizeof(param) - 1);
     if (strlen(param) > 0)
     {
         ESP_LOGI(TAG, "NAT will be enabled");
@@ -215,18 +215,18 @@ void applyAdvancedConfig(char *buf)
         ESP_ERROR_CHECK(nvs_set_i32(nvs, "nat_disabled", 1));
     }
 
-    readUrlParameterIntoBuffer(buf, "wsenabled", param, contentLength);
+    readUrlParameterIntoBuffer(buf, "wsenabled", param, sizeof(param) - 1);
     if (strlen(param) == 0)
     {
         ESP_LOGI(TAG, "Webserver will be disabled");
         ESP_ERROR_CHECK(nvs_set_i32(nvs, "lock", 1));
     }
 
-    readUrlParameterIntoBuffer(buf, "custommac", param, contentLength);
+    readUrlParameterIntoBuffer(buf, "custommac", param, sizeof(param) - 1);
     if (strlen(param) > 0)
     {
-        char macaddress[contentLength];
-        readUrlParameterIntoBuffer(buf, "macaddress", macaddress, contentLength);
+        char macaddress[32];
+        readUrlParameterIntoBuffer(buf, "macaddress", macaddress, sizeof(macaddress) - 1);
         if (strcmp("random", param) == 0)
         {
             ESP_LOGI(TAG, "MAC address set to random");
@@ -252,13 +252,13 @@ void applyAdvancedConfig(char *buf)
             setMACToDefault(&nvs);
         }
     }
-    readUrlParameterIntoBuffer(buf, "dns", param, contentLength);
+    readUrlParameterIntoBuffer(buf, "dns", param, sizeof(param) - 1);
     if (strlen(param) > 0)
     {
         if (strcmp(param, "custom") == 0)
         {
-            char customDnsParam[contentLength];
-            readUrlParameterIntoBuffer(buf, "dnsip", customDnsParam, contentLength);
+            char customDnsParam[64];
+            readUrlParameterIntoBuffer(buf, "dnsip", customDnsParam, sizeof(customDnsParam) - 1);
             if (strlen(customDnsParam) > 0)
             {
                 uint32_t ipasInt = esp_ip4addr_aton(customDnsParam);

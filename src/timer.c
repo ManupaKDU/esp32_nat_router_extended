@@ -4,38 +4,66 @@
 #include "esp_timer.h"
 #include "esp_http_client.h"
 
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+
 static const char *TAG = "Timer";
 
 #define REFRESH_TIMER_PERIOD 5 * 60000000
 
 esp_timer_handle_t restart_timer, refresh_timer;
+static TaskHandle_t keep_alive_task_handle = NULL;
 
 static void restart_timer_callback(void *arg)
 {
     ESP_LOGI(TAG, "Restarting now...");
     esp_restart();
 }
-static void refresh_timer_callback(void *arg)
+
+static void keep_alive_task(void *pvParameters)
 {
     ESP_LOGI(TAG, "Starting web call for keep alive");
     esp_http_client_config_t config = {
         .url = "https://www.startpage.com/",
         .method = HTTP_METHOD_HEAD,
-        .disable_auto_redirect = true};
+        .disable_auto_redirect = true,
+        .timeout_ms = 10000};
     esp_http_client_handle_t client = esp_http_client_init(&config);
 
-    // GET
-    esp_err_t err = esp_http_client_perform(client);
-    if (err == ESP_OK)
+    if (client != NULL)
     {
-        ESP_LOGI(TAG, "HTTP GET Status = %d, content_length = %lld ", esp_http_client_get_status_code(client),
-                 esp_http_client_get_content_length(client));
+        esp_err_t err = esp_http_client_perform(client);
+        if (err == ESP_OK)
+        {
+            ESP_LOGI(TAG, "HTTP HEAD Status = %d, content_length = %lld ", esp_http_client_get_status_code(client),
+                     esp_http_client_get_content_length(client));
+        }
+        else
+        {
+            ESP_LOGE(TAG, "HTTP HEAD request failed: %s", esp_err_to_name(err));
+        }
+        esp_http_client_cleanup(client);
+    }
+    keep_alive_task_handle = NULL;
+    vTaskDelete(NULL);
+}
+
+static void refresh_timer_callback(void *arg)
+{
+    // Do not run blocking network/TLS operations inside the esp_timer callback
+    if (keep_alive_task_handle == NULL)
+    {
+        BaseType_t ret = xTaskCreate(keep_alive_task, "keep_alive_task", 6144, NULL, 3, &keep_alive_task_handle);
+        if (ret != pdPASS)
+        {
+            ESP_LOGE(TAG, "Failed to create keep-alive task");
+            keep_alive_task_handle = NULL;
+        }
     }
     else
     {
-        ESP_LOGE(TAG, "HTTP GET request failed: %s", esp_err_to_name(err));
+        ESP_LOGW(TAG, "Keep-alive task already running, skipping");
     }
-    esp_http_client_cleanup(client);
 }
 
 esp_timer_create_args_t restart_timer_args = {
