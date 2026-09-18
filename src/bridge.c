@@ -347,14 +347,14 @@ static bool snoop_dhcp_reply(struct pbuf *p, uint16_t eth_ip_udp_hdr_len, uint8_
     if (!dhcp || dhcp->op != DHCP_OP_REPLY || dhcp->hlen != 6 || dhcp->magic != htonl(DHCP_MAGIC_COOKIE)) return false;
 
     uint8_t orig_mac[6];
-    if (xid_map_lookup(dhcp->xid, orig_mac)) {
-        memcpy(chaddr_out, orig_mac, 6);
-        memcpy(dhcp->chaddr, orig_mac, 6);
-        udp_hdr_t *udp = (udp_hdr_t *)pkt_at(p, eth_ip_udp_hdr_len - (uint16_t)sizeof(udp_hdr_t), sizeof(udp_hdr_t));
-        if (udp) udp->chksum = 0;
-    } else {
-        memcpy(chaddr_out, dhcp->chaddr, 6);
+    if (!xid_map_lookup(dhcp->xid, orig_mac)) {
+        // Not a client DHCP transaction from bridge; do not intercept/modify
+        return false;
     }
+    memcpy(chaddr_out, orig_mac, 6);
+    memcpy(dhcp->chaddr, orig_mac, 6);
+    udp_hdr_t *udp = (udp_hdr_t *)pkt_at(p, eth_ip_udp_hdr_len - (uint16_t)sizeof(udp_hdr_t), sizeof(udp_hdr_t));
+    if (udp) udp->chksum = 0;
 
     if (dhcp->yiaddr != 0) {
         uint16_t opts_len = p->len - eth_ip_udp_hdr_len - (uint16_t)sizeof(dhcp_msg_t);
@@ -426,6 +426,9 @@ static err_t bridge_input_ap(struct pbuf *p, struct netif *inp)
     if (p->len < sizeof(eth_hdr_t)) return s_orig_input_ap(p, inp);
 
     eth_hdr_t *eth_p = (eth_hdr_t *)p->payload;
+    if (memcmp(eth_p->src, s_sta_nif->hwaddr, 6) == 0 || memcmp(eth_p->src, s_ap_nif->hwaddr, 6) == 0) {
+        return s_orig_input_ap(p, inp);
+    }
     bool is_bcast = (eth_p->dst[0] & 0x01) != 0;
     bool is_to_ap_mac = (memcmp(eth_p->dst, s_ap_nif->hwaddr, 6) == 0);
     uint16_t eth_type = ntohs(eth_p->type);

@@ -34,6 +34,7 @@
 static const char *TAG = "DNS Server";
 static TaskHandle_t task = NULL;
 static int s_dns_sock = -1;
+static volatile bool s_dns_running = false;
 
 // DNS Header Packet
 typedef struct __attribute__((__packed__))
@@ -223,99 +224,115 @@ void dns_server_task(void *pvParameters)
 {
     char rx_buffer[DNS_RX_BUF_LEN];
     char addr_str[DNS_ADDR_STR_LEN];
-    int addr_family;
-    int ip_protocol;
 
-    while (1)
+    struct sockaddr_in dest_addr;
+    dest_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    dest_addr.sin_family = AF_INET;
+    dest_addr.sin_port = htons(DNS_PORT);
+    inet_ntoa_r(dest_addr.sin_addr, addr_str, sizeof(addr_str) - 1);
+
+    int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
+    if (sock < 0)
     {
+        ESP_LOGE(TAG, "Unable to create socket: errno %d", errno);
+        s_dns_running = false;
+        task = NULL;
+        vTaskDelete(NULL);
+        return;
+    }
 
-        struct sockaddr_in dest_addr;
-        dest_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-        dest_addr.sin_family = AF_INET;
-        dest_addr.sin_port = htons(DNS_PORT);
-        addr_family = AF_INET;
-        ip_protocol = IPPROTO_IP;
-        inet_ntoa_r(dest_addr.sin_addr, addr_str, sizeof(addr_str) - 1);
+    struct timeval tv;
+    tv.tv_sec = 0;
+    tv.tv_usec = 500000; // 500ms timeout
+    setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
 
-        int sock = socket(addr_family, SOCK_DGRAM, ip_protocol);
-        if (sock < 0)
+    s_dns_sock = sock;
+    ESP_LOGI(TAG, "Socket created");
+
+    int err = bind(sock, (struct sockaddr *)&dest_addr, sizeof(dest_addr));
+    if (err < 0)
+    {
+        ESP_LOGE(TAG, "Socket unable to bind: errno %d", errno);
+        close(sock);
+        s_dns_sock = -1;
+        s_dns_running = false;
+        task = NULL;
+        vTaskDelete(NULL);
+        return;
+    }
+    ESP_LOGI(TAG, "Socket bound, port %d", DNS_PORT);
+
+    while (s_dns_running)
+    {
+        struct sockaddr_in6 source_addr;
+        socklen_t socklen = sizeof(source_addr);
+        int len = recvfrom(sock, rx_buffer, sizeof(rx_buffer) - 1, 0, (struct sockaddr *)&source_addr, &socklen);
+
+        if (len < 0)
         {
-            ESP_LOGE(TAG, "Unable to create socket: errno %d", errno);
-            break;
-        }
-        s_dns_sock = sock;
-        ESP_LOGI(TAG, "Socket created");
-
-        int err = bind(sock, (struct sockaddr *)&dest_addr, sizeof(dest_addr));
-        if (err < 0)
-        {
-            ESP_LOGE(TAG, "Socket unable to bind: errno %d", errno);
-        }
-        ESP_LOGI(TAG, "Socket bound, port %d", DNS_PORT);
-
-        while (1)
-        {
-            ESP_LOGI(TAG, "Waiting for data");
-            struct sockaddr_in6 source_addr; // Large enough for both IPv4 or IPv6
-            socklen_t socklen = sizeof(source_addr);
-            int len = recvfrom(sock, rx_buffer, sizeof(rx_buffer) - 1, 0, (struct sockaddr *)&source_addr, &socklen);
-
-            // Error occurred during receiving or 0 length packet received
-            if (len <= 0)
+            if (errno == EAGAIN || errno == EWOULDBLOCK)
             {
-                if (len < 0)
-                {
-                    ESP_LOGE(TAG, "recvfrom failed: errno %d", errno);
-                    close(sock);
-                    break;
-                }
                 continue;
             }
-
-            // Get the sender's ip address as string
-            if (source_addr.sin6_family == PF_INET)
+            if (!s_dns_running)
             {
-                inet_ntoa_r(((struct sockaddr_in *)&source_addr)->sin_addr.s_addr, addr_str, sizeof(addr_str) - 1);
-            }
-            else if (source_addr.sin6_family == PF_INET6)
-            {
-                inet6_ntoa_r(source_addr.sin6_addr, addr_str, sizeof(addr_str) - 1);
-            }
-
-            // Null-terminate whatever we received and treat like a string...
-            rx_buffer[len] = 0;
-
-            char reply[DNS_MAX_LEN];
-            int reply_len = parse_dns_request(rx_buffer, len, reply, DNS_MAX_LEN);
-
-            ESP_LOGI(TAG, "Received %d bytes from %s | DNS reply with len: %d", len, addr_str, reply_len);
-            if (reply_len <= 0)
-            {
-                ESP_LOGE(TAG, "Failed to prepare a DNS reply");
-                continue;
-            }
-
-            int err = sendto(sock, reply, reply_len, 0, (struct sockaddr *)&source_addr, sizeof(source_addr));
-            if (err < 0)
-            {
-                ESP_LOGE(TAG, "Error occurred during sending: errno %d", errno);
                 break;
             }
+            ESP_LOGE(TAG, "recvfrom failed: errno %d", errno);
+            break;
+        }
+        if (len == 0)
+        {
+            continue;
         }
 
-        if (sock != -1)
+        // Get the sender's ip address as string
+        if (source_addr.sin6_family == PF_INET)
         {
-            ESP_LOGE(TAG, "Shutting down socket");
-            shutdown(sock, 0);
-            close(sock);
+            inet_ntoa_r(((struct sockaddr_in *)&source_addr)->sin_addr.s_addr, addr_str, sizeof(addr_str) - 1);
+        }
+        else if (source_addr.sin6_family == PF_INET6)
+        {
+            inet6_ntoa_r(source_addr.sin6_addr, addr_str, sizeof(addr_str) - 1);
+        }
+
+        // Null-terminate whatever we received and treat like a string...
+        rx_buffer[len] = 0;
+
+        char reply[DNS_MAX_LEN];
+        int reply_len = parse_dns_request(rx_buffer, len, reply, DNS_MAX_LEN);
+
+        ESP_LOGI(TAG, "Received %d bytes from %s | DNS reply with len: %d", len, addr_str, reply_len);
+        if (reply_len <= 0)
+        {
+            ESP_LOGE(TAG, "Failed to prepare a DNS reply");
+            continue;
+        }
+
+        int send_err = sendto(sock, reply, reply_len, 0, (struct sockaddr *)&source_addr, sizeof(source_addr));
+        if (send_err < 0)
+        {
+            ESP_LOGE(TAG, "Error occurred during sending: errno %d", errno);
+            break;
         }
     }
+
+    if (s_dns_sock != -1)
+    {
+        ESP_LOGI(TAG, "Shutting down socket");
+        shutdown(s_dns_sock, 0);
+        close(s_dns_sock);
+        s_dns_sock = -1;
+    }
+    s_dns_running = false;
+    task = NULL;
+    ESP_LOGI(TAG, "DNS Server stopped");
     vTaskDelete(NULL);
 }
 
 bool isDnsStarted()
 {
-    return task != NULL;
+    return s_dns_running;
 }
 
 extern volatile uint16_t current_connect_count;
@@ -327,21 +344,24 @@ uint16_t getConnectCount()
 
 void start_dns_server()
 {
+    if (s_dns_running || task != NULL)
+    {
+        return;
+    }
+    s_dns_running = true;
     xTaskCreate(dns_server_task, "dns_server", 4096, NULL, 5, &task);
     ESP_LOGI(TAG, "DNS Server started");
 }
 
 void stop_dns_server()
 {
+    if (!s_dns_running && task == NULL)
+    {
+        return;
+    }
+    s_dns_running = false;
     if (s_dns_sock >= 0)
     {
-        close(s_dns_sock);
-        s_dns_sock = -1;
-    }
-    if (task != NULL)
-    {
-        vTaskDelete(task);
-        task = NULL;
-        ESP_LOGI(TAG, "DNS Server stopped");
+        shutdown(s_dns_sock, 0);
     }
 }
