@@ -105,6 +105,12 @@ static httpd_uri_t otalog_post_download = {
     .handler = otalog_post_handler,
     .user_ctx = NULL};
 
+static httpd_uri_t ota_upload_post = {
+    .uri = "/otaupload",
+    .method = HTTP_POST,
+    .handler = ota_upload_post_handler,
+    .user_ctx = NULL};
+
 static httpd_uri_t advanced_page_download = {
     .uri = "/advanced",
     .method = HTTP_GET,
@@ -152,10 +158,10 @@ httpd_handle_t start_webserver(void)
 {
     httpd_handle_t server = NULL;
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-    config.max_uri_handlers = 25;
+    config.max_uri_handlers = 30;
     config.stack_size = 16384;
-    config.recv_wait_timeout = 5;
-    config.send_wait_timeout = 5;
+    config.recv_wait_timeout = 10;
+    config.send_wait_timeout = 10;
     config.lru_purge_enable = true;
 
     initializeRestartTimer();
@@ -223,6 +229,7 @@ httpd_handle_t start_webserver(void)
         httpd_register_uri_handler(server, &otalog_post_download);
         httpd_register_uri_handler(server, &portmap_page_download);
         httpd_register_uri_handler(server, &portmap_post_download);
+        httpd_register_uri_handler(server, &ota_upload_post);
         httpd_register_err_handler(server, HTTPD_404_NOT_FOUND, http_404_error_handler);
         return server;
     }

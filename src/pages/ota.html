@@ -73,8 +73,96 @@
             </div>
         </form>
 
+        <div class="card p-3 col-12 col-md-8 offset-md-2 mt-4">
+            <h5 class="card-title text-center fw-bold">Manual Firmware Upload</h5>
+            <div class="mb-3">
+                <label for="firmware_file" class="form-label">Select compiled firmware (.bin) file:</label>
+                <div class="input-group">
+                    <input type="file" class="form-control" id="firmware_file" accept=".bin">
+                    <button type="button" class="btn btn-danger" id="upload_btn" onclick="startFirmwareUpload()">Upload &amp; Flash</button>
+                </div>
+                <small class="form-text text-muted">Uploads the binary directly to the next OTA partition and reboots.</small>
+            </div>
+            <div id="upload_progress_wrapper" style="display:none;">
+                <div class="progress" style="height: 24px;">
+                    <div id="upload_progress_bar" class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar" style="width: 0;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0</div>
+                </div>
+                <div id="upload_msg" class="text-center mt-2 fw-bold"></div>
+            </div>
+        </div>
+
         <div class="form-group row col-12 col-md-4 offset-md-4 mt-5"> <a href=/ class="btn btn-light">Back</a> </div>
     </div>
+    <script>
+        function startFirmwareUpload() {
+            var fi = document.getElementById('firmware_file');
+            if (!fi.files || !fi.files.length) {
+                alert('Please select a .bin firmware file first.');
+                return;
+            }
+            var file = fi.files[0];
+            if (!file.name.toLowerCase().endsWith('.bin')) {
+                alert('Only .bin files are accepted.');
+                return;
+            }
+            if (file.size > 1536000) {
+                alert('File size (' + Math.round(file.size/1024) + ' KB) exceeds partition capacity (1500 KB).');
+                return;
+            }
+            if (!confirm('Are you sure you want to flash ' + file.name + ' (' + Math.round(file.size/1024) + ' KB)? The device will flash the image and reboot.')) {
+                return;
+            }
+            var btn = document.getElementById('upload_btn');
+            var wrap = document.getElementById('upload_progress_wrapper');
+            var bar = document.getElementById('upload_progress_bar');
+            var msg = document.getElementById('upload_msg');
+            btn.disabled = true;
+            fi.disabled = true;
+            wrap.style.display = 'block';
+            msg.className = 'text-center mt-2 fw-bold text-primary';
+            msg.innerText = 'Uploading and flashing to partition...';
+
+            var pctChar = String.fromCharCode(37);
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/otaupload', true);
+            xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+            xhr.setRequestHeader('X-File-Name', file.name);
+
+            xhr.upload.onprogress = function(e) {
+                if (e.lengthComputable) {
+                    var pct = Math.round((e.loaded / e.total) * 100);
+                    bar.style.width = pct + pctChar;
+                    bar.innerText = pct + pctChar + ' (' + Math.round(e.loaded/1024) + '/' + Math.round(e.total/1024) + ' KB)';
+                }
+            };
+
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    bar.style.width = '100' + pctChar;
+                    bar.innerText = '100' + pctChar;
+                    msg.className = 'text-center mt-2 fw-bold text-success';
+                    msg.innerText = 'Flash successful! Rebooting device, redirecting in 3 seconds...';
+                    setTimeout(function() {
+                        window.location.href = '/apply';
+                    }, 3000);
+                } else {
+                    msg.className = 'text-center mt-2 fw-bold text-danger';
+                    msg.innerText = 'Flashing failed: ' + (xhr.responseText || ('HTTP ' + xhr.status));
+                    btn.disabled = false;
+                    fi.disabled = false;
+                }
+            };
+
+            xhr.onerror = function() {
+                msg.className = 'text-center mt-2 fw-bold text-danger';
+                msg.innerText = 'Network error or connection lost during upload.';
+                btn.disabled = false;
+                fi.disabled = false;
+            };
+
+            xhr.send(file);
+        }
+    </script>
 </body>
 
 </html>

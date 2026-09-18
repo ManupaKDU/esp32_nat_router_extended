@@ -452,7 +452,7 @@ esp_err_t ota_download_get_handler(httpd_req_t *req)
     get_config_param_str("ota_url", &savedOtaUrl);
     const char *configured_url = (savedOtaUrl != NULL) ? savedOtaUrl : "";
 
-    size_t alloc_size = ota_html_size + strlen(project_version) + strlen(customUrl) + strlen(latest_version) + strlen(chip_type) + strlen(label) + strlen(changelog) + strlen(configured_url) + 1;
+    size_t alloc_size = ota_html_size + strlen(project_version) + strlen(customUrl) + strlen(latest_version) + strlen(chip_type) + strlen(label) + strlen(changelog) + strlen(configured_url) + 128;
     char *ota_page = malloc(alloc_size);
     if (ota_page == NULL)
     {
@@ -535,4 +535,176 @@ esp_err_t ota_post_handler(httpd_req_t *req)
     httpd_resp_set_status(req, "302 Found");
     httpd_resp_set_hdr(req, "Location", "/ota");
     return httpd_resp_send(req, NULL, 0);
+}
+
+static char *find_boundary_end(const char *buf, size_t len)
+{
+    if (len < 4) return NULL;
+    for (size_t i = 0; i <= len - 4; i++)
+    {
+        if (buf[i] == '\r' && buf[i+1] == '\n' && buf[i+2] == '\r' && buf[i+3] == '\n')
+        {
+            return (char *)(buf + i);
+        }
+    }
+    return NULL;
+}
+
+esp_err_t ota_upload_post_handler(httpd_req_t *req)
+{
+    if (isLocked())
+    {
+        return redirectToLock(req);
+    }
+
+    if (otaRunning)
+    {
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "OTA update already in progress");
+        return ESP_FAIL;
+    }
+
+    if (req->content_len <= 0)
+    {
+        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Empty or invalid firmware content length");
+        return ESP_FAIL;
+    }
+
+    if (req->content_len > 1536000)
+    {
+        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Firmware binary exceeds partition size (> 1500 KB)");
+        return ESP_FAIL;
+    }
+
+    const esp_partition_t *update_partition = esp_ota_get_next_update_partition(NULL);
+    if (update_partition == NULL)
+    {
+        ESP_LOGE(TAG, "No available OTA partition to flash");
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "No available OTA update partition");
+        return ESP_FAIL;
+    }
+    ESP_LOGI(TAG, "Starting firmware upload to partition '%s' (subtype %d, offset 0x%08lx, size %ld)",
+             update_partition->label, update_partition->subtype, (unsigned long)update_partition->address, (long)update_partition->size);
+
+    esp_ota_handle_t ota_handle = 0;
+    esp_err_t err = esp_ota_begin(update_partition, OTA_WITH_SEQUENTIAL_WRITES, &ota_handle);
+    if (err != ESP_OK)
+    {
+        ESP_LOGE(TAG, "esp_ota_begin failed: %s", esp_err_to_name(err));
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to initialize flash partition");
+        return ESP_FAIL;
+    }
+
+    otaRunning = true;
+
+    #define UPLOAD_CHUNK_SIZE 2048
+    char *ota_buf = malloc(UPLOAD_CHUNK_SIZE);
+    if (ota_buf == NULL)
+    {
+        esp_ota_abort(ota_handle);
+        otaRunning = false;
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Out of memory allocating upload buffer");
+        return ESP_FAIL;
+    }
+
+    int remaining = req->content_len;
+    int total_written = 0;
+    bool header_checked = false;
+    bool write_failed = false;
+
+    while (remaining > 0)
+    {
+        int to_recv = (remaining < UPLOAD_CHUNK_SIZE) ? remaining : UPLOAD_CHUNK_SIZE;
+        int received = httpd_req_recv(req, ota_buf, to_recv);
+        if (received <= 0)
+        {
+            if (received == HTTPD_SOCK_ERR_TIMEOUT)
+            {
+                continue;
+            }
+            ESP_LOGE(TAG, "Connection lost during firmware upload, error code: %d", received);
+            write_failed = true;
+            break;
+        }
+
+        int offset = 0;
+        int write_bytes = received;
+
+        if (!header_checked)
+        {
+            // Support possible multipart/form-data upload headers
+            if (received > 4 && ota_buf[0] == '-' && ota_buf[1] == '-')
+            {
+                char *boundary_end = find_boundary_end(ota_buf, received);
+                if (boundary_end != NULL)
+                {
+                    offset = (boundary_end + 4) - ota_buf;
+                    write_bytes = received - offset;
+                }
+            }
+
+            // Verify ESP32 image magic byte (0xE9)
+            if (write_bytes > 0 && (uint8_t)ota_buf[offset] != 0xE9)
+            {
+                ESP_LOGE(TAG, "Invalid firmware magic byte 0x%02X (expected 0xE9)", (uint8_t)ota_buf[offset]);
+                free(ota_buf);
+                esp_ota_abort(ota_handle);
+                otaRunning = false;
+                httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid firmware file (magic byte mismatch: not an ESP32 binary)");
+                return ESP_FAIL;
+            }
+            header_checked = true;
+        }
+
+        if (write_bytes > 0)
+        {
+            err = esp_ota_write(ota_handle, (const void *)(ota_buf + offset), write_bytes);
+            if (err != ESP_OK)
+            {
+                ESP_LOGE(TAG, "esp_ota_write failed: %s", esp_err_to_name(err));
+                write_failed = true;
+                break;
+            }
+            total_written += write_bytes;
+        }
+
+        remaining -= received;
+    }
+
+    free(ota_buf);
+
+    if (write_failed || remaining > 0)
+    {
+        esp_ota_abort(ota_handle);
+        otaRunning = false;
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Firmware upload interrupted");
+        return ESP_FAIL;
+    }
+
+    err = esp_ota_end(ota_handle);
+    if (err != ESP_OK)
+    {
+        ESP_LOGE(TAG, "esp_ota_end validation failed (%s)", esp_err_to_name(err));
+        otaRunning = false;
+        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Firmware validation failed (corrupted or truncated binary)");
+        return ESP_FAIL;
+    }
+
+    err = esp_ota_set_boot_partition(update_partition);
+    if (err != ESP_OK)
+    {
+        ESP_LOGE(TAG, "esp_ota_set_boot_partition failed (%s)", esp_err_to_name(err));
+        otaRunning = false;
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to set new boot partition");
+        return ESP_FAIL;
+    }
+
+    ESP_LOGI(TAG, "Firmware upload & flash successful! Total %d bytes written to partition '%s'. Restarting device...",
+             total_written, update_partition->label);
+
+    httpd_resp_set_status(req, "200 OK");
+    httpd_resp_set_type(req, "text/plain");
+    httpd_resp_sendstr(req, "Upload and flash successful! Rebooting...");
+
+    restartByTimerinS(2);
+    return ESP_OK;
 }

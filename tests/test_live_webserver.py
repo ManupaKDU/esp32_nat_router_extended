@@ -90,6 +90,39 @@ def main():
         failed += 1
         print("  [FAIL] Concurrency test encountered failures.")
 
+    print("\n--- Phase 3: OTA Firmware Upload Endpoint Validation ---")
+    # Test 1: Verify /ota page contains file upload elements
+    try:
+        req = urllib.request.Request(f"http://{ip}/ota")
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            html = resp.read().decode("utf-8", errors="replace")
+            if 'id="firmware_file"' in html and 'id="upload_btn"' in html:
+                passed += 1
+                print("  [PASS] /ota contains Manual Firmware Upload controls (firmware_file & upload_btn)")
+            else:
+                failed += 1
+                print("  [FAIL] /ota is missing Manual Firmware Upload controls")
+    except Exception as e:
+        failed += 1
+        print(f"  [FAIL] /ota check error: {e}")
+
+    # Test 2: Verify /otaupload rejects invalid binary with 400 Bad Request
+    try:
+        req = urllib.request.Request(f"http://{ip}/otaupload", data=b"invalid_firmware_data", method="POST")
+        urllib.request.urlopen(req, timeout=5)
+        failed += 1
+        print("  [FAIL] /otaupload accepted invalid binary data (expected 400)")
+    except urllib.error.HTTPError as e:
+        if e.code == 400:
+            passed += 1
+            print(f"  [PASS] /otaupload correctly rejected invalid binary (HTTP {e.code})")
+        else:
+            failed += 1
+            print(f"  [FAIL] /otaupload returned unexpected HTTP error: {e.code}")
+    except Exception as e:
+        failed += 1
+        print(f"  [FAIL] /otaupload exception: {e}")
+
     print(f"\n=== Test Summary: {passed} PASSED, {failed} FAILED ===")
     sys.exit(0 if failed == 0 else 1)
 
