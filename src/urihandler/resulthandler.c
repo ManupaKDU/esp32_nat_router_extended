@@ -44,7 +44,13 @@ esp_err_t result_download_get_handler(httpd_req_t *req)
     char *result_param = NULL;
     int allocatedSize = (strlen(ROW_TEMPLATE) + 100) * DEFAULT_SCAN_LIST_SIZE;
 
-    char result[allocatedSize];
+    char *result = malloc(allocatedSize);
+    if (result == NULL)
+    {
+        ESP_LOGE(TAG, "Failed to allocate memory for scan result buffer");
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
     result[0] = '\0';
 
     // Bolt Optimization: Replace O(N^2) strcat looping with a running offset
@@ -86,8 +92,18 @@ esp_err_t result_download_get_handler(httpd_req_t *req)
 
     int size = result_html_size + current_len;
     char *result_page = malloc(size + 1);
+    if (result_page == NULL)
+    {
+        ESP_LOGE(TAG, "Failed to allocate memory for result page");
+        free(result);
+        free(result_param);
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
+
     // ⚡ Bolt: Capture dynamic string length to avoid redundant O(N) strlen() in httpd_resp_send and logging
     int response_len = snprintf(result_page, size + 1, result_start, result);
+    free(result);
 
     closeHeader(req);
 
