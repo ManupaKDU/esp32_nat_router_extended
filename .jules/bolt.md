@@ -61,3 +61,6 @@
 ## 2024-05-14 - Redundant Parameter Parsing Overhead
 **Learning:** Found an anti-pattern in HTTP handlers where URL parameters were parsed (`readUrlParameterIntoBuffer`), measured (`strlen`), and securely compared (`crypto_memcmp`), and then immediately re-parsed and re-measured inside the success conditional block. This creates completely unnecessary O(N) overhead for every parameter.
 **Action:** When inspecting authentication or configuration endpoints, look for duplicated parsing blocks inside nested conditionals and eliminate them to halve the processing overhead on the hot path.
+## 2026-05-02 - [C Variable Length Arrays (VLAs) vs Fixed Arrays]
+**Learning:** While C99 Variable Length Arrays (VLAs) like `char buf[param_len];` are supported by the ESP-IDF GCC toolchain and avoid heap allocation, they are generally discouraged in embedded C due to hidden dynamic stack adjustment overhead and potential stack overflow risks if the variable size is uncontrolled.
+**Action:** When replacing dynamic heap allocations (`malloc`) with stack allocations, prefer explicit fixed-size arrays (e.g., `char buf[600];`) or use a macro (`#define MAX_PARAM_LEN 600`) rather than relying on a variable size like `char buf[param_len]`.
