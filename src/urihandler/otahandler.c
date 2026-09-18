@@ -16,6 +16,7 @@ static char changelog[400] = "";
 static size_t changelog_len = 0;
 bool finished = false;
 bool otaRunning = false;
+static bool otaSuccess = false;
 
 char chip_type[30];
 
@@ -29,8 +30,8 @@ typedef struct
     int http_code;
 } http_handler_data_t;
 
-static const char *DEFAULT_URL = "https://raw.githubusercontent.com/dchristl/esp32_nat_router_extended/releases-production/";
-static const char *DEFAULT_URL_CANARY = "https://raw.githubusercontent.com/dchristl/esp32_nat_router_extended/releases-staging/";
+static const char *DEFAULT_URL = "https://raw.githubusercontent.com/ManupaKDU/esp32_nat_router_extended/releases-production/";
+static const char *DEFAULT_URL_CANARY = "https://raw.githubusercontent.com/ManupaKDU/esp32_nat_router_extended/releases-staging/";
 
 void appendToLog(const char *message)
 {
@@ -57,7 +58,7 @@ void setResultLog(const char *message, const char *cssClass)
     ESP_LOGI(TAG, "%s", message);
 }
 
-#define DOWNLOAD_TIMEOUT_MS 5000
+#define DOWNLOAD_TIMEOUT_MS 30000
 char *file_buffer = NULL;
 size_t file_size = 0;
 
@@ -119,9 +120,18 @@ esp_err_t version_event_handler(esp_http_client_event_t *evt)
         if (!esp_http_client_is_chunked_response(evt->client))
         {
             size_t new_size = file_size + evt->data_len;
-            file_buffer = realloc(file_buffer, new_size);
-            memcpy(file_buffer + file_size, evt->data, evt->data_len);
-            file_size = new_size;
+            char *new_buf = realloc(file_buffer, new_size + 1);
+            if (new_buf != NULL)
+            {
+                file_buffer = new_buf;
+                memcpy(file_buffer + file_size, evt->data, evt->data_len);
+                file_size = new_size;
+                file_buffer[file_size] = '\0';
+            }
+            else
+            {
+                ESP_LOGE(TAG, "Realloc failed in version_event_handler");
+            }
         }
         break;
     case HTTP_EVENT_ON_FINISH:
@@ -150,17 +160,24 @@ const char *get_default_url()
 void getOtaUrl(char *url, size_t url_size, char *label, size_t label_size)
 {
     char *customUrl = NULL;
-    // Assuming the function get_config_param_str is defined elsewhere
     get_config_param_str("ota_url", &customUrl);
     if (customUrl != NULL && strlen(customUrl) > 0)
     {
-        ESP_LOGI(TAG, "Custom Url found '%s'\n", customUrl);
+        ESP_LOGI(TAG, "Custom Url found '%s'", customUrl);
         snprintf(label, label_size, "Custom build");
-        snprintf(url, url_size, "%s", customUrl);
-    }
-    if (customUrl != NULL)
-    {
-        free(customUrl);
+        size_t len = strlen(customUrl);
+        if (len >= 4 && strcmp(customUrl + len - 4, ".bin") == 0)
+        {
+            snprintf(url, url_size, "%s", customUrl);
+        }
+        else if (customUrl[len - 1] == '/')
+        {
+            snprintf(url, url_size, "%s%s/firmware.bin", customUrl, chip_type);
+        }
+        else
+        {
+            snprintf(url, url_size, "%s/%s/firmware.bin", customUrl, chip_type);
+        }
     }
     else
     {
@@ -175,6 +192,10 @@ void getOtaUrl(char *url, size_t url_size, char *label, size_t label_size)
         }
 
         snprintf(url, url_size, "%s%s/firmware.bin", usedUrl, chip_type);
+    }
+    if (customUrl != NULL)
+    {
+        free(customUrl);
     }
 }
 
@@ -198,14 +219,17 @@ void ota_task(void *pvParameter)
         .http_config = &config,
     };
     finished = false;
+    otaSuccess = false;
     esp_err_t ret = esp_https_ota(&ota_config);
     if (ret == ESP_OK)
     {
-        setResultLog("OTA update succesful. The device is restarting.", "text-success");
+        otaSuccess = true;
+        setResultLog("OTA update successful. The device is restarting.", "text-success");
     }
     else
     {
-        setResultLog("Error occured. The device is restarting ", "text-danger");
+        otaSuccess = false;
+        setResultLog("OTA update failed. Check network/URL and try again.", "text-danger");
     }
     finished = true;
     vTaskDelete(NULL);
@@ -234,9 +258,44 @@ void appendToChangelog(const char *entry)
 
 void updateVersion()
 {
-    const char *usedUrl = get_default_url();
-    char url[strlen(usedUrl) + 50];
-    snprintf(url, sizeof(url), "%sversion", usedUrl);
+    char *customUrl = NULL;
+    get_config_param_str("ota_url", &customUrl);
+    char url[256];
+    if (customUrl != NULL && strlen(customUrl) > 0)
+    {
+        size_t len = strlen(customUrl);
+        if (len >= 4 && strcmp(customUrl + len - 4, ".bin") == 0)
+        {
+            char *last_slash = strrchr(customUrl, '/');
+            if (last_slash != NULL)
+            {
+                int base_len = last_slash - customUrl + 1;
+                snprintf(url, sizeof(url), "%.*sversion", base_len, customUrl);
+            }
+            else
+            {
+                snprintf(url, sizeof(url), "%s", customUrl);
+            }
+        }
+        else if (customUrl[len - 1] == '/')
+        {
+            snprintf(url, sizeof(url), "%sversion", customUrl);
+        }
+        else
+        {
+            snprintf(url, sizeof(url), "%s/version", customUrl);
+        }
+    }
+    else
+    {
+        const char *usedUrl = get_default_url();
+        snprintf(url, sizeof(url), "%sversion", usedUrl);
+    }
+    if (customUrl != NULL)
+    {
+        free(customUrl);
+    }
+
     esp_http_client_config_t config = {
         .url = url,
         .event_handler = version_event_handler,
@@ -249,16 +308,16 @@ void updateVersion()
     changelog_len = 0;
     http_handler_data_t *handler_data = (http_handler_data_t *)config.user_data;
 
-    if (err == ESP_OK && handler_data->http_code == 200)
+    if (err == ESP_OK && handler_data->http_code == 200 && file_buffer != NULL && file_size > 0)
     {
-        ESP_LOGI(TAG, "Version and changelog download succesful. File size is: %d Bytes", file_size);
-        file_buffer[file_size - 1] = '\0'; // Terminate the string on the correct length
+        ESP_LOGI(TAG, "Version and changelog download successful. File size is: %d Bytes", (int)file_size);
+        file_buffer[file_size] = '\0';
         char *rest = file_buffer;
         char *line;
         int lineNumber = 1;
         while ((line = strtok_r(rest, "\n", &rest)) != NULL)
         {
-            ESP_LOGD(TAG, "Line %d: %s\n", lineNumber, line);
+            ESP_LOGD(TAG, "Line %d: %s", lineNumber, line);
             switch (lineNumber)
             {
             case 1:
@@ -272,17 +331,20 @@ void updateVersion()
             }
             lineNumber++;
         }
-
-        free(file_buffer);
-        file_buffer = NULL;
-        file_size = 0;
     }
     else
     {
-        ESP_LOGE(TAG, "Error on download: %s -> %d\n", esp_err_to_name(err), handler_data->http_code);
+        ESP_LOGE(TAG, "Error on download: %s -> %d", esp_err_to_name(err), handler_data->http_code);
         snprintf(latest_version, sizeof(latest_version), ERROR_RETRIEVING, handler_data->http_code);
         appendToChangelog(latest_version);
     }
+
+    if (file_buffer != NULL)
+    {
+        free(file_buffer);
+        file_buffer = NULL;
+    }
+    file_size = 0;
     esp_http_client_cleanup(client);
 }
 esp_err_t otalog_get_handler(httpd_req_t *req)
@@ -308,8 +370,16 @@ esp_err_t otalog_get_handler(httpd_req_t *req)
 
     if (finished)
     {
-        otaLogRedirect = "3; url=/apply";
-        restartByTimerinS(3);
+        if (otaSuccess)
+        {
+            otaLogRedirect = "3; url=/apply";
+            restartByTimerinS(3);
+        }
+        else
+        {
+            otaLogRedirect = "10; url=/ota";
+            otaRunning = false;
+        }
     }
     char url[200];
     char label[20];
@@ -372,20 +442,30 @@ esp_err_t ota_download_get_handler(httpd_req_t *req)
     }
 
     determineChipType(chip_type, sizeof(chip_type));
-    ESP_LOGD(TAG, "Chip Type: %s\n", chip_type);
+    ESP_LOGD(TAG, "Chip Type: %s", chip_type);
     char customUrl[200];
     char label[20];
     getOtaUrl(customUrl, sizeof(customUrl), label, sizeof(label));
     const char *project_version = get_project_version();
-    size_t alloc_size = ota_html_size + strlen(project_version) + strlen(customUrl) + strlen(latest_version) + strlen(chip_type) + strlen(label) + strlen(changelog) + 1;
+
+    char *savedOtaUrl = NULL;
+    get_config_param_str("ota_url", &savedOtaUrl);
+    const char *configured_url = (savedOtaUrl != NULL) ? savedOtaUrl : "";
+
+    size_t alloc_size = ota_html_size + strlen(project_version) + strlen(customUrl) + strlen(latest_version) + strlen(chip_type) + strlen(label) + strlen(changelog) + strlen(configured_url) + 1;
     char *ota_page = malloc(alloc_size);
     if (ota_page == NULL)
     {
+        if (savedOtaUrl != NULL) free(savedOtaUrl);
         ESP_LOGE(TAG, "Memory allocation failed");
         return ESP_FAIL;
     }
     // ⚡ Bolt: Capture dynamic string length to avoid redundant O(N) strlen() in httpd_resp_send
-    int response_len = snprintf(ota_page, alloc_size, ota_start, project_version, latest_version, changelog, customUrl, label, chip_type);
+    int response_len = snprintf(ota_page, alloc_size, ota_start, project_version, latest_version, changelog, customUrl, label, chip_type, configured_url);
+    if (savedOtaUrl != NULL)
+    {
+        free(savedOtaUrl);
+    }
 
     closeHeader(req);
 
@@ -422,7 +502,34 @@ esp_err_t ota_post_handler(httpd_req_t *req)
     }
     buf[req->content_len] = '\0'; // Sentinel: Ensure null termination for safety
 
-    updateVersion();
+    char func[32] = "";
+    readUrlParameterIntoBuffer(buf, "func", func, sizeof(func));
+    if (strcmp(func, "set_ota_url") == 0)
+    {
+        char new_url[200] = "";
+        readUrlParameterIntoBuffer(buf, "ota_url", new_url, sizeof(new_url));
+        preprocess_string(new_url);
+        nvs_handle_t nvs;
+        if (nvs_open(PARAM_NAMESPACE, NVS_READWRITE, &nvs) == ESP_OK)
+        {
+            if (strlen(new_url) > 0)
+            {
+                nvs_set_str(nvs, "ota_url", new_url);
+                ESP_LOGI(TAG, "Configured custom ota_url: %s", new_url);
+            }
+            else
+            {
+                nvs_erase_key(nvs, "ota_url");
+                ESP_LOGI(TAG, "Cleared custom ota_url, restored default");
+            }
+            nvs_commit(nvs);
+            nvs_close(nvs);
+        }
+    }
+    else
+    {
+        updateVersion();
+    }
     free(buf);
 
     httpd_resp_set_status(req, "302 Found");
