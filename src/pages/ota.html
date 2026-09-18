@@ -7,6 +7,10 @@
     <meta http-equiv=X-UA-Compatible content="IE=edge">
     <meta name=viewport content="width=device-width, initial-scale=1">
     <link rel=stylesheet href=styles-67aa3b0203355627b525be2ea57be7bf.css>
+    <style>
+        .spinner-border { display: inline-block; width: 1rem; height: 1rem; vertical-align: -0.125em; border: 0.2em solid currentColor; border-right-color: transparent; border-radius: 50%; animation: 0.75s linear infinite spinner-border; }
+        @keyframes spinner-border { to { transform: rotate(360deg); } }
+    </style>
     <title>OTA Update</title>
 </head>
 
@@ -15,46 +19,61 @@
         <div class="row text-center">
             <h1>OTA Update</h1>
         </div>
-        <table class="table table-striped" aria-label="OTA Update Information">
-            <tbody class=text-center>
-                <tr>
-                    <th scope="row">Current version</th>
-                    <td>%s</td>
-                </tr>
-                <tr>
-                    <th scope="row">Latest version</th>
-                    <td>%s</td>
-                </tr>
-                <tr>
-                    <th scope="row" class="align-middle">Changelog</th>
-                    <td class="text-start">
-                        <ul>%s</ul>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row">Update Source</th>
-                    <td><a href="%s" title="Source">%s</a></td>
-                </tr>
-                <tr>
-                    <th scope="row">Chip type</th>
-                    <td>%s</td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="table-responsive">
+            <table class="table table-striped" aria-label="OTA Update Information">
+                <tbody class=text-center>
+                    <tr>
+                        <th scope="row">Current version</th>
+                        <td>%s</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Latest version</th>
+                        <td>%s</td>
+                    </tr>
+                    <tr>
+                        <th scope="row" class="align-middle">Changelog</th>
+                        <td class="text-start">
+                            <ul>%s</ul>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Update Source</th>
+                        <td><a href="%s" title="Source">%s</a></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Chip type</th>
+                        <td>%s</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
 
-        <form action=/ota method=POST onsubmit="var b = this.querySelector('button[type=submit]'); b.innerHTML = '<span class=\'spinner-border spinner-border-sm\' aria-hidden=\'true\'></span> Refreshing...'; b.classList.add('disabled');">
-            <div class="form-group row col-4 offset-4 mt-2">
+        <form action=/ota method=POST onsubmit="var b = this.querySelector('button[type=submit]'); if(b){ b.innerHTML = '<span class=\'spinner-border\' aria-hidden=\'true\'></span> Refreshing...'; b.classList.add('disabled'); }">
+            <div class="form-group row col-12 col-md-4 offset-md-4 mt-2">
                 <input type="hidden" name="func" value="versioncheck">
                 <button type="submit" class="btn btn-primary">Refresh latest OTA infos</button>
             </div>
         </form>
-        <form action=/otalog method=POST onsubmit="if(confirm('Are you sure you want to install the latest version? The device will become unresponsive during the update.')){ var b = this.querySelector('button[type=submit]'); b.innerHTML = '<span class=\'spinner-border spinner-border-sm\' aria-hidden=\'true\'></span> Installing...'; b.classList.add('disabled'); return true; } return false;">
-            <div class="form-group row col-4 offset-4 mt-2">
+        <form action=/otalog method=POST onsubmit="if(confirm('Are you sure you want to install the latest version? The device will become unresponsive during the update.')){ var b = this.querySelector('button[type=submit]'); if(b){ b.innerHTML = '<span class=\'spinner-border\' aria-hidden=\'true\'></span> Installing...'; b.classList.add('disabled'); } return true; } return false;">
+            <div class="form-group row col-12 col-md-4 offset-md-4 mt-2">
                 <input type="hidden" name="func" value="update">
                 <button type="submit" class="btn btn-warning">Install latest version</button>
             </div>
         </form>
-        <div class="form-group row col-4 offset-4 mt-5"> <a href=/ class="btn btn-light">Back</a> </div>
+
+        <form action=/ota method=POST class="mt-4" onsubmit="var b = this.querySelector('button[type=submit]'); if(b) { b.classList.add('disabled'); }">
+            <input type="hidden" name="func" value="set_ota_url">
+            <div class="form-group row col-12 col-md-8 offset-md-2">
+                <label for="ota_url" class="form-label text-center fw-bold">Custom OTA Endpoint URL</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" id="ota_url" name="ota_url" value="%s" placeholder="e.g. https://raw.githubusercontent.com/ManupaKDU/... or http://192.168.1.100:8080/" maxlength="200">
+                    <button type="submit" class="btn btn-secondary">Save</button>
+                </div>
+                <small class="form-text text-muted text-center mt-1">Leave empty to use the default repository endpoint (ManupaKDU).</small>
+            </div>
+        </form>
+
+        <div class="form-group row col-12 col-md-4 offset-md-4 mt-5"> <a href=/ class="btn btn-light">Back</a> </div>
     </div>
 </body>
 
