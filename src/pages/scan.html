@@ -2,16 +2,17 @@
 <html lang=en>
 
 <head>
-
-    <head>
-        <link rel="shortcut icon" type=image/x-icon href=favicon.ico>
-        <meta charset=utf-8>
-        <meta http-equiv=X-UA-Compatible content="IE=edge">
-        <meta name=viewport content="width=device-width, initial-scale=1">
-        <link rel=stylesheet href=styles-67aa3b0203355627b525be2ea57be7bf.css>
-        <meta http-equiv=refresh content="20; url=/">
-        <title>Scan</title>
-    </head>
+    <link rel="shortcut icon" type=image/x-icon href=favicon.ico>
+    <meta charset=utf-8>
+    <meta http-equiv=X-UA-Compatible content="IE=edge">
+    <meta name=viewport content="width=device-width, initial-scale=1">
+    <link rel=stylesheet href=styles-67aa3b0203355627b525be2ea57be7bf.css>
+    <style>
+        .spinner-border { display: inline-block; width: 1rem; height: 1rem; vertical-align: -0.125em; border: 0.2em solid currentColor; border-right-color: transparent; border-radius: 50%; animation: 0.75s linear infinite spinner-border; }
+        @keyframes spinner-border { to { transform: rotate(360deg); } }
+    </style>
+    <meta http-equiv=refresh content="20; url=/">
+    <title>Scan</title>
 </head>
 
 <body>
@@ -27,6 +28,6 @@
     </div>
 </body>
 <script src=jquery-8a1045d9cbf50b52a0805c111ba08e94.js></script>
-<script>     (function poll() { $.ajax({ url: "/", type: "GET", success: function (data) { console.log("polling"); }, dataType: "json", complete: setTimeout(function () { console.log('Forwarding to result'); window.location.href = "/result"; }, 5000), timeout: 3000 }) })(); </script>
+<script>     (function poll() { $.ajax({ url: "/", type: "GET", success: function (data) { console.log("polling"); }, dataType: "json", complete: function () { setTimeout(function () { console.log('Forwarding to result'); window.location.href = "/result"; }, 5000); }, timeout: 3000 }) })(); </script>
 
 </html>
