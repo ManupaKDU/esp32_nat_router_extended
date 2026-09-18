@@ -105,6 +105,15 @@
                                         a connection to the internet. These routes need to be configured separately, for
                                         example, on the router.</div>
                         </div>
+                        <div class="form-group row mt-2">
+                                <div class="form-check form-switch"> <input class=form-check-input type=checkbox
+                                                id=bridgeenabled name=bridgeenabled %s aria-describedby="bridgeenabled_help"> <label class=form-check-label
+                                                for=bridgeenabled>Layer 2 Bridge Mode (Transparent Repeater)</label>
+                                </div>
+                                <div id="bridgeenabled_help" class="alert alert-info mt-2">
+                                        When enabled, the ESP32 operates as a transparent Layer 2 pseudo-bridge. Connected devices obtain their IP addresses directly from your main upstream router via DHCP snooping and exist on the same subnet (enabling direct discovery of LAN devices, NAS, printers, and mDNS). When disabled, the ESP32 operates in standard Layer 3 NAT Router mode with its own private subnet.
+                                </div>
+                        </div>
                         <div class="form-group row mt-2 ">
                                 <div class="form-check form-switch"> <input class=form-check-input type=checkbox
                                                 id=wsenabled name=wsenabled checked aria-describedby="wsenabled_help"> <label class=form-check-label

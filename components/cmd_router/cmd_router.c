@@ -623,8 +623,10 @@ static int show(int argc, char **argv)
     char *ap_passwd = NULL;
 
     nvs_handle_t nvs;
+    int32_t bridge_enabled = 0;
     if (nvs_open(PARAM_NAMESPACE, NVS_READONLY, &nvs) == ESP_OK)
     {
+        get_config_param_int_from_nvs(nvs, "bridge_enabled", &bridge_enabled);
         get_config_param_str_from_nvs(nvs, "ssid", &ssid);
         get_config_param_str_from_nvs(nvs, "passwd", &passwd);
         get_config_param_str_from_nvs(nvs, "static_ip", &static_ip);
@@ -640,6 +642,7 @@ static int show(int argc, char **argv)
     ip4_addr_t addr;
     addr.addr = my_ap_ip;
     printf("AP IP address: " IPSTR "\n", IP2STR(&addr));
+    printf("Operating Mode: %s\n", bridge_enabled ? "Layer 2 Bridge (Transparent)" : "Layer 3 NAT Router");
 
     if (ssid != NULL)
         free(ssid);

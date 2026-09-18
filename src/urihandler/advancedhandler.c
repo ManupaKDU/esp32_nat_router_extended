@@ -111,6 +111,13 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
     {
         natCB = "checked";
     }
+    int32_t bridgeEnabled = 0;
+    char *bridgeCB = "";
+    if (nvs_status == ESP_OK) get_config_param_int_from_nvs(param_nvs, "bridge_enabled", &bridgeEnabled);
+    if (bridgeEnabled == 1)
+    {
+        bridgeCB = "checked";
+    }
     esp_netif_dns_info_t dns;
     esp_netif_t *wifiSTA = esp_netif_get_handle_from_ifkey("WIFI_AP_DEF");
     if (esp_netif_get_dns_info(wifiSTA, ESP_NETIF_DNS_MAIN, &dns) == ESP_OK)
@@ -202,6 +209,7 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
                  (keepAlive == 1 ? sizeof("checked") - 1 : 0) +
                  (ledDisabled == 0 ? sizeof("checked") - 1 : 0) +
                  (natDisabled == 0 ? sizeof("checked") - 1 : 0) +
+                 (bridgeEnabled == 1 ? sizeof("checked") - 1 : 0) +
                  strlen(currentDNS) +
                  strlen(currentMAC) +
                  3 * (sizeof("checked") - 1) +
@@ -225,7 +233,7 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
     }
 
     // ⚡ Bolt: Capture dynamic string length to avoid redundant O(N) strlen() in httpd_resp_send
-    int response_len = snprintf(advanced_page, size, advanced_start, hostName, octet, lowSelected, mediumSelected, highSelected, bwHigh, bwLow, ledCB, aliveCB, natCB, currentDNS, defCB, cloudCB, adguardCB, customCB, customDNSIP, currentMAC, defMacCB, defaultMAC, rndMacCB, subMac, customMacCB, customMac, netmask, classCCB, octet, classBCB, octet, classACB, octet, customMaskCB, customMask);
+    int response_len = snprintf(advanced_page, size, advanced_start, hostName, octet, lowSelected, mediumSelected, highSelected, bwHigh, bwLow, ledCB, aliveCB, natCB, bridgeCB, currentDNS, defCB, cloudCB, adguardCB, customCB, customDNSIP, currentMAC, defMacCB, defaultMAC, rndMacCB, subMac, customMacCB, customMac, netmask, classCCB, octet, classBCB, octet, classACB, octet, customMaskCB, customMask);
 
     closeHeader(req);
     esp_err_t ret = httpd_resp_send(req, advanced_page, (response_len > 0 && response_len < size) ? response_len : HTTPD_RESP_USE_STRLEN);
