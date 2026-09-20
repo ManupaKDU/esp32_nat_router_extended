@@ -61,7 +61,7 @@
             </div>
         </form>
 
-        <form action=/ota method=POST class="mt-4" onsubmit="var b = this.querySelector('button[type=submit]'); if(b) { b.classList.add('disabled'); }">
+        <form action=/ota method=POST class="mt-4" onsubmit="var b = this.querySelector('button[type=submit]'); if(b) { b.innerHTML = '<span class=\'spinner-border spinner-border-sm\' aria-hidden=\'true\'></span> Saving...'; b.classList.add('disabled'); }">
             <input type="hidden" name="func" value="set_ota_url">
             <div class="form-group row col-12 col-md-8 offset-md-2">
                 <label for="ota_url" class="form-label text-center fw-bold">Custom OTA Endpoint URL</label>
