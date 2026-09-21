@@ -7,6 +7,10 @@
     <meta content="IE=edge" http-equiv="X-UA-Compatible" />
     <meta content="width=device-width, initial-scale=1" name="viewport" />
     <link href="styles-67aa3b0203355627b525be2ea57be7bf.css" rel="stylesheet" />
+    <style>
+        .spinner-border { display: inline-block; width: 1rem; height: 1rem; vertical-align: -0.125em; border: 0.2em solid currentColor; border-right-color: transparent; border-radius: 50%; animation: 0.75s linear infinite spinner-border; }
+        @keyframes spinner-border { to { transform: rotate(360deg); } }
+    </style>
     <title>Configuration</title>
 </head>
 
@@ -16,7 +20,7 @@
             <h1>ESP32 NAT Router Config <a href="/about" class="btn btn-light float-end" title="About" aria-label="About">?</a></h1>
         </div>
 
-        <form action="apply" method="POST" onsubmit="var b = this.querySelector('input[type=submit]'); b.value = 'Applying...'; b.classList.add('disabled');"> <input name="func" type="hidden" value="config" />
+        <form action="apply" method="POST" onsubmit="var b = this.querySelector('button[type=submit]'); b.innerHTML = '<span class=\'spinner-border spinner-border-sm\' aria-hidden=\'true\'></span> Applying...'; b.classList.add('disabled');"> <input name="func" type="hidden" value="config" />
             <h2>AP Settings (the new network)</h2> <a class="btn" href="/clients"><span class="text-info"><span
                         id="clients">%d</span> client(s) connected</span></a>
 
@@ -102,8 +106,7 @@
                     </div>
                 </div> <input class="form-control" name="x" type="hidden" value="x" />
             </div>
-            <div class="form-group row col-4 offset-4 mt-4"> <input class="btn btn-primary" type="submit"
-                    value="Apply" /> </div>
+            <div class="form-group row col-4 offset-4 mt-4"> <button class="btn btn-primary" type="submit">Apply</button> </div>
         </form>
         <h2 class="mt-2">Device Management</h2>
 
