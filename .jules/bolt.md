@@ -61,3 +61,6 @@
 ## 2024-05-14 - Redundant Parameter Parsing Overhead
 **Learning:** Found an anti-pattern in HTTP handlers where URL parameters were parsed (`readUrlParameterIntoBuffer`), measured (`strlen`), and securely compared (`crypto_memcmp`), and then immediately re-parsed and re-measured inside the success conditional block. This creates completely unnecessary O(N) overhead for every parameter.
 **Action:** When inspecting authentication or configuration endpoints, look for duplicated parsing blocks inside nested conditionals and eliminate them to halve the processing overhead on the hot path.
+## 2024-05-14 - [Memory Allocation Optimization in Handlers]
+**Learning:** Using dynamic heap allocation (`malloc`) for small, predictable, short-lived strings (like parsing simple URL parameters) causes heap fragmentation, consumes more clock cycles for the memory manager to traverse free lists, and creates memory leak risks on early return paths.
+**Action:** Always prefer statically sized stack buffers (`char buffer[MAX_SIZE]`) over `malloc` for small arrays within the scope of a single function execution block. This guarantees O(1) allocation time, automatic memory reclamation, and eliminates `free()` leak risks.
