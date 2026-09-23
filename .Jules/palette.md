@@ -104,3 +104,7 @@
 ## 2024-08-12 - Accessibility Alert Anti-Pattern
 **Learning:** Using `role="alert"` (or Bootstrap alert classes that include it by default in some frameworks) for static form helper text causes screen readers to spam the user with the description immediately on page load, rather than when the input receives focus.
 **Action:** Remove `role="alert"` from static form descriptions and properly associate them with their respective inputs using `aria-describedby="<id>"`.
+
+## 2024-03-24 - Async Loading States in HTML Partials
+**Learning:** When dealing with split HTML files (like portmap_start.html and portmap_end.html) where the CSS is loaded in the header (start) but the interactive elements are in the body/footer (end), standard Bootstrap classes like `.spinner-border` are already globally available from the referenced `styles-*.css` and do not require manual injection of inline `<style>` blocks. Injecting inline styles violates the standard architecture.
+**Action:** Before injecting custom CSS or `<style>` blocks, thoroughly grep the compiled/minified stylesheets (e.g., `grep -i "spinner-border" src/pages/styles*.css`) to confirm if the framework already provides the needed utility class. Rely on existing design tokens exclusively.

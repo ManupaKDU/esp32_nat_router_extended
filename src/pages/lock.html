@@ -16,7 +16,7 @@
             <h1>Lock UI</h1>
         </div>
         <h2 class="mt-2 text-center">To lock interface insert a password twice.</h2>
-        <form action=/lock method=POST onsubmit="var b = this.querySelector('input[type=submit]'); b.value = 'Saving...'; b.classList.add('disabled');">
+        <form action=/lock method=POST onsubmit="var b = this.querySelector('button[type=submit]'); b.innerHTML = '<span class=\'spinner-border spinner-border-sm\' aria-hidden=\'true\'></span> Saving...'; b.classList.add('disabled');">
             <div class="form-group row"> <label for=lockpass class=col-3>Password</label>
                 <div class=col-9>
                     <div class="input-group"> <input type=password class=form-control name=lockpass id=lockpass value maxlength=64
@@ -50,13 +50,13 @@
             </div>
             <div class="form-group row col-9 offset-3"> <small id="lockpass_help" class="form-text text-muted">Both fields empty will
                     remove the password</small> </div>
-            <div class="form-group row col-4 offset-4 mt-4"> <input type=hidden name=x value=y> <input type=submit
-                    value=Save class="btn btn-primary"> </div>
+            <div class="form-group row col-4 offset-4 mt-4"> <input type=hidden name=x value=y> <button type=submit
+                    class="btn btn-primary">Save</button> </div>
         </form>
-        <form action=/lock method=POST style="display: %s;" onsubmit="if(confirm('Are you sure you want to remove the password? This will leave the interface unprotected.')){ var b = this.querySelector('input[type=submit]'); b.value = 'Removing...'; b.classList.add('disabled'); return true; } return false;">
+        <form action=/lock method=POST style="display: %s;" onsubmit="if(confirm('Are you sure you want to remove the password? This will leave the interface unprotected.')){ var b = this.querySelector('button[type=submit]'); b.innerHTML = '<span class=\'spinner-border spinner-border-sm\' aria-hidden=\'true\'></span> Removing...'; b.classList.add('disabled'); return true; } return false;">
             <div class="form-group row col-4 offset-4 mt-2"> <input type=hidden name=lockpass value> <input type=hidden
-                    name=lockpass2 value> <input type=hidden name=x value=y> <input type=submit value="Remove password"
-                    class="btn btn-warning"> </div>
+                    name=lockpass2 value> <input type=hidden name=x value=y> <button type=submit
+                    class="btn btn-warning">Remove password</button> </div>
         </form>
         <div class="form-group row col-4 offset-4 mt-5"> <a href=/ class="btn btn-light">Back</a> </div>
     </div>
