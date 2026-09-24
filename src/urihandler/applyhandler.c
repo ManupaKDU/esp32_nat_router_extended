@@ -69,7 +69,7 @@ void setWpa2(char *urlContent, nvs_handle_t nvs)
         return;
     }
     readUrlParameterIntoBuffer(urlContent, "sta_identity", param, contentLength);
-    if (strlen(param) > 0)
+    if (param[0] != '\0')
     {
         ESP_LOGI(TAG, "WPA2 Identity set");
         ESP_ERROR_CHECK(nvs_set_str(nvs, "sta_identity", param));
@@ -82,7 +82,7 @@ void setWpa2(char *urlContent, nvs_handle_t nvs)
 
     readUrlParameterIntoBuffer(urlContent, "sta_user", param, contentLength);
 
-    if (strlen(param) > 0)
+    if (param[0] != '\0')
     {
         ESP_LOGI(TAG, "WPA2 user set");
         ESP_ERROR_CHECK(nvs_set_str(nvs, "sta_user", param));
@@ -94,7 +94,7 @@ void setWpa2(char *urlContent, nvs_handle_t nvs)
     }
     readUrlParameterIntoBuffer(urlContent, "cer", param, contentLength);
 
-    if (strlen(param) > 0)
+    if (param[0] != '\0')
     {
         nvs_erase_key(nvs, "cer"); // do not double size in nvs
         ESP_LOGI(TAG, "Certificate with size %d set", strlen(param));
@@ -180,7 +180,7 @@ void applyAdvancedConfig(char *buf)
     char param[256];
     readUrlParameterIntoBuffer(buf, "keepalive", param, sizeof(param) - 1);
 
-    if (strlen(param) > 0)
+    if (param[0] != '\0')
     {
         ESP_LOGI(TAG, "keep alive will be enabled");
         ESP_ERROR_CHECK(nvs_set_i32(nvs, "keep_alive", 1));
@@ -192,7 +192,7 @@ void applyAdvancedConfig(char *buf)
     }
 
     readUrlParameterIntoBuffer(buf, "ledenabled", param, sizeof(param) - 1);
-    if (strlen(param) > 0)
+    if (param[0] != '\0')
     {
         ESP_LOGI(TAG, "ON Board LED will be enabled");
         ESP_ERROR_CHECK(nvs_set_i32(nvs, "led_disabled", 0));
@@ -204,7 +204,7 @@ void applyAdvancedConfig(char *buf)
     }
 
     readUrlParameterIntoBuffer(buf, "natenabled", param, sizeof(param) - 1);
-    if (strlen(param) > 0)
+    if (param[0] != '\0')
     {
         ESP_LOGI(TAG, "NAT will be enabled");
         ESP_ERROR_CHECK(nvs_set_i32(nvs, "nat_disabled", 0));
@@ -216,7 +216,7 @@ void applyAdvancedConfig(char *buf)
     }
 
     readUrlParameterIntoBuffer(buf, "bridgeenabled", param, sizeof(param) - 1);
-    if (strlen(param) > 0)
+    if (param[0] != '\0')
     {
         ESP_LOGI(TAG, "Layer 2 Bridge will be enabled");
         ESP_ERROR_CHECK(nvs_set_i32(nvs, "bridge_enabled", 1));
@@ -228,14 +228,14 @@ void applyAdvancedConfig(char *buf)
     }
 
     readUrlParameterIntoBuffer(buf, "wsenabled", param, sizeof(param) - 1);
-    if (strlen(param) == 0)
+    if (param[0] == '\0')
     {
         ESP_LOGI(TAG, "Webserver will be disabled");
         ESP_ERROR_CHECK(nvs_set_i32(nvs, "lock", 1));
     }
 
     readUrlParameterIntoBuffer(buf, "custommac", param, sizeof(param) - 1);
-    if (strlen(param) > 0)
+    if (param[0] != '\0')
     {
         char macaddress[32];
         readUrlParameterIntoBuffer(buf, "macaddress", macaddress, sizeof(macaddress) - 1);
@@ -244,7 +244,7 @@ void applyAdvancedConfig(char *buf)
             ESP_LOGI(TAG, "MAC address set to random");
             ESP_ERROR_CHECK(nvs_set_str(nvs, "custom_mac", param));
         }
-        else if (strlen(macaddress) > 0)
+        else if (macaddress[0] != '\0')
         {
             uint8_t mac_values[6];
             int success = str2mac(macaddress, mac_values);
@@ -265,13 +265,13 @@ void applyAdvancedConfig(char *buf)
         }
     }
     readUrlParameterIntoBuffer(buf, "dns", param, sizeof(param) - 1);
-    if (strlen(param) > 0)
+    if (param[0] != '\0')
     {
         if (strcmp(param, "custom") == 0)
         {
             char customDnsParam[64];
             readUrlParameterIntoBuffer(buf, "dnsip", customDnsParam, sizeof(customDnsParam) - 1);
-            if (strlen(customDnsParam) > 0)
+            if (customDnsParam[0] != '\0')
             {
                 uint32_t ipasInt = esp_ip4addr_aton(customDnsParam);
                 if (ipasInt == UINT32_MAX || ipasInt == 0)
@@ -305,7 +305,7 @@ void applyAdvancedConfig(char *buf)
         setDNSToDefault(&nvs);
     }
     readUrlParameterIntoBuffer(buf, "netmask", param, contentLength);
-    if (strlen(param) > 0)
+    if (param[0] != '\0')
     {
         if (strcmp("classa", param) == 0)
         {
@@ -338,7 +338,7 @@ void applyAdvancedConfig(char *buf)
         }
     }
     readUrlParameterIntoBuffer(buf, "hostname", param, contentLength);
-    if (strlen(param) > 0)
+    if (param[0] != '\0')
     {
         ESP_LOGI(TAG, "Set hostname to: %s", param);
         ESP_ERROR_CHECK(nvs_set_str(nvs, "hostname", param));
@@ -351,7 +351,7 @@ void applyAdvancedConfig(char *buf)
 
     readUrlParameterIntoBuffer(buf, "octet", param, contentLength);
     int octet = atoi(param);
-    if (strlen(param) > 0 && octet >= 0 && octet <= 255)
+    if (param[0] != '\0' && octet >= 0 && octet <= 255)
     {
         ESP_LOGI(TAG, "Set third octet to: %d", octet);
         ESP_ERROR_CHECK(nvs_set_i32(nvs, "octet", octet));

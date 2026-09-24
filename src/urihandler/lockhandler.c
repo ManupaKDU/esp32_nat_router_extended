@@ -47,7 +47,7 @@ esp_err_t unlock_handler(httpd_req_t *req)
         char unlockParam[600];
         readUrlParameterIntoBuffer(buf, "unlock", unlockParam, param_len);
 
-        if (strlen(unlockParam) > 0)
+        if (unlockParam[0] != '\0')
         {
             if (check_lock_pass(unlockParam))
             {

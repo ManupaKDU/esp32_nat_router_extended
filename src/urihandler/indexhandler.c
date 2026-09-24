@@ -104,7 +104,7 @@ esp_err_t index_get_handler(httpd_req_t *req)
     }
 
     size_t size = strlen(ap_ssid) + strlen(ap_passwd) + strlen(displayLockButton);
-    if (appliedSSID != NULL && strlen(appliedSSID) > 0)
+    if (appliedSSID != NULL && appliedSSID[0] != '\0')
     {
         size = size + strlen(appliedSSID);
     }
@@ -148,7 +148,7 @@ esp_err_t index_get_handler(httpd_req_t *req)
     }
     char *orig_cer = cer;
     char *ariaExpanded = NULL;
-    if ((sta_identity != NULL && strlen(sta_identity) != 0) || (sta_user != NULL && strlen(sta_user) != 0))
+    if ((sta_identity != NULL && sta_identity[0] != '\0') || (sta_user != NULL && sta_user[0] != '\0'))
     {
         wpa2CB = "checked";
         wpa2Input = "block";
@@ -183,7 +183,7 @@ esp_err_t index_get_handler(httpd_req_t *req)
     uint16_t connect_count = getConnectCount();
 
     int response_len = 0;
-    if (appliedSSID != NULL && strlen(appliedSSID) > 0)
+    if (appliedSSID != NULL && appliedSSID[0] != '\0')
     {
         // ⚡ Bolt: Capture dynamic string length from snprintf to avoid redundant O(N) strlen() inside httpd_resp_send
         response_len = snprintf(config_page, config_html_size + size, config_start, connect_count, hiddenSSID, ap_ssid, ap_passwd, textColor, wifiOff, wifiOn, db, ariaExpanded, wpa2CB, appliedSSID, wpa2Input, sta_identity, sta_user, cer, "", scanButtonWidth, displayResult, displayLockButton, displayRelockButton);
@@ -250,7 +250,7 @@ esp_err_t index_post_handler(httpd_req_t *req)
 
         readUrlParameterIntoBuffer(buf, "ssid", ssidParam, param_len);
 
-        if (strlen(ssidParam) > 0)
+        if (ssidParam[0] != '\0')
         {
             ESP_LOGI(TAG, "Found SSID parameter => %s", ssidParam);
             size_t max_sanitized_size = strlen(ssidParam) * 6 + 1; // max entity length is 6 ("&quot;")
