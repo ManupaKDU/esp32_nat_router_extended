@@ -143,7 +143,7 @@ static pthread_mutex_t lock_pass_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 bool is_lock_pass_set() {
     pthread_mutex_lock(&lock_pass_mutex);
-    bool is_set = (lock_pass != NULL && strlen(lock_pass) > 0);
+    bool is_set = (lock_pass != NULL && lock_pass[0] != '\0');
     pthread_mutex_unlock(&lock_pass_mutex);
     return is_set;
 }
@@ -473,7 +473,7 @@ void setHostName()
 {
     char *hostName = NULL;
     get_config_param_str("hostname", &hostName);
-    if (hostName == NULL || strlen(hostName) == 0 || strlen(hostName) >= 250)
+    if (hostName == NULL || hostName[0] == '\0' || strlen(hostName) >= 250)
     {
         esp_random();
         ESP_LOGI(TAG, "No hostname set. Generating and setting random");
@@ -532,7 +532,7 @@ void fillMac()
 
 void setDnsServer(esp_netif_t *network, esp_ip_addr_t *dnsIP)
 {
-    if ((strlen(static_ip) == 0) && (strlen(subnet_mask) == 0) && (strlen(gateway_addr) == 0))
+    if ((static_ip[0] == '\0') && (subnet_mask[0] == '\0') && (gateway_addr[0] == '\0'))
     {
         esp_netif_dns_info_t dns_info = {0};
         memset(&dns_info, 0, sizeof(dns_info));
@@ -617,16 +617,16 @@ const int CONNECTED_BIT = BIT0;
 void setWpaEnterprise(const char *sta_identity, const char *sta_user, const char *password)
 {
 
-    if (sta_identity != NULL && strlen(sta_identity) > 0)
+    if (sta_identity != NULL && sta_identity[0] != '\0')
     {
         ESP_ERROR_CHECK(esp_eap_client_set_identity((uint8_t *)sta_identity, strlen(sta_identity)));
     }
 
-    if (sta_user != NULL && strlen(sta_user) != 0)
+    if (sta_user != NULL && sta_user[0] != '\0')
     {
         ESP_ERROR_CHECK(esp_eap_client_set_username((uint8_t *)sta_user, strlen(sta_user)));
     }
-    if (password != NULL && strlen(password) > 0)
+    if (password != NULL && password[0] != '\0')
     {
         ESP_ERROR_CHECK(esp_eap_client_set_password((uint8_t *)password, strlen(password)));
     }
@@ -636,7 +636,7 @@ void setWpaEnterprise(const char *sta_identity, const char *sta_user, const char
     size_t len = 0;
 
     get_config_param_blob("cer", &cer, &len);
-    if (cer != NULL && strlen(cer) != 0)
+    if (cer != NULL && cer[0] != '\0')
     {
         ESP_LOGI(TAG, "Setting WPA certificate with length %d\n%s", len, cer);
         ESP_ERROR_CHECK(esp_eap_client_set_ca_cert((uint8_t *)cer, strlen(cer)));
@@ -660,7 +660,7 @@ void wifi_init(const char *ssid, const char *passwd, const char *static_ip, cons
     wifiSTA = esp_netif_create_default_wifi_sta();
 
     esp_netif_ip_info_t ipInfo_sta;
-    if ((strlen(ssid) > 0) && (strlen(static_ip) > 0) && (strlen(subnet_mask) > 0) && (strlen(gateway_addr) > 0))
+    if ((ssid[0] != '\0') && (static_ip[0] != '\0') && (subnet_mask[0] != '\0') && (gateway_addr[0] != '\0'))
     {
         my_ip = ipInfo_sta.ip.addr = ipaddr_addr(static_ip);
         ipInfo_sta.gw.addr = ipaddr_addr(gateway_addr);
@@ -756,10 +756,10 @@ void wifi_init(const char *ssid, const char *passwd, const char *static_ip, cons
         strlcpy((char *)ap_config.sta.password, ap_passwd, sizeof(ap_config.sta.password));
     }
 
-    if (strlen(ssid) > 0)
+    if (ssid[0] != '\0')
     {
         strlcpy((char *)wifi_config.sta.ssid, ssid, sizeof(wifi_config.sta.ssid));
-        bool isWpaEnterprise = (sta_identity != NULL && strlen(sta_identity) != 0) || (sta_user != NULL && strlen(sta_user) != 0);
+        bool isWpaEnterprise = (sta_identity != NULL && sta_identity[0] != '\0') || (sta_user != NULL && sta_user[0] != '\0');
         if (!isWpaEnterprise)
         {
             strlcpy((char *)wifi_config.sta.password, passwd, sizeof(wifi_config.sta.password));
@@ -788,7 +788,7 @@ void wifi_init(const char *ssid, const char *passwd, const char *static_ip, cons
                         pdFALSE, pdTRUE, JOIN_TIMEOUT_MS / portTICK_PERIOD_MS);
     ESP_ERROR_CHECK(esp_wifi_start());
 
-    if (strlen(ssid) > 0)
+    if (ssid[0] != '\0')
     {
         ESP_LOGI(TAG, "wifi_init_apsta finished.");
         ESP_LOGI(TAG, "connect to ap SSID: %s Password: ***", ssid);
@@ -1081,7 +1081,7 @@ void app_main(void)
            "Use UP/DOWN arrows to navigate through command history.\n"
            "Press TAB when typing command name to auto-complete.\n");
 
-    if (strlen(ssid) == 0)
+    if (ssid[0] == '\0')
     {
         printf("\n"
                "Unconfigured WiFi\n"

@@ -161,7 +161,7 @@ void getOtaUrl(char *url, size_t url_size, char *label, size_t label_size)
 {
     char *customUrl = NULL;
     get_config_param_str("ota_url", &customUrl);
-    if (customUrl != NULL && strlen(customUrl) > 0)
+    if (customUrl != NULL && customUrl[0] != '\0')
     {
         ESP_LOGI(TAG, "Custom Url found '%s'", customUrl);
         snprintf(label, label_size, "Custom build");
@@ -261,7 +261,7 @@ void updateVersion()
     char *customUrl = NULL;
     get_config_param_str("ota_url", &customUrl);
     char url[256];
-    if (customUrl != NULL && strlen(customUrl) > 0)
+    if (customUrl != NULL && customUrl[0] != '\0')
     {
         size_t len = strlen(customUrl);
         if (len >= 4 && strcmp(customUrl + len - 4, ".bin") == 0)
@@ -433,7 +433,7 @@ esp_err_t ota_download_get_handler(httpd_req_t *req)
     extern const char ota_end[] asm("_binary_ota_html_end");
     const size_t ota_html_size = (ota_end - ota_start);
 
-    if (strlen(latest_version) == 0)
+    if (latest_version[0] == '\0')
     {
         snprintf(latest_version, sizeof(latest_version), "%s", NOT_DETERMINED);
         changelog[0] = '\0';
@@ -512,7 +512,7 @@ esp_err_t ota_post_handler(httpd_req_t *req)
         nvs_handle_t nvs;
         if (nvs_open(PARAM_NAMESPACE, NVS_READWRITE, &nvs) == ESP_OK)
         {
-            if (strlen(new_url) > 0)
+            if (new_url[0] != '\0')
             {
                 nvs_set_str(nvs, "ota_url", new_url);
                 ESP_LOGI(TAG, "Configured custom ota_url: %s", new_url);
