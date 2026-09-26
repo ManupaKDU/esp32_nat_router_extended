@@ -239,16 +239,9 @@ esp_err_t index_post_handler(httpd_req_t *req)
 
     if (fill_post_buffer(req, buf, content_len) == ESP_OK)
     {
-        size_t param_len = 600;
-        char *ssidParam = malloc(param_len);
-        if (ssidParam == NULL)
-        {
-            ESP_LOGE(TAG, "Memory allocation failed");
-            free(buf);
-            return ESP_FAIL;
-        }
+        char ssidParam[600];
 
-        readUrlParameterIntoBuffer(buf, "ssid", ssidParam, param_len);
+        readUrlParameterIntoBuffer(buf, "ssid", ssidParam, sizeof(ssidParam));
 
         if (ssidParam[0] != '\0')
         {
@@ -263,7 +256,6 @@ esp_err_t index_post_handler(httpd_req_t *req)
                 sanitize_html(ssidParam, appliedSSID, max_sanitized_size);
             }
         }
-        free(ssidParam);
     }
     free(buf);
     httpd_resp_set_status(req, "302 Temporary Redirect");
