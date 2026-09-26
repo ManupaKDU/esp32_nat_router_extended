@@ -15,11 +15,7 @@ static const char *TAG = "ApplyHandler";
 void setApByQuery(char *urlContent, nvs_handle_t nvs)
 {
     size_t contentLength = 600; //passwords are max 64 characters, but special characters (i.e € = 9 character) are a lot more url encoded 
-    char *param = malloc(contentLength + 1);
-    if (param == NULL) {
-        ESP_LOGE(TAG, "Memory allocation failed");
-        return;
-    }
+    char param[601]; // ⚡ Bolt: Use stack buffer for short string to avoid malloc overhead and heap fragmentation
     readUrlParameterIntoBuffer(urlContent, "ap_ssid", param, contentLength);
     ESP_ERROR_CHECK(nvs_set_str(nvs, "ap_ssid", param));
     readUrlParameterIntoBuffer(urlContent, "ap_password", param, contentLength);
@@ -42,23 +38,17 @@ void setApByQuery(char *urlContent, nvs_handle_t nvs)
     {
         nvs_erase_key(nvs, "ssid_hidden");
     }
-    free(param);
 }
 
 void setStaByQuery(char *urlContent, nvs_handle_t nvs)
 {
 
     size_t contentLength = 600;
-    char *param = malloc(contentLength + 1);
-    if (param == NULL) {
-        ESP_LOGE(TAG, "Memory allocation failed");
-        return;
-    }
+    char param[601]; // ⚡ Bolt: Use stack buffer for short string to avoid malloc overhead and heap fragmentation
     readUrlParameterIntoBuffer(urlContent, "ssid", param, contentLength);
     ESP_ERROR_CHECK(nvs_set_str(nvs, "ssid", param));
     readUrlParameterIntoBuffer(urlContent, "password", param, contentLength);
     ESP_ERROR_CHECK(nvs_set_str(nvs, "passwd", param));
-    free(param);
 }
 void setWpa2(char *urlContent, nvs_handle_t nvs)
 {
