@@ -14,7 +14,7 @@ static const char *TAG = "ClientsHandler";
 
 #define RESULT_BUF_SIZE 1000
 
-const char *CLIENT_TEMPLATE = "<tr><th scope='row'>%i</th><td>%s</td><td style='text-transform: uppercase;'>%s</td></tr>";
+const char *CLIENT_TEMPLATE = "<tr><th scope='row'>%i</th><td>%s</td><td style='text-transform: uppercase;'>%02x:%02x:%02x:%02x:%02x:%02x</td></tr>";
 
 esp_err_t clients_download_get_handler(httpd_req_t *req)
 {
@@ -45,11 +45,9 @@ esp_err_t clients_download_get_handler(httpd_req_t *req)
             char str_ip[16];
             esp_ip4addr_ntoa(&(station.ip), str_ip, IP4ADDR_STRLEN_MAX);
 
-            char currentMAC[18];
-            snprintf(currentMAC, sizeof(currentMAC), "%02x:%02x:%02x:%02x:%02x:%02x", station.mac[0], station.mac[1], station.mac[2], station.mac[3], station.mac[4], station.mac[5]);
-
             // ⚡ Bolt: Prevent O(N^2) string concatenation by writing directly to buffer at the current offset
-            int written = snprintf(result + offset, sizeof(result) - offset, CLIENT_TEMPLATE, i + 1, str_ip, currentMAC);
+            // ⚡ Bolt: Eliminate intermediate MAC string buffer allocation and redundant snprintf overhead by formatting hex array directly into final template
+            int written = snprintf(result + offset, sizeof(result) - offset, CLIENT_TEMPLATE, i + 1, str_ip, station.mac[0], station.mac[1], station.mac[2], station.mac[3], station.mac[4], station.mac[5]);
             if (written > 0 && written < sizeof(result) - offset) {
                 offset += written;
             } else {
