@@ -11,7 +11,7 @@
 #include "esp_wifi_ap_get_sta_list.h"
 
 static const char *TAG = "PortMapHandler";
-const char *PORTMAP_ROW_TEMPLATE = "<tr> <th scope='row'>%s</th> <td>%hu</td> <td>%s</td> <td>%hu</td> <td> <form action='/portmap' method='POST' onsubmit=\"if(confirm('Are you sure you want to remove the portmap entry for external port %hu?')){ var b = this.querySelector('button[title=\\'Remove\\']'); b.innerHTML = '<span class=\\'spinner-border spinner-border-sm\\' aria-hidden=\\'true\\'></span>'; b.classList.add('disabled'); b.setAttribute('aria-disabled', 'true'); return true; } return false;\"><input type='hidden' name='func' value='del'><input type='hidden' name='entry' value='%s'> <button title='Remove' name='remove' class='btn btn-light' aria-label='Remove portmap entry for external port %hu'> <svg version='2.0' width='16' height='16' aria-hidden='true'> <use href='#trash' /> </svg> </button> </form> </td></tr>";
+const char *PORTMAP_ROW_TEMPLATE = "<tr> <th scope='row'>%s</th> <td>%hu</td> <td>%s</td> <td>%hu</td> <td> <form action='/portmap' method='POST' onsubmit=\"if(confirm('Are you sure you want to remove the portmap entry for external port %hu?')){ var b = this.querySelector('button[title=\\'Remove\\']'); b.innerHTML = '<span class=\\'spinner-border spinner-border-sm\\' aria-hidden=\\'true\\'></span>'; b.classList.add('disabled'); b.setAttribute('aria-disabled', 'true'); return true; } return false;\"><input type='hidden' name='func' value='del'><input type='hidden' name='entry' value='%s_%hu_%s_%hu'> <button title='Remove' name='remove' class='btn btn-light' aria-label='Remove portmap entry for external port %hu'> <svg version='2.0' width='16' height='16' aria-hidden='true'> <use href='#trash' /> </svg> </button> </form> </td></tr>";
 
 esp_err_t portmap_get_handler(httpd_req_t *req)
 {
@@ -54,10 +54,8 @@ esp_err_t portmap_get_handler(httpd_req_t *req)
             addr.addr = portmap_tab[i].daddr;
             char ip_str[16];
             snprintf(ip_str, sizeof(ip_str), IPSTR, IP2STR(&addr));
-            char delParam[50];
-            snprintf(delParam, sizeof(delParam), "%s_%hu_%s_%hu", protocol, portmap_tab[i].mport, ip_str, portmap_tab[i].dport);
-
-            int len = snprintf(template + offset, sizeof(template) - offset, PORTMAP_ROW_TEMPLATE, protocol, portmap_tab[i].mport, ip_str, portmap_tab[i].dport, portmap_tab[i].mport, delParam, portmap_tab[i].mport);
+            // ⚡ Bolt: Eliminate intermediate buffer allocation and redundant snprintf overhead by embedding format directly into template
+            int len = snprintf(template + offset, sizeof(template) - offset, PORTMAP_ROW_TEMPLATE, protocol, portmap_tab[i].mport, ip_str, portmap_tab[i].dport, portmap_tab[i].mport, protocol, portmap_tab[i].mport, ip_str, portmap_tab[i].dport, portmap_tab[i].mport);
 
             if (len > 0 && len < sizeof(template) - offset) {
                 offset += len;
