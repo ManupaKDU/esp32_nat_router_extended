@@ -1,7 +1,7 @@
 </tbody>
 </table>
 </div>
-<form action="portmap" method="POST" class="text-center" onsubmit="var b = this.querySelector('button[title=\'Add\']'); b.classList.add('disabled'); b.setAttribute('aria-disabled', 'true');">
+<form action="portmap" method="POST" class="text-center" onsubmit="var b = this.querySelector('button[title=\'Add\']'); b.innerHTML = '<span class=\'spinner-border spinner-border-sm\' aria-hidden=\'true\'></span>'; b.classList.add('disabled'); b.setAttribute('aria-disabled', 'true');">
     <input name="func" type="hidden" value="add" />
     <div class="form-group row mt-2 g-2 align-items-center">
         <div class="col-md-2 col-12">
