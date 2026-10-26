@@ -204,6 +204,41 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
         customMask = netmask;
     }
 
+    char *safe_hostName = NULL;
+    if (hostName) {
+        size_t h_len = strlen(hostName) * 6 + 1;
+        safe_hostName = malloc(h_len);
+        if (safe_hostName) sanitize_html(hostName, safe_hostName, h_len);
+    }
+
+    char *safe_customDNSIP = NULL;
+    if (customDNSIP && customDNSIP[0] != '\0') {
+        size_t d_len = strlen(customDNSIP) * 6 + 1;
+        safe_customDNSIP = malloc(d_len);
+        if (safe_customDNSIP) sanitize_html(customDNSIP, safe_customDNSIP, d_len);
+    }
+
+    char *safe_customMac = NULL;
+    if (customMac && customMac[0] != '\0') {
+        size_t m_len = strlen(customMac) * 6 + 1;
+        safe_customMac = malloc(m_len);
+        if (safe_customMac) sanitize_html(customMac, safe_customMac, m_len);
+    }
+
+    char *safe_netmask = NULL;
+    if (netmask && netmask[0] != '\0') {
+        size_t nm_len = strlen(netmask) * 6 + 1;
+        safe_netmask = malloc(nm_len);
+        if (safe_netmask) sanitize_html(netmask, safe_netmask, nm_len);
+    }
+
+    char *safe_customMask = NULL;
+    if (customMask && customMask[0] != '\0') {
+        size_t cm_len = strlen(customMask) * 6 + 1;
+        safe_customMask = malloc(cm_len);
+        if (safe_customMask) sanitize_html(customMask, safe_customMask, cm_len);
+    }
+
     int defaultMAC_len = strlen(defaultMAC);
     u_int size = advanced_html_size +
                  (keepAlive == 1 ? sizeof("checked") - 1 : 0) +
@@ -213,13 +248,13 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
                  strlen(currentDNS) +
                  strlen(currentMAC) +
                  3 * (sizeof("checked") - 1) +
-                 strlen(customDNSIP) +
+                 (safe_customDNSIP ? strlen(safe_customDNSIP) : 0) +
                  2 * defaultMAC_len +
-                 strlen(customMac) +
-                 strlen(netmask) +
-                 (hostName != NULL ? strlen(hostName) : 0) +
+                 (safe_customMac ? strlen(safe_customMac) : 0) +
+                 (safe_netmask ? strlen(safe_netmask) : 0) +
+                 (safe_hostName ? strlen(safe_hostName) : 0) +
                  2 * (sizeof("selected") - 1) +
-                 strlen(customMask) +
+                 (safe_customMask ? strlen(safe_customMask) : 0) +
                  4 /* 4 * Octet - 4 *%d*/ +
                  256;
     ESP_LOGI(TAG, "Allocating additional %d bytes for advanced page.", size);
@@ -232,6 +267,11 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
         free(customDNS);
         free(macSetting);
         free(netmask_alloc);
+        if (safe_hostName) free(safe_hostName);
+        if (safe_customDNSIP) free(safe_customDNSIP);
+        if (safe_customMac) free(safe_customMac);
+        if (safe_netmask) free(safe_netmask);
+        if (safe_customMask) free(safe_customMask);
         return ESP_FAIL;
     }
 
@@ -244,12 +284,24 @@ esp_err_t advanced_download_get_handler(httpd_req_t *req)
     }
 
     // ⚡ Bolt: Capture dynamic string length to avoid redundant O(N) strlen() in httpd_resp_send
-    int response_len = snprintf(advanced_page, size, advanced_start, hostName, octet, lowSelected, mediumSelected, highSelected, bwHigh, bwLow, ledCB, aliveCB, natCB, bridgeCB, currentDNS, defCB, cloudCB, adguardCB, customCB, customDNSIP, currentMAC, defMacCB, defaultMAC, rndMacCB, subMac, customMacCB, customMac, netmask, classCCB, octet, classBCB, octet, classACB, octet, customMaskCB, customMask);
+    // 🛡️ Sentinel: Used sanitized configuration strings to prevent XSS injection when rendering template
+    int response_len = snprintf(advanced_page, size, advanced_start,
+        safe_hostName ? safe_hostName : "", octet, lowSelected, mediumSelected, highSelected,
+        bwHigh, bwLow, ledCB, aliveCB, natCB, bridgeCB, currentDNS, defCB, cloudCB,
+        adguardCB, customCB, safe_customDNSIP ? safe_customDNSIP : "", currentMAC, defMacCB,
+        defaultMAC, rndMacCB, subMac, customMacCB, safe_customMac ? safe_customMac : "",
+        safe_netmask ? safe_netmask : "", classCCB, octet, classBCB, octet, classACB, octet,
+        customMaskCB, safe_customMask ? safe_customMask : "");
 
     closeHeader(req);
     esp_err_t ret = httpd_resp_send(req, advanced_page, (response_len > 0 && response_len < size) ? response_len : HTTPD_RESP_USE_STRLEN);
 
     free(advanced_page);
+    if (safe_hostName) free(safe_hostName);
+    if (safe_customDNSIP) free(safe_customDNSIP);
+    if (safe_customMac) free(safe_customMac);
+    if (safe_netmask) free(safe_netmask);
+    if (safe_customMask) free(safe_customMask);
     free(allocatedDNS);
     free(hostName);
     free(customDNS);
