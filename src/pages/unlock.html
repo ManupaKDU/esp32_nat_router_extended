@@ -34,7 +34,7 @@
 
             </div>
             <div class="form-group row col-4 offset-4 mt-4"> <input type=hidden name=x value=y> <button type=submit
-                    class="btn btn-primary">Unlock</button> </div>
+                    class="btn btn-primary w-100">Unlock</button> </div>
         </form>
     </div>
     <script>document.querySelectorAll('.password').forEach(function(el) { ['mousedown', 'mouseup', 'mouseout', 'touchstart', 'touchend', 'keydown', 'keyup'].forEach(function(evt) { el.addEventListener(evt, function(e) { if (e.type === "keydown" || e.type === "keyup") { if (e.key !== "Enter" && e.key !== " ") return; if (e.type === "keydown") e.preventDefault(); } var field = this.parentElement.querySelector('input'); if (e.type === "mousedown" || e.type === "touchstart" || e.type === "keydown") { field.type = 'text'; } else { field.type = 'password'; } }); }); });</script>

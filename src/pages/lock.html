@@ -51,12 +51,12 @@
             <div class="form-group row col-9 offset-3"> <small id="lockpass_help" class="form-text text-muted">Both fields empty will
                     remove the password</small> </div>
             <div class="form-group row col-4 offset-4 mt-4"> <input type=hidden name=x value=y> <button type=submit
-                    class="btn btn-primary">Save</button> </div>
+                    class="btn btn-primary w-100">Save</button> </div>
         </form>
         <form action=/lock method=POST style="display: %s;" onsubmit="if(confirm('Are you sure you want to remove the password? This will leave the interface unprotected.')){ var b = this.querySelector('button[type=submit]'); b.innerHTML = '<span class=\'spinner-border spinner-border-sm\' aria-hidden=\'true\'></span> Removing...'; b.classList.add('disabled'); return true; } return false;">
             <div class="form-group row col-4 offset-4 mt-2"> <input type=hidden name=lockpass value> <input type=hidden
                     name=lockpass2 value> <input type=hidden name=x value=y> <button type=submit
-                    class="btn btn-warning">Remove password</button> </div>
+                    class="btn btn-warning w-100">Remove password</button> </div>
         </form>
         <div class="form-group row col-4 offset-4 mt-5"> <a href=/ class="btn btn-light w-100">Back</a> </div>
     </div>

@@ -106,12 +106,12 @@
                     </div>
                 </div> <input class="form-control" name="x" type="hidden" value="x" />
             </div>
-            <div class="form-group row col-4 offset-4 mt-4"> <button class="btn btn-primary" type="submit">Apply</button> </div>
+            <div class="form-group row col-4 offset-4 mt-4"> <button class="btn btn-primary w-100" type="submit">Apply</button> </div>
         </form>
         <h2 class="mt-2">Device Management</h2>
 
         <div class="form-group row col-4 offset-4 mt-2">
-            <a href="scan" class="btn btn-light col-%s" title="Wifi scan">Wifi Scan</a>
+            <a href="scan" class="btn btn-light col-%s" title="Wifi scan" onclick="this.innerHTML = '<span class=\'spinner-border spinner-border-sm\' aria-hidden=\'true\'></span> Scanning...'; this.classList.add('disabled');">Wifi Scan</a>
             <a href="result" class="btn btn-light col-3" title="View last scan result" aria-label="View last scan result" style="display: %s;"><svg
                     xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                     class="bi bi-clock-history" viewBox="0 0 16 16" aria-hidden="true">
