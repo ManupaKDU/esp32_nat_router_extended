@@ -64,3 +64,6 @@
 ## 2024-05-14 - [Memory Allocation Optimization in Handlers]
 **Learning:** Using dynamic heap allocation (`malloc`) for small, predictable, short-lived strings (like parsing simple URL parameters) causes heap fragmentation, consumes more clock cycles for the memory manager to traverse free lists, and creates memory leak risks on early return paths.
 **Action:** Always prefer statically sized stack buffers (`char buffer[MAX_SIZE]`) over `malloc` for small arrays within the scope of a single function execution block. This guarantees O(1) allocation time, automatic memory reclamation, and eliminates `free()` leak risks.
+## 2024-05-31 - [Direct IP Address Formatting]
+**Learning:** Using `esp_ip4addr_ntoa` to create intermediate string buffers for IP addresses before inserting them into another string wastes CPU cycles and stack space in ESP-IDF applications.
+**Action:** Always embed the `IPSTR` macro directly into the target format string (e.g., `"..." IPSTR "..."`) and supply the address via `IP2STR(&ip)` in the variadic arguments of `snprintf` to format the IP directly into the final buffer.
