@@ -37,3 +37,7 @@
 ## 2026-06-09 - Add autofocus to unlock password field
 **Learning:** For simple, single-action pages like the unlock screen, users have to manually click the password input field before they can start typing, which adds unnecessary friction.
 **Action:** Use the HTML5 `autofocus` attribute on the primary input field for such simple forms to immediately place the user's cursor in the right place, saving a click and improving the overall usability flow.
+
+## 2024-06-02 - [Accessible Disabled Anchor Buttons]
+**Learning:** Applying a `.disabled` CSS class to an `<a>` tag used as a button provides visual feedback but fails to convey the disabled state to screen readers.
+**Action:** When disabling anchor tags dynamically (e.g., during loading states), always include `this.setAttribute('aria-disabled', 'true');` in the `onclick` handler to ensure assistive technologies announce the element as unavailable.
