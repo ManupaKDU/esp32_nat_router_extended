@@ -64,3 +64,7 @@
 ## 2024-05-14 - [Memory Allocation Optimization in Handlers]
 **Learning:** Using dynamic heap allocation (`malloc`) for small, predictable, short-lived strings (like parsing simple URL parameters) causes heap fragmentation, consumes more clock cycles for the memory manager to traverse free lists, and creates memory leak risks on early return paths.
 **Action:** Always prefer statically sized stack buffers (`char buffer[MAX_SIZE]`) over `malloc` for small arrays within the scope of a single function execution block. This guarantees O(1) allocation time, automatic memory reclamation, and eliminates `free()` leak risks.
+
+## 2024-06-03 - [Short-Circuit Crypto Comparison]
+**Learning:** When comparing user inputs via a constant-time memory comparison function (like `crypto_memcmp`), if both lengths are 0, calling the function incurs unnecessary overhead.
+**Action:** When performing `crypto_memcmp(passParam, pass2Param, passLen)` after validating `passLen == pass2Len`, short-circuit the execution using `(passLen == 0 || crypto_memcmp(...) == 0)` to skip the function call overhead for empty passwords.
