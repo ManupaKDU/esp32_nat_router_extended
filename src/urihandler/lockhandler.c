@@ -117,7 +117,8 @@ esp_err_t lock_handler(httpd_req_t *req)
         readUrlParameterIntoBuffer(buf, "lockpass2", pass2Param, param_len);
         size_t passLen = strlen(passParam);
         size_t pass2Len = strlen(pass2Param);
-        if (passLen == pass2Len && crypto_memcmp(passParam, pass2Param, passLen) == 0)
+        // ⚡ Bolt: Skip crypto_memcmp overhead for empty passwords
+        if (passLen == pass2Len && (passLen == 0 || crypto_memcmp(passParam, pass2Param, passLen) == 0))
         {
             ESP_LOGI(TAG, "Passes are equal. Password will be changed.");
             if (passLen == 0)
