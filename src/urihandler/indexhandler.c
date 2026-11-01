@@ -7,6 +7,20 @@ static const char *TAG = "IndexHandler";
 
 char *appliedSSID = NULL;
 
+static char *alloc_safe_str(const char *src)
+{
+    if (src == NULL) {
+        src = "";
+    }
+    size_t len = strlen(src);
+    size_t alloc_size = len * 6 + 1;
+    char *res = malloc(alloc_size);
+    if (res) {
+        sanitize_html(src, res, alloc_size);
+    }
+    return res;
+}
+
 bool isWrongHost(httpd_req_t *req)
 {
     char host[32]; // ⚡ Bolt: Use stack buffer for short predictable string to avoid malloc overhead
@@ -103,14 +117,19 @@ esp_err_t index_get_handler(httpd_req_t *req)
         hiddenSSID = "";
     }
 
-    size_t size = strlen(ap_ssid) + strlen(ap_passwd) + strlen(displayLockButton);
+    char *safe_ap_ssid = alloc_safe_str(ap_ssid);
+    char *safe_ap_passwd = alloc_safe_str(ap_passwd);
+    char *safe_ssid = alloc_safe_str(ssid);
+    char *safe_passwd = alloc_safe_str(passwd);
+
+    size_t size = (safe_ap_ssid ? strlen(safe_ap_ssid) : 0) + (safe_ap_passwd ? strlen(safe_ap_passwd) : 0) + strlen(displayLockButton);
     if (appliedSSID != NULL && appliedSSID[0] != '\0')
     {
         size = size + strlen(appliedSSID);
     }
     else
     {
-        size = size + strlen(ssid) + strlen(passwd);
+        size = size + (safe_ssid ? strlen(safe_ssid) : 0) + (safe_passwd ? strlen(safe_passwd) : 0);
     }
     char db[8] = "";
     char *textColor = NULL;
@@ -176,7 +195,11 @@ esp_err_t index_get_handler(httpd_req_t *req)
         cer = "";
     }
 
-    size = size + strlen(wpa2CB) + strlen(wpa2Input) + strlen(sta_identity) + strlen(sta_user) + strlen(cer) + strlen(displayResult) + strlen(scanButtonWidth) + strlen(displayLockButton) + strlen(displayRelockButton) + strlen(ariaExpanded) + 256;
+    char *safe_sta_identity = alloc_safe_str(sta_identity);
+    char *safe_sta_user = alloc_safe_str(sta_user);
+    char *safe_cer = alloc_safe_str(cer);
+
+    size = size + strlen(wpa2CB) + strlen(wpa2Input) + (safe_sta_identity ? strlen(safe_sta_identity) : 0) + (safe_sta_user ? strlen(safe_sta_user) : 0) + (safe_cer ? strlen(safe_cer) : 0) + strlen(displayResult) + strlen(scanButtonWidth) + strlen(displayLockButton) + strlen(displayRelockButton) + strlen(ariaExpanded) + 256;
     ESP_LOGI(TAG, "Allocating additional %d bytes for config page.", config_html_size + size);
 
     char *config_page = malloc(config_html_size + size);
@@ -186,12 +209,12 @@ esp_err_t index_get_handler(httpd_req_t *req)
     if (appliedSSID != NULL && appliedSSID[0] != '\0')
     {
         // ⚡ Bolt: Capture dynamic string length from snprintf to avoid redundant O(N) strlen() inside httpd_resp_send
-        response_len = snprintf(config_page, config_html_size + size, config_start, connect_count, hiddenSSID, ap_ssid, ap_passwd, textColor, wifiOff, wifiOn, db, ariaExpanded, wpa2CB, appliedSSID, wpa2Input, sta_identity, sta_user, cer, "", scanButtonWidth, displayResult, displayLockButton, displayRelockButton);
+        response_len = snprintf(config_page, config_html_size + size, config_start, connect_count, hiddenSSID, safe_ap_ssid ? safe_ap_ssid : "", safe_ap_passwd ? safe_ap_passwd : "", textColor, wifiOff, wifiOn, db, ariaExpanded, wpa2CB, appliedSSID, wpa2Input, safe_sta_identity ? safe_sta_identity : "", safe_sta_user ? safe_sta_user : "", safe_cer ? safe_cer : "", "", scanButtonWidth, displayResult, displayLockButton, displayRelockButton);
     }
     else
     {
         // ⚡ Bolt: Capture dynamic string length from snprintf to avoid redundant O(N) strlen() inside httpd_resp_send
-        response_len = snprintf(config_page, config_html_size + size, config_start, connect_count, hiddenSSID, ap_ssid, ap_passwd, textColor, wifiOff, wifiOn, db, ariaExpanded, wpa2CB, ssid, wpa2Input, sta_identity, sta_user, cer, passwd, scanButtonWidth, displayResult, displayLockButton, displayRelockButton);
+        response_len = snprintf(config_page, config_html_size + size, config_start, connect_count, hiddenSSID, safe_ap_ssid ? safe_ap_ssid : "", safe_ap_passwd ? safe_ap_passwd : "", textColor, wifiOff, wifiOn, db, ariaExpanded, wpa2CB, safe_ssid ? safe_ssid : "", wpa2Input, safe_sta_identity ? safe_sta_identity : "", safe_sta_user ? safe_sta_user : "", safe_cer ? safe_cer : "", safe_passwd ? safe_passwd : "", scanButtonWidth, displayResult, displayLockButton, displayRelockButton);
     }
 
     closeHeader(req);
@@ -208,6 +231,14 @@ esp_err_t index_get_handler(httpd_req_t *req)
     {
         free(orig_cer);
     }
+
+    if (safe_ap_ssid) free(safe_ap_ssid);
+    if (safe_ap_passwd) free(safe_ap_passwd);
+    if (safe_ssid) free(safe_ssid);
+    if (safe_passwd) free(safe_passwd);
+    if (safe_sta_identity) free(safe_sta_identity);
+    if (safe_sta_user) free(safe_sta_user);
+    if (safe_cer) free(safe_cer);
 
     return ret;
 }
