@@ -9,8 +9,9 @@ char *appliedSSID = NULL;
 
 static char *alloc_safe_str(const char *src)
 {
-    if (src == NULL) {
-        src = "";
+    // ⚡ Bolt: Eliminate redundant 1-byte heap allocations and memory fragmentation for empty strings
+    if (src == NULL || src[0] == '\0') {
+        return NULL;
     }
     size_t len = strlen(src);
     size_t alloc_size = len * 6 + 1;
