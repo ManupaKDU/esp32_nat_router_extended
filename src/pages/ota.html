@@ -66,10 +66,10 @@
             <div class="form-group row col-12 col-md-8 offset-md-2">
                 <label for="ota_url" class="form-label text-center fw-bold">Custom OTA Endpoint URL</label>
                 <div class="input-group">
-                    <input type="text" class="form-control" id="ota_url" name="ota_url" value="%s" placeholder="e.g. https://raw.githubusercontent.com/ManupaKDU/... or http://192.168.1.100:8080/" maxlength="200">
+                    <input type="text" class="form-control" id="ota_url" name="ota_url" value="%s" placeholder="e.g. https://raw.githubusercontent.com/ManupaKDU/... or http://192.168.1.100:8080/" maxlength="200" aria-describedby="ota_url_help">
                     <button type="submit" class="btn btn-secondary">Save</button>
                 </div>
-                <small class="form-text text-muted text-center mt-1">Leave empty to use the default repository endpoint (ManupaKDU).</small>
+                <small id="ota_url_help" class="form-text text-muted text-center mt-1">Leave empty to use the default repository endpoint (ManupaKDU).</small>
             </div>
         </form>
 
@@ -78,10 +78,10 @@
             <div class="mb-3">
                 <label for="firmware_file" class="form-label">Select compiled firmware (.bin) file:</label>
                 <div class="input-group">
-                    <input type="file" class="form-control" id="firmware_file" accept=".bin">
+                    <input type="file" class="form-control" id="firmware_file" accept=".bin" aria-describedby="firmware_file_help">
                     <button type="button" class="btn btn-danger" id="upload_btn" onclick="startFirmwareUpload()">Upload &amp; Flash</button>
                 </div>
-                <small class="form-text text-muted">Uploads the binary directly to the next OTA partition and reboots.</small>
+                <small id="firmware_file_help" class="form-text text-muted">Uploads the binary directly to the next OTA partition and reboots.</small>
             </div>
             <div id="upload_progress_wrapper" style="display:none;">
                 <div class="progress" style="height: 24px;">
