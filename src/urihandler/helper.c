@@ -143,6 +143,20 @@ bool str2mac(const char *mac, uint8_t *values)
     return true;
 }
 
+char *alloc_safe_str(const char *src)
+{
+    if (src == NULL) {
+        src = "";
+    }
+    size_t len = strlen(src);
+    size_t alloc_size = len * 6 + 1;
+    char *res = malloc(alloc_size);
+    if (res) {
+        sanitize_html(src, res, alloc_size);
+    }
+    return res;
+}
+
 void sanitize_html(const char *input, char *output, size_t output_size)
 {
     if (!input || !output || output_size == 0) return;
