@@ -450,18 +450,24 @@ esp_err_t ota_download_get_handler(httpd_req_t *req)
 
     char *savedOtaUrl = NULL;
     get_config_param_str("ota_url", &savedOtaUrl);
-    const char *configured_url = (savedOtaUrl != NULL) ? savedOtaUrl : "";
+    char *safe_savedOtaUrl = alloc_safe_str(savedOtaUrl);
+    const char *configured_url = (safe_savedOtaUrl != NULL) ? safe_savedOtaUrl : "";
 
     size_t alloc_size = ota_html_size + strlen(project_version) + strlen(customUrl) + strlen(latest_version) + strlen(chip_type) + strlen(label) + strlen(changelog) + strlen(configured_url) + 128;
     char *ota_page = malloc(alloc_size);
     if (ota_page == NULL)
     {
+        if (safe_savedOtaUrl != NULL) free(safe_savedOtaUrl);
         if (savedOtaUrl != NULL) free(savedOtaUrl);
         ESP_LOGE(TAG, "Memory allocation failed");
         return ESP_FAIL;
     }
     // ⚡ Bolt: Capture dynamic string length to avoid redundant O(N) strlen() in httpd_resp_send
     int response_len = snprintf(ota_page, alloc_size, ota_start, project_version, latest_version, changelog, customUrl, label, chip_type, configured_url);
+    if (safe_savedOtaUrl != NULL)
+    {
+        free(safe_savedOtaUrl);
+    }
     if (savedOtaUrl != NULL)
     {
         free(savedOtaUrl);
