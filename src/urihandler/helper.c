@@ -179,6 +179,7 @@ void sanitize_html(const char *input, char *output, size_t output_size)
 
 char *alloc_safe_str(const char *src)
 {
+    // ⚡ Bolt: Eliminate redundant 1-byte heap allocations and memory fragmentation for empty strings
     if (src == NULL || src[0] == '\0') {
         return NULL;
     }
