@@ -452,20 +452,28 @@ esp_err_t ota_download_get_handler(httpd_req_t *req)
     get_config_param_str("ota_url", &savedOtaUrl);
     const char *configured_url = (savedOtaUrl != NULL) ? savedOtaUrl : "";
 
-    size_t alloc_size = ota_html_size + strlen(project_version) + strlen(customUrl) + strlen(latest_version) + strlen(chip_type) + strlen(label) + strlen(changelog) + strlen(configured_url) + 128;
+    char *safe_customUrl = alloc_safe_str(customUrl);
+    char *safe_configured_url = alloc_safe_str(configured_url);
+
+    size_t alloc_size = ota_html_size + strlen(project_version) + (safe_customUrl ? strlen(safe_customUrl) : 0) + strlen(latest_version) + strlen(chip_type) + strlen(label) + strlen(changelog) + (safe_configured_url ? strlen(safe_configured_url) : 0) + 128;
     char *ota_page = malloc(alloc_size);
     if (ota_page == NULL)
     {
         if (savedOtaUrl != NULL) free(savedOtaUrl);
+        if (safe_customUrl != NULL) free(safe_customUrl);
+        if (safe_configured_url != NULL) free(safe_configured_url);
         ESP_LOGE(TAG, "Memory allocation failed");
         return ESP_FAIL;
     }
     // ⚡ Bolt: Capture dynamic string length to avoid redundant O(N) strlen() in httpd_resp_send
-    int response_len = snprintf(ota_page, alloc_size, ota_start, project_version, latest_version, changelog, customUrl, label, chip_type, configured_url);
+    // 🛡️ Sentinel: Used sanitized configuration strings to prevent XSS injection when rendering template
+    int response_len = snprintf(ota_page, alloc_size, ota_start, project_version, latest_version, changelog, safe_customUrl ? safe_customUrl : "", label, chip_type, safe_configured_url ? safe_configured_url : "");
     if (savedOtaUrl != NULL)
     {
         free(savedOtaUrl);
     }
+    if (safe_customUrl != NULL) free(safe_customUrl);
+    if (safe_configured_url != NULL) free(safe_configured_url);
 
     closeHeader(req);
 

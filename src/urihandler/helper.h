@@ -15,3 +15,4 @@ bool is_valid_subnet_mask(char *subnet_mask);
 bool str2mac(const char *mac, uint8_t *values);
 int crypto_memcmp(const void *a, const void *b, size_t len);
 void sanitize_html(const char *input, char *output, size_t output_size);
+char *alloc_safe_str(const char *src);
