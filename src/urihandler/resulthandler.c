@@ -8,7 +8,7 @@
 
 static const char *TAG = "ResultHandler";
 
-const char *ROW_TEMPLATE = "<tr><th scope='row' class='text-%s'>%s</th><td class='text-%s'>%s</td><td><form action='/' method='POST'><input type='hidden' name='ssid' value='%s'><input type='submit' value='Use' name='use' class='btn btn-primary' aria-label='Use %s'/></form></td></tr>";
+const char *ROW_TEMPLATE = "<tr><th scope='row' class='text-%s'>%s</th><td class='text-%s'>%s</td><td><form action='/' method='POST' onsubmit=\"var b = this.querySelector('button[name=\\'use\\']'); b.innerHTML = '<span class=\\'spinner-border spinner-border-sm\\' aria-hidden=\\'true\\'></span>'; b.classList.add('disabled'); b.setAttribute('aria-disabled', 'true');\"><input type='hidden' name='ssid' value='%s'><button type='submit' value='Use' name='use' class='btn btn-primary' aria-label='Use %s'>Use</button></form></td></tr>";
 
 char *findTextColorForSSID(int8_t rssi)
 {
