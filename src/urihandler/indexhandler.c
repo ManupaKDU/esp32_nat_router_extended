@@ -7,21 +7,6 @@ static const char *TAG = "IndexHandler";
 
 char *appliedSSID = NULL;
 
-static char *alloc_safe_str(const char *src)
-{
-    // ⚡ Bolt: Eliminate redundant 1-byte heap allocations and memory fragmentation for empty strings
-    if (src == NULL || src[0] == '\0') {
-        return NULL;
-    }
-    size_t len = strlen(src);
-    size_t alloc_size = len * 6 + 1;
-    char *res = malloc(alloc_size);
-    if (res) {
-        sanitize_html(src, res, alloc_size);
-    }
-    return res;
-}
-
 bool isWrongHost(httpd_req_t *req)
 {
     char host[32]; // ⚡ Bolt: Use stack buffer for short predictable string to avoid malloc overhead
