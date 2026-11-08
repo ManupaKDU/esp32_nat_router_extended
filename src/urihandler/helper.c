@@ -176,6 +176,21 @@ void sanitize_html(const char *input, char *output, size_t output_size)
     }
     output[out_idx] = '\0';
 }
+
+char *alloc_safe_str(const char *src)
+{
+    if (src == NULL || src[0] == '\0') {
+        return NULL;
+    }
+    size_t len = strlen(src);
+    size_t alloc_size = len * 6 + 1;
+    char *res = malloc(alloc_size);
+    if (res) {
+        sanitize_html(src, res, alloc_size);
+    }
+    return res;
+}
+
 int crypto_memcmp(const void *a, const void *b, size_t len)
 {
     const volatile unsigned char *pa = (const volatile unsigned char *)a;
@@ -185,18 +200,4 @@ int crypto_memcmp(const void *a, const void *b, size_t len)
         res |= pa[i] ^ pb[i];
     }
     return res == 0 ? 0 : 1;
-}
-
-char *alloc_safe_str(const char *src)
-{
-    if (src == NULL) {
-        src = "";
-    }
-    size_t len = strlen(src);
-    size_t alloc_size = len * 6 + 1;
-    char *res = malloc(alloc_size);
-    if (res) {
-        sanitize_html(src, res, alloc_size);
-    }
-    return res;
 }
