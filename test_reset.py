@@ -24,7 +24,7 @@ async def main():
         page.once("dialog", lambda dialog: dialog.dismiss())
 
         # Click the Erase flash button
-        await page.click("input[value='Erase flash']")
+        await page.click("button[type='submit']")
 
         # Take another screenshot
         await page.screenshot(path="screenshot_after.png", full_page=True)
