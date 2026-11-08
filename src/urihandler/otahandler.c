@@ -466,19 +466,14 @@ esp_err_t ota_download_get_handler(httpd_req_t *req)
         return ESP_FAIL;
     }
     // ⚡ Bolt: Capture dynamic string length to avoid redundant O(N) strlen() in httpd_resp_send
+    // 🛡️ Sentinel: Used sanitized configuration strings to prevent XSS injection when rendering template
     int response_len = snprintf(ota_page, alloc_size, ota_start, project_version, latest_version, changelog, safe_customUrl ? safe_customUrl : "", label, chip_type, safe_configured_url ? safe_configured_url : "");
     if (savedOtaUrl != NULL)
     {
         free(savedOtaUrl);
     }
-    if (safe_customUrl != NULL)
-    {
-        free(safe_customUrl);
-    }
-    if (safe_configured_url != NULL)
-    {
-        free(safe_configured_url);
-    }
+    if (safe_customUrl != NULL) free(safe_customUrl);
+    if (safe_configured_url != NULL) free(safe_configured_url);
 
     closeHeader(req);
 
