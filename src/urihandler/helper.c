@@ -179,8 +179,8 @@ void sanitize_html(const char *input, char *output, size_t output_size)
 
 char *alloc_safe_str(const char *src)
 {
-    if (src == NULL) {
-        src = "";
+    if (src == NULL || src[0] == '\0') {
+        return NULL;
     }
     size_t len = strlen(src);
     size_t alloc_size = len * 6 + 1;
