@@ -471,8 +471,14 @@ esp_err_t ota_download_get_handler(httpd_req_t *req)
     {
         free(savedOtaUrl);
     }
-    if (safe_customUrl != NULL) free(safe_customUrl);
-    if (safe_configured_url != NULL) free(safe_configured_url);
+    if (safe_customUrl != NULL)
+    {
+        free(safe_customUrl);
+    }
+    if (safe_configured_url != NULL)
+    {
+        free(safe_configured_url);
+    }
 
     closeHeader(req);
 
