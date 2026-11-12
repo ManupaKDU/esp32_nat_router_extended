@@ -48,20 +48,20 @@
             </table>
         </div>
 
-        <form action=/ota method=POST onsubmit="var b = this.querySelector('button[type=submit]'); if(b){ b.innerHTML = '<span class=\'spinner-border\' aria-hidden=\'true\'></span> Refreshing...'; b.classList.add('disabled'); }">
+        <form action=/ota method=POST onsubmit="var b = this.querySelector('button[type=submit]'); if(b){ b.innerHTML = '<span class=\'spinner-border\' aria-hidden=\'true\'></span> Refreshing...'; b.classList.add('disabled'); b.setAttribute('aria-disabled', 'true'); }">
             <div class="form-group row col-12 col-md-4 offset-md-4 mt-2">
                 <input type="hidden" name="func" value="versioncheck">
                 <button type="submit" class="btn btn-primary w-100">Refresh latest OTA infos</button>
             </div>
         </form>
-        <form action=/otalog method=POST onsubmit="if(confirm('Are you sure you want to install the latest version? The device will become unresponsive during the update.')){ var b = this.querySelector('button[type=submit]'); if(b){ b.innerHTML = '<span class=\'spinner-border\' aria-hidden=\'true\'></span> Installing...'; b.classList.add('disabled'); } return true; } return false;">
+        <form action=/otalog method=POST onsubmit="if(confirm('Are you sure you want to install the latest version? The device will become unresponsive during the update.')){ var b = this.querySelector('button[type=submit]'); if(b){ b.innerHTML = '<span class=\'spinner-border\' aria-hidden=\'true\'></span> Installing...'; b.classList.add('disabled'); b.setAttribute('aria-disabled', 'true'); } return true; } return false;">
             <div class="form-group row col-12 col-md-4 offset-md-4 mt-2">
                 <input type="hidden" name="func" value="update">
                 <button type="submit" class="btn btn-warning w-100">Install latest version</button>
             </div>
         </form>
 
-        <form action=/ota method=POST class="mt-4" onsubmit="var b = this.querySelector('button[type=submit]'); if(b) { b.innerHTML = '<span class=\'spinner-border spinner-border-sm\' aria-hidden=\'true\'></span> Saving...'; b.classList.add('disabled'); }">
+        <form action=/ota method=POST class="mt-4" onsubmit="var b = this.querySelector('button[type=submit]'); if(b) { b.innerHTML = '<span class=\'spinner-border spinner-border-sm\' aria-hidden=\'true\'></span> Saving...'; b.classList.add('disabled'); b.setAttribute('aria-disabled', 'true'); }">
             <input type="hidden" name="func" value="set_ota_url">
             <div class="form-group row col-12 col-md-8 offset-md-2">
                 <label for="ota_url" class="form-label text-center fw-bold">Custom OTA Endpoint URL</label>
